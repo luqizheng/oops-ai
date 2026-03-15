@@ -148,7 +148,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import axios from '../utils/api'
 
 interface QualityScore {
   clarity: number

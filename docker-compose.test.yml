@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # PostgreSQL 数据库（测试环境）
   postgres:
-    image: zhcoderd-docker-registry.com:8000/official/postgres:15-alpine
+    image: zhcoder-docker-registry.com:8000/official/postgres:15-alpine
     container_name: oops-ai-postgres-test
     environment:
       POSTGRES_DB: oops_ai_test

@@ -3,14 +3,14 @@ version: '3.8'
 services:
   # PostgreSQL 数据库（使用您指定的镜像）
   postgres:
-    image: zhcoderd-docker-registry.com:8000/official/postgres:15-alpine
+    image: zhcoder-docker-registry.com:8000/official/postgres:latest
     container_name: oops-ai-postgres-dev
     environment:
       POSTGRES_DB: oops_ai_dev
       POSTGRES_USER: oops_user
       POSTGRES_PASSWORD: oops_password
     volumes:
-      - postgres_dev_data:/var/lib/postgresql/data
+      - postgres_dev_data:/var/lib/postgresql
       - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5432:5432"
@@ -45,8 +45,8 @@ services:
     networks:
       - oops-ai-dev-network
     volumes:
-      - ./backend:/app/backend
       - /app/backend/node_modules
+    working_dir: /app/backend
     command: sh -c "npx prisma migrate dev && npm run start:dev"
     restart: unless-stopped
 
@@ -66,14 +66,14 @@ services:
     networks:
       - oops-ai-dev-network
     volumes:
-      - ./frontend:/app/frontend
       - /app/frontend/node_modules
+    working_dir: /app/frontend
     command: npm run dev -- --host
     restart: unless-stopped
 
   # ChromaDB 向量数据库（开发模式）
   chromadb:
-    image: chromadb/chroma:latest
+    image: zhcoder-docker-registry.com:8000/official/chromadb/chroma:latest
     container_name: oops-ai-chromadb-dev
     ports:
       - "8000:8000"

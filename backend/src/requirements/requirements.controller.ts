@@ -6,7 +6,9 @@ import {
   Param,
   Put,
   Delete,
+  UseGuards,
 } from '@nestjs/common'
+import { AuthGuard } from '@nestjs/passport'
 import { RequirementsService } from './requirements.service'
 import {
   CreateRequirementDto,
@@ -21,6 +23,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger'
 
 @ApiTags('requirements')
 @Controller('requirements')
+@UseGuards(AuthGuard())
 export class RequirementsController {
   constructor(private readonly requirementsService: RequirementsService) {}
 

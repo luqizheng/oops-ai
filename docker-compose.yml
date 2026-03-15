@@ -3,7 +3,7 @@ version: "3.8"
 services:
   # PostgreSQL 数据库
   postgres:
-    image: zhcoderd-docker-registry.com:8000/official/postgres:15-alpine
+    image: zhcoder-docker-registry.com:8000/official/postgres:15-alpine
     container_name: oops-ai-postgres
     environment:
       POSTGRES_DB: oops_ai
@@ -85,7 +85,7 @@ services:
 
   # ChromaDB 向量数据库（可选）
   chromadb:
-    image: zhcoderd-docker-registry.com:8000/official/chromadb/chroma:latest
+    image: zhcoder-docker-registry.com:8000/official/chromadb/chroma:latest
     container_name: oops-ai-chromadb
     ports:
       - "8000:8000"

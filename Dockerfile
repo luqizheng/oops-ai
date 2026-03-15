@@ -1,5 +1,5 @@
 # 使用 Node.js 官方镜像作为基础镜像
-FROM  zhcoderd-docker-registry.com:8000/official/node:20-alpine AS base
+FROM  zhcoder-docker-registry.com:8000/official/node:20-alpine AS base
 
 # 安装 pnpm
 RUN npm install -g pnpm

@@ -1,6 +1,6 @@
 # 开发环境 Dockerfile - 后端
-FROM node:20-alpine
-
+FROM zhcoder-docker-registry.com:8000/official/node:20-alpine
+RUN npm config set registry https://registry.npmmirror.com 
 # 安装 pnpm
 RUN npm install -g pnpm
 
@@ -8,11 +8,10 @@ RUN npm install -g pnpm
 WORKDIR /app
 
 # 复制 package.json 文件
-COPY package.json pnpm-lock.yaml ./
-COPY backend/package.json ./backend/
+COPY backend/package.json backend/pnpm-lock.yaml ./backend/
 
 # 安装依赖
-RUN pnpm install --frozen-lockfile
+RUN cd backend && pnpm install --frozen-lockfile
 
 # 复制后端源代码
 COPY backend ./backend

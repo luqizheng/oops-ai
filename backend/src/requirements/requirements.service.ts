@@ -218,17 +218,17 @@ export class RequirementsService {
       return { acceptanceCriteria: parsed.acceptanceCriteria || [] }
     } catch {
       const criteria = response.split('\n').filter(line => line.trim()).map(line => {
-        const match = line.match(/Given (.+?) When (.+?) Then (.+?)$/)
-        if (match) {
-          return {
-            given: match[1],
-            when: match[2],
-            then: match[3],
-            scenarioType: 'normal',
+          const match = line.match(/Given (.+?) When (.+?) Then (.+?)$/)
+          if (match) {
+            return {
+              given: match[1],
+              when: match[2],
+              then: match[3],
+              scenarioType: 'normal' as const,
+            }
           }
-        }
-        return null
-      }).filter(Boolean)
+          return null
+        }).filter(Boolean) as Array<{ given: string; when: string; then: string; scenarioType: 'normal' | 'exception' | 'boundary' }>
       
       return { acceptanceCriteria: criteria.slice(0, 5) }
     }

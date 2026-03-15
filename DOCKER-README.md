@@ -114,7 +114,7 @@ LOG_LEVEL="info"
 |------|------|------|------|
 | 前端 | 5173 | Vue 开发服务器 | 自定义构建 |
 | 后端 | 3000 | NestJS API 服务器 | 自定义构建 |
-| 数据库 | 5432 | PostgreSQL | `zhcoderd-docker-registry.com:8000/official/postgres:15-alpine` |
+| 数据库 | 5432 | PostgreSQL | `zhcoder-docker-registry.com:8000/official/postgres:15-alpine` |
 | 向量数据库 | 8000 | ChromaDB | `chromadb/chroma:latest` |
 | Nginx | 80 | 反向代理（生产） | `nginx:alpine` |
 
@@ -180,7 +180,7 @@ netstat -ano | findstr :5432
 #### 2. 镜像拉取失败
 ```powershell
 # 检查网络连接
-ping zhcoderd-docker-registry.com
+ping zhcoder-docker-registry.com
 
 # 使用备用镜像
 # 修改 docker-compose.yml 中的 image 字段

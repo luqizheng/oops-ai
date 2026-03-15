@@ -152,7 +152,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import axios from 'axios'
+import axios from '../utils/api'
 
 interface FuzzyWordAnalysis {
   text: string
@@ -317,3 +317,13 @@ const getScenarioText = (type: string) => {
   }
 }
 </script>
+
+<style scoped>
+.fuzzy-word {
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  border-radius: 3px;
+  padding: 0 2px;
+  font-weight: 500;
+}
+</style>

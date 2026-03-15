@@ -17,17 +17,26 @@ export class VectorService implements OnModuleInit {
         path: 'http://localhost:8000',
       })
 
-      const collections = await this.client.listCollections()
-      const exists = collections.some(col => col.name === this.collectionName)
+      // 由于ChromaDB需要embeddingFunction参数，我们使用一个简单的实现
+      const embeddingFunction = {
+        generate: async (texts: string[]) => {
+          return Promise.all(texts.map(text => this.generateEmbedding(text)))
+        }
+      }
 
-      if (exists) {
+      // 简化实现，直接尝试创建或获取集合
+      try {
+        // 尝试获取现有集合
         this.collection = await this.client.getCollection({
           name: this.collectionName,
+          embeddingFunction
         })
-      } else {
+      } catch {
+        // 如果集合不存在，创建新集合
         this.collection = await this.client.createCollection({
           name: this.collectionName,
           metadata: { description: 'Requirements vector store' },
+          embeddingFunction
         })
       }
     } catch (error) {

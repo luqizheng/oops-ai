@@ -211,7 +211,7 @@ docker stats
 #### 4. 镜像拉取失败
 ```bash
 # 检查网络连接
-ping zhcoderd-docker-registry.com
+ping zhcoder-docker-registry.com
 
 # 使用备用镜像
 # 修改 docker-compose.yml 中的 image 字段

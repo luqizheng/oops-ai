@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common'
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PrismaService } from '../prisma/prisma.service'
 import OpenAI from 'openai'
@@ -251,5 +251,109 @@ export class LLMService {
     } catch {
       return false
     }
+  }
+
+  async getAllConfigurations() {
+    return this.prisma.lLMConfiguration.findMany({
+      orderBy: { createdAt: 'desc' },
+    })
+  }
+
+  async createConfiguration(data: any) {
+    // 如果设置为默认，先将其他配置的默认标志设为false
+    if (data.isDefault) {
+      await this.prisma.lLMConfiguration.updateMany({
+        where: { isDefault: true },
+        data: { isDefault: false },
+      })
+    }
+
+    return this.prisma.lLMConfiguration.create({
+      data,
+    })
+  }
+
+  async updateConfiguration(id: string, data: any) {
+    // 检查配置是否存在
+    const existingConfig = await this.prisma.lLMConfiguration.findUnique({
+      where: { id },
+    })
+
+    if (!existingConfig) {
+      throw new NotFoundException(`Configuration with ID ${id} not found`)
+    }
+
+    // 如果设置为默认，先将其他配置的默认标志设为false
+    if (data.isDefault) {
+      await this.prisma.lLMConfiguration.updateMany({
+        where: { isDefault: true, NOT: { id } },
+        data: { isDefault: false },
+      })
+    }
+
+    return this.prisma.lLMConfiguration.update({
+      where: { id },
+      data,
+    })
+  }
+
+  async deleteConfiguration(id: string) {
+    // 检查配置是否存在
+    const existingConfig = await this.prisma.lLMConfiguration.findUnique({
+      where: { id },
+    })
+
+    if (!existingConfig) {
+      throw new NotFoundException(`Configuration with ID ${id} not found`)
+    }
+
+    return this.prisma.lLMConfiguration.delete({
+      where: { id },
+    })
+  }
+
+  async setDefaultConfiguration(id: string) {
+    // 检查配置是否存在
+    const existingConfig = await this.prisma.lLMConfiguration.findUnique({
+      where: { id },
+    })
+
+    if (!existingConfig) {
+      throw new NotFoundException(`Configuration with ID ${id} not found`)
+    }
+
+    // 将所有配置的默认标志设为false
+    await this.prisma.lLMConfiguration.updateMany({
+      where: { isDefault: true },
+      data: { isDefault: false },
+    })
+
+    // 设置当前配置为默认
+    return this.prisma.lLMConfiguration.update({
+      where: { id },
+      data: { isDefault: true },
+    })
+  }
+
+  async testConfigurationById(id: string): Promise<boolean> {
+    const config = await this.prisma.lLMConfiguration.findUnique({
+      where: { id },
+    })
+
+    if (!config) {
+      throw new NotFoundException(`Configuration with ID ${id} not found`)
+    }
+
+    const llmConfig: LLMConfig = {
+      provider: config.provider as any,
+      modelName: config.modelName,
+      apiEndpoint: config.apiEndpoint || undefined,
+      apiKey: config.apiKey || undefined,
+      temperature: config.temperature,
+      maxTokens: config.maxTokens,
+      isDefault: config.isDefault,
+    }
+
+    return this.testConnection(llmConfig)
   }
 }
