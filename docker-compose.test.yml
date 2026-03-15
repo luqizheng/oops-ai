@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库（测试环境）
+  postgres:
+    image: zhcoderd-docker-registry.com:8000/official/postgres:15-alpine
+    container_name: oops-ai-postgres-test
+    environment:
+      POSTGRES_DB: oops_ai_test
+      POSTGRES_USER: oops_user
+      POSTGRES_PASSWORD: oops_password
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - oops-ai-test-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U oops_user -d oops_ai_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 后端应用（测试模式）
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: oops-ai-backend-test
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://oops_user:oops_password@postgres:5432/oops_ai_test
+      PORT: 3001
+      JWT_SECRET: test-jwt-secret
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - oops-ai-test-network
+    command: sh -c "npx prisma migrate dev && npm run test:e2e"
+    restart: on-failure
+
+  # 前端应用（测试模式）
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: oops-ai-frontend-test
+    ports:
+      - "4173:4173"
+    environment:
+      NODE_ENV: test
+      VITE_API_URL: http://localhost:3001
+    depends_on:
+      - backend
+    networks:
+      - oops-ai-test-network
+    command: npm run preview
+    restart: on-failure
+
+  # 测试运行器
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: oops-ai-test-runner
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - oops-ai-test-network
+    volumes:
+      - ./test-results:/app/test-results
+    command: npm run test:all
+    restart: "no"
+
+networks:
+  oops-ai-test-network:
+    driver: bridge
+
+volumes:
+  postgres_test_data:
+    driver: local

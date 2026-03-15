@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Requirement {
+  id               String   @id @default(uuid())
+  title            String
+  description      String?
+  rawInput         String?  @map("raw_input")
+  structuredData   Json?    @map("structured_data")
+  qualityScore     Json?    @map("quality_score")
+  vectorEmbedding  String?  @map("vector_embedding")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("requirements")
+}
+
+model QuestionTemplate {
+  id               String   @id @default(uuid())
+  requirementType  String   @map("requirement_type")
+  templateContent  String   @map("template_content")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@map("question_templates")
+}
+
+model LLMConfiguration {
+  id           String   @id @default(uuid())
+  provider     String
+  modelName    String   @map("model_name")
+  apiEndpoint  String?  @map("api_endpoint")
+  apiKey       String?  @map("api_key")
+  temperature  Float    @default(0.7)
+  maxTokens    Int      @default(2000) @map("max_tokens")
+  isDefault    Boolean  @default(false) @map("is_default")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("llm_configurations")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  password     String
+  name         String?
+  role         String   @default("user")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("users")
+}
