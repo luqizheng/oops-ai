@@ -19,7 +19,7 @@ export class CreateUserDto {
   roleId: string
 
   @IsOptional()
-  organizationId?: string
+  organizationIds?: string[]
 }
 
 export class UpdateUserDto {
@@ -41,7 +41,7 @@ export class UpdateUserDto {
   roleId?: string
 
   @IsOptional()
-  organizationId?: string
+  organizationIds?: string[]
 }
 
 export class UserDto {
@@ -50,8 +50,7 @@ export class UserDto {
   name: string | null
   roleId: string
   role: { name: string }
-  organizationId: string | null
-  organization?: { name: string }
+  userOrganizations: { organization: { id: string; name: string } }[]
   createdAt: Date
   updatedAt: Date
 }

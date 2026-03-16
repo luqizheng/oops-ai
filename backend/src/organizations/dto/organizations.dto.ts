@@ -26,4 +26,5 @@ export class OrganizationDto {
   description: string | null
   createdAt: Date
   updatedAt: Date
+  users?: { user: { id: string; name: string; email: string } }[]
 }

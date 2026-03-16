@@ -24,11 +24,32 @@ export class OrganizationsService {
   }
 
   async findAll(): Promise<OrganizationDto[]> {
-    return this.prisma.organization.findMany();
+    return this.prisma.organization.findMany({
+      include: {
+        userOrganizations: {
+          include: {
+            user: {
+              select: { id: true, name: true, email: true }
+            }
+          }
+        }
+      }
+    });
   }
 
   async findOne(id: string): Promise<OrganizationDto> {
-    const organization = await this.prisma.organization.findUnique({ where: { id } });
+    const organization = await this.prisma.organization.findUnique({
+      where: { id },
+      include: {
+        userOrganizations: {
+          include: {
+            user: {
+              select: { id: true, name: true, email: true }
+            }
+          }
+        }
+      }
+    });
 
     if (!organization) {
       throw new NotFoundException('Organization not found');
