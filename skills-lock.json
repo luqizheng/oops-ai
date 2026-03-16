@@ -1,6 +1,11 @@
 {
   "version": 1,
   "skills": {
+    "element-plus-vue3": {
+      "source": "teachingai/full-stack-skills",
+      "sourceType": "github",
+      "computedHash": "c94e6148d927518eac977f84c5221883616c41eda1b0a5ce3a974ed1175e9f90"
+    },
     "ux-admin-portal": {
       "source": "williamfontaine/claude-plugins-marketplace",
       "sourceType": "github",

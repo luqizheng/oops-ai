@@ -20,6 +20,12 @@ export class AuthService {
       throw new ConflictException('Email already exists');
     }
 
+    // Get default user role
+    const userRole = await this.prisma.role.findUnique({ where: { name: 'user' } });
+    if (!userRole) {
+      throw new UnauthorizedException('Default role not found');
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -29,6 +35,10 @@ export class AuthService {
         email,
         password: hashedPassword,
         name,
+        roleId: userRole.id,
+      },
+      include: {
+        role: true,
       },
     });
 
@@ -36,7 +46,7 @@ export class AuthService {
     const accessToken = this.jwtService.sign({
       sub: user.id,
       email: user.email,
-      role: user.role,
+      role: user.role.name,
     });
 
     return {
@@ -45,7 +55,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
+        role: user.role.name,
       },
     };
   }
@@ -53,8 +63,13 @@ export class AuthService {
   async login(loginDto: LoginDto): Promise<AuthResponseDto> {
     const { email, password } = loginDto;
 
-    // Find user
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    // Find user with role
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: {
+        role: true,
+      },
+    });
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -69,7 +84,7 @@ export class AuthService {
     const accessToken = this.jwtService.sign({
       sub: user.id,
       email: user.email,
-      role: user.role,
+      role: user.role.name,
     });
 
     return {
@@ -78,7 +93,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
+        role: user.role.name,
       },
     };
   }

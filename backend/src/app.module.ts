@@ -5,6 +5,9 @@ import { RequirementsModule } from './requirements/requirements.module'
 import { LLMModule } from './llm/llm.module'
 import { VectorModule } from './vector/vector.module'
 import { AuthModule } from './auth/auth.module'
+import { UsersModule } from './users/users.module'
+import { RolesModule } from './roles/roles.module'
+import { OrganizationsModule } from './organizations/organizations.module'
 
 @Module({
   imports: [
@@ -16,6 +19,9 @@ import { AuthModule } from './auth/auth.module'
     RequirementsModule,
     LLMModule,
     VectorModule,
+    UsersModule,
+    RolesModule,
+    OrganizationsModule,
   ],
 })
 export class AppModule {}

@@ -51,9 +51,55 @@ model User {
   email        String   @unique
   password     String
   name         String?
-  role         String   @default("user")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+  
+  // Relationships
+  roleId       String   @map("role_id")
+  role         Role     @relation(fields: [roleId], references: [id])
+  organizationId String? @map("organization_id")
+  organization   Organization? @relation(fields: [organizationId], references: [id])
 
   @@map("users")
+}
+
+model Role {
+  id           String   @id @default(uuid())
+  name         String   @unique
+  description  String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+  
+  // Relationships
+  users        User[]
+  permissions  Permission[]
+
+  @@map("roles")
+}
+
+model Organization {
+  id           String   @id @default(uuid())
+  name         String   @unique
+  description  String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+  
+  // Relationships
+  users        User[]
+
+  @@map("organizations")
+}
+
+model Permission {
+  id           String   @id @default(uuid())
+  name         String   @unique
+  description  String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+  
+  // Relationships
+  roleId       String   @map("role_id")
+  role         Role     @relation(fields: [roleId], references: [id])
+
+  @@map("permissions")
 }

@@ -32,6 +32,24 @@ const router = createRouter({
       name: 'llm-config',
       component: () => import('@/views/LLMConfiguration.vue'),
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/roles',
+      name: 'roles',
+      component: () => import('@/views/RoleManagement.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/users',
+      name: 'users',
+      component: () => import('@/views/UserManagement.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/organizations',
+      name: 'organizations',
+      component: () => import('@/views/OrganizationManagement.vue'),
+      meta: { requiresAuth: true }
     }
   ]
 })
