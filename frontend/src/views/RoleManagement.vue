@@ -1,13 +1,19 @@
 <template>
-  <div class="space-y-8">
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-200">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">角色管理</h2>
+  <div class="space-y-8 p-4">
+    <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 p-8 hover:shadow-md transition-all duration-300">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div>
+          <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400">
+            角色管理
+          </h2>
+          <p class="text-sm text-gray-500 mt-1">定义权限组和职能分工</p>
+        </div>
         <el-button
-          @click="showDrawer = true"
+          @click="router.push('/roles/new')"
           type="primary"
-          class="rounded-lg px-5 py-2 h-10 text-sm"
+          class="rounded-xl px-6 h-11 bg-gradient-to-r from-indigo-500 to-purple-500 border-none shadow-md shadow-indigo-200 hover:shadow-lg hover:-translate-y-0.5 transition-all active:scale-95"
         >
+          <el-icon class="mr-1.5"><Plus /></el-icon>
           添加新角色
         </el-button>
       </div>
@@ -17,112 +23,74 @@
         <div
           v-for="role in roles"
           :key="role.id"
-          class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-all duration-200 hover:-translate-y-1"
+          class="group bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 hover:-translate-y-1 overflow-hidden relative"
         >
-          <div class="flex justify-between items-start mb-3">
-            <div>
-              <h3 class="font-semibold text-lg text-gray-900">{{ role.name }}</h3>
+          <!-- 彩色装饰条 -->
+          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-400 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          
+          <div class="flex justify-between items-start mb-5">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <el-icon size="20"><CollectionTag /></el-icon>
+              </div>
+              <h3 class="font-bold text-lg text-gray-900">{{ role.name }}</h3>
             </div>
-            <div class="flex space-x-2">
-              <el-button
-                @click="editRole(role)"
-                type="primary"
-                size="small"
-                class="rounded-lg h-9 text-xs"
-              >
-                编辑
-              </el-button>
-              <el-button
-                @click="deleteRole(role.id)"
-                type="danger"
-                size="small"
-                class="rounded-lg h-9 text-xs"
-              >
-                删除
-              </el-button>
+            <div class="flex items-center gap-1.5">
+              <el-tooltip content="编辑角色" placement="top">
+                <el-button
+                  @click="router.push(`/roles/${role.id}/edit`)"
+                  type="primary"
+                  circle
+                  size="small"
+                  class="!bg-indigo-50 !text-indigo-600 border-none hover:!bg-indigo-100"
+                >
+                  <el-icon><Edit /></el-icon>
+                </el-button>
+              </el-tooltip>
+              <el-tooltip content="删除角色" placement="top">
+                <el-button
+                  @click="deleteRole(role.id)"
+                  type="danger"
+                  circle
+                  size="small"
+                  class="!bg-red-50 !text-red-600 border-none hover:!bg-red-100"
+                >
+                  <el-icon><Delete /></el-icon>
+                </el-button>
+              </el-tooltip>
             </div>
           </div>
 
-          <div class="mt-4">
-            <p class="text-sm text-gray-600 mb-4">
-              {{ role.description || '暂无描述' }}
+          <div class="space-y-4">
+            <p class="text-sm text-gray-600 leading-relaxed line-clamp-2 h-10">
+              {{ role.description || '该角色暂无详细描述信息。' }}
             </p>
             
-            <div class="text-xs text-gray-500">
-              创建时间: {{ formatDate(role.createdAt) }}
+            <div class="pt-4 border-t border-gray-50 flex items-center justify-between">
+              <div class="flex items-center text-[11px] text-gray-400 font-medium tracking-tight">
+                <el-icon class="mr-1"><Calendar /></el-icon>
+                {{ formatDate(role.createdAt) }}
+              </div>
+              <el-tag size="small" effect="plain" class="!border-indigo-100 !text-indigo-400 uppercase text-[10px] font-bold">
+                Standard
+              </el-tag>
             </div>
           </div>
         </div>
       </div>
 
-      <div v-else class="text-center py-12">
-        <p class="text-gray-500">暂无角色</p>
-        <p class="text-sm text-gray-400 mt-2">点击"添加新角色"按钮开始创建</p>
+      <div v-else class="text-center py-20 px-4">
+        <el-empty description="暂无角色数据" :image-size="200">
+          <template #extra>
+            <el-button type="primary" @click="router.push('/roles/new')" plain class="rounded-xl">
+              立即创建一个
+            </el-button>
+          </template>
+        </el-empty>
       </div>
     </div>
 
-    <!-- 创建/编辑侧边抽屉 -->
-    <el-drawer
-      v-model="showDrawer"
-      title=""
-      size="480px"
-      direction="rtl"
-      :with-header="false"
-    >
-      <div class="p-6">
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-xl font-bold text-gray-900">
-            {{ isEditing ? '编辑角色' : '添加新角色' }}
-          </h3>
-          <el-button
-            @click="closeDrawer"
-            size="small"
-            text
-            :icon="CircleClose"
-            class="text-gray-500 hover:text-gray-700"
-          />
-        </div>
-        
-        <el-form :model="currentRole" label-width="80px" class="space-y-5">
-          <el-form-item label="角色名称" required>
-            <el-input
-              v-model="currentRole.name"
-              placeholder="请输入角色名称"
-              class="rounded-lg"
-              size="large"
-            />
-          </el-form-item>
-          
-          <el-form-item label="描述">
-            <el-input
-              v-model="currentRole.description"
-              type="textarea"
-              rows="3"
-              placeholder="请输入角色描述"
-              class="rounded-lg"
-              size="large"
-            />
-          </el-form-item>
-        </el-form>
-        
-        <div class="mt-8 flex justify-end space-x-3">
-          <el-button
-            @click="closeDrawer"
-            class="rounded-lg"
-          >
-            取消
-          </el-button>
-          <el-button
-            @click="saveRole"
-            :disabled="!currentRole.name"
-            type="primary"
-            class="rounded-lg"
-          >
-            {{ isEditing ? '更新' : '创建' }}
-          </el-button>
-        </div>
-      </div>
-    </el-drawer>
+
     
     <!-- 操作反馈提示条 -->
     <div
@@ -155,18 +123,26 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from '../utils/api'
 import { 
   ElButton, 
-  ElInput, 
-  ElForm, 
-  ElFormItem,
-  ElDrawer
+  ElTooltip,
+  ElEmpty,
+  ElIcon,
+  ElTag
 } from 'element-plus'
 import { 
+  Plus, 
+  Edit, 
+  Delete, 
+  CollectionTag, 
+  Calendar, 
   CircleClose, 
   Check
 } from '@element-plus/icons-vue'
+
+const router = useRouter()
 
 interface Role {
   id: string
@@ -185,12 +161,7 @@ interface ActionFeedback {
 }
 
 const roles = ref<Role[]>([])
-const showDrawer = ref(false)
-const isEditing = ref(false)
-const currentRole = ref<Partial<Role>>({
-  name: '',
-  description: ''
-})
+
 
 const actionFeedback = ref<ActionFeedback>({
   show: false,
@@ -231,48 +202,14 @@ const fetchRoles = async () => {
   try {
     const response = await axios.get('/roles')
     roles.value = response.data
-  } catch (error) {
-    console.error('Error fetching roles:', error)
+  } catch (err: any) {
+    console.error('Error fetching roles:', err)
     roles.value = []
     showFeedback('获取角色列表失败', 'error')
   }
 }
 
-const createRole = async () => {
-  try {
-    await axios.post('/roles', currentRole.value)
-    closeDrawer()
-    fetchRoles()
-    resetCurrentRole()
-    showFeedback('角色创建成功', 'success')
-  } catch (error) {
-    console.error('Error creating role:', error)
-    // 获取详细错误信息
-    const errorMessage = error.response?.data?.message || 
-                        error.response?.data?.error || 
-                        '创建角色失败，请重试'
-    showFeedback(`创建角色失败：${errorMessage}`, 'error')
-  }
-}
 
-const updateRole = async () => {
-  if (!currentRole.value.id) return
-
-  try {
-    await axios.put(`/roles/${currentRole.value.id}`, currentRole.value)
-    closeDrawer()
-    fetchRoles()
-    resetCurrentRole()
-    showFeedback('角色更新成功', 'success')
-  } catch (error) {
-    console.error('Error updating role:', error)
-    // 获取详细错误信息
-    const errorMessage = error.response?.data?.message || 
-                        error.response?.data?.error || 
-                        '更新角色失败，请重试'
-    showFeedback(`更新角色失败：${errorMessage}`, 'error')
-  }
-}
 
 const deleteRole = async (id: string) => {
   // 先备份要删除的角色，用于撤销操作
@@ -298,8 +235,8 @@ const deleteRole = async (id: string) => {
         })
         await fetchRoles()
         showFeedback('删除已撤销', 'success')
-      } catch (error) {
-        console.error('Error undoing delete:', error)
+      } catch (err: any) {
+        console.error('Error undoing delete:', err)
         showFeedback('撤销删除失败', 'error')
         // 恢复UI
         if (index > -1) {
@@ -307,11 +244,11 @@ const deleteRole = async (id: string) => {
         }
       }
     })
-  } catch (error) {
-    console.error('Error deleting role:', error)
+  } catch (err: any) {
+    console.error('Error deleting role:', err)
     // 获取详细错误信息
-    const errorMessage = error.response?.data?.message || 
-                        error.response?.data?.error || 
+    const errorMessage = err.response?.data?.message || 
+                        err.response?.data?.error || 
                         '删除角色失败，请重试'
     showFeedback(`删除角色失败：${errorMessage}`, 'error')
     // 恢复UI
@@ -321,32 +258,7 @@ const deleteRole = async (id: string) => {
   }
 }
 
-const editRole = (role: Role) => {
-  currentRole.value = { ...role }
-  isEditing.value = true
-  showDrawer.value = true
-}
 
-const saveRole = () => {
-  if (isEditing.value) {
-    updateRole()
-  } else {
-    createRole()
-  }
-}
-
-const closeDrawer = () => {
-  showDrawer.value = false
-  isEditing.value = false
-  resetCurrentRole()
-}
-
-const resetCurrentRole = () => {
-  currentRole.value = {
-    name: '',
-    description: ''
-  }
-}
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)

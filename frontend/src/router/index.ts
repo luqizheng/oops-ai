@@ -57,6 +57,54 @@ const router = createRouter({
       name: 'project-calendar',
       component: () => import('@/views/ProjectCalendar.vue'),
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/users/new',
+      name: 'user-create',
+      component: () => import('@/views/UserForm.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/users/:id/edit',
+      name: 'user-edit',
+      component: () => import('@/views/UserForm.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/roles/new',
+      name: 'role-create',
+      component: () => import('@/views/RoleForm.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/roles/:id/edit',
+      name: 'role-edit',
+      component: () => import('@/views/RoleForm.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/projects/new',
+      name: 'project-create',
+      component: () => import('@/views/ProjectForm.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/projects/:id/edit',
+      name: 'project-edit',
+      component: () => import('@/views/ProjectForm.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/requirements/new',
+      name: 'requirement-create',
+      component: () => import('@/views/RequirementForm.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/requirements/:id/edit',
+      name: 'requirement-edit',
+      component: () => import('@/views/RequirementForm.vue'),
+      meta: { requiresAuth: true }
     }
   ]
 })

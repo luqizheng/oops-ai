@@ -1,147 +1,112 @@
 <template>
-  <div class="space-y-8">
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-200">
-      <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">需求管理</h2>
+  <div class="space-y-8 p-4">
+    <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 p-8 hover:shadow-md transition-all duration-300">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+        <div>
+          <h2 class="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-500 dark:from-white dark:to-slate-400 tracking-tight">
+            需求中心
+          </h2>
+          <p class="text-sm text-slate-500 mt-1 font-medium">收录并跟踪业务需求，提升项目成功率</p>
+        </div>
         <el-button
-          @click="showCreateDrawer = true"
+          @click="router.push('/requirements/new')"
           type="primary"
-          class="rounded-lg px-5 py-2 h-10 text-sm"
+          class="!rounded-xl px-6 h-11 !font-bold bg-gradient-to-r from-indigo-600 to-purple-600 border-none shadow-lg shadow-indigo-100 hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all active:scale-95"
         >
-          创建新需求
+          <el-icon class="mr-1.5"><Plus /></el-icon>
+          录入新需求
         </el-button>
       </div>
 
-      <!-- 需求卡片列表 -->
-      <div v-if="requirements.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- 需求卡片网格 -->
+      <div v-if="requirements.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <div
           v-for="requirement in requirements"
           :key="requirement.id"
-          class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-all duration-200 hover:-translate-y-1"
+          class="group bg-white rounded-3xl shadow-sm border border-slate-100 p-7 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 hover:-translate-y-2 relative overflow-hidden"
         >
-          <div class="flex justify-between items-start mb-3">
-            <h3 class="text-lg font-semibold text-gray-900 truncate w-2/3">{{ requirement.title }}</h3>
-            <div class="flex space-x-2">
+          <div class="flex justify-between items-start mb-4 shrink-0">
+            <div class="flex-1 min-w-0">
+              <h3 class="font-black text-xl text-slate-900 leading-tight group-hover:text-indigo-600 transition-colors truncate pr-4">
+                {{ requirement.title }}
+              </h3>
+            </div>
+            <div class="flex gap-1 shrink-0 px-2 py-1 bg-slate-50 rounded-lg group-hover:bg-indigo-50 transition-colors">
               <el-button
-                @click="editRequirement(requirement)"
-                type="text"
-                size="small"
-                class="text-primary-600 hover:text-primary-700"
+                @click="router.push(`/requirements/${requirement.id}/edit`)"
+                type="primary"
+                link
+                class="!p-1 hover:!bg-indigo-100 !rounded-md transition-all"
               >
-                编辑
+                <el-icon size="16"><Edit /></el-icon>
               </el-button>
               <el-button
                 @click="deleteRequirement(requirement.id)"
-                type="text"
-                size="small"
-                class="text-red-600 hover:text-red-700"
+                type="danger"
+                link
+                class="!p-1 hover:!bg-red-100 !rounded-md transition-all"
               >
-                删除
+                <el-icon size="16"><Delete /></el-icon>
               </el-button>
             </div>
           </div>
           
-          <div class="mb-4">
-            <p class="text-sm text-gray-600 line-clamp-3">{{ requirement.description || '无描述' }}</p>
+          <div class="mb-8 h-12">
+            <p class="text-sm text-slate-500 line-clamp-2 leading-relaxed font-medium">
+              {{ requirement.description || '该需求暂无详细说明。完善描述有助于 AI 更精准地进行分析并生成高质量的用户故事。' }}
+            </p>
           </div>
           
-          <div class="flex justify-between items-center mb-3">
-            <div v-if="requirement.qualityScore" class="flex items-center">
-              <div class="w-20 bg-gray-200 rounded-full h-2 mr-2">
-                <div
-                  class="bg-primary-500 h-2 rounded-full"
-                  :style="{ width: `${(requirement.qualityScore.totalScore || 0) * 10}%` }"
-                ></div>
+          <div class="flex flex-col gap-4">
+            <div v-if="requirement.qualityScore" class="bg-slate-50 group-hover:bg-white rounded-2xl p-4 border border-transparent group-hover:border-slate-100 transition-all">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">AI 质量评分</span>
+                <span class="text-xs font-black" :class="getScoreColor(requirement.qualityScore.totalScore)">
+                  {{ requirement.qualityScore.totalScore || 0 }}/10
+                </span>
               </div>
-              <span class="text-xs font-medium text-gray-700">{{ requirement.qualityScore.totalScore || 0 }}/10</span>
+              <el-progress 
+                :percentage="(requirement.qualityScore.totalScore || 0) * 10" 
+                :show-text="false" 
+                :stroke-width="6" 
+                :color="getScoreProgressColor(requirement.qualityScore.totalScore)"
+                class="!rounded-full shadow-inner"
+              />
             </div>
-            <span v-else class="text-xs text-gray-400">未评分</span>
-          </div>
-          
-          <div class="text-xs text-gray-500">
-            创建时间: {{ formatDate(requirement.createdAt) }}
+            <div v-else class="bg-slate-50 rounded-2xl p-4 border border-dashed border-slate-200 text-center">
+              <span class="text-[10px] font-bold text-slate-400 uppercase">尚未进行 AI 质量评估</span>
+            </div>
+            
+            <div class="flex items-center justify-between mt-2 pt-4 border-t border-slate-50 shrink-0">
+              <span class="text-[11px] font-bold text-slate-300 italic">{{ formatDate(requirement.createdAt) }}</span>
+              <el-button 
+                link 
+                class="!text-[11px] !font-black !text-indigo-500 !uppercase !tracking-tighter hover:!bg-indigo-50 hover:px-2 !rounded-md transition-all"
+                @click="router.push(`/requirements/${requirement.id}/edit`)"
+              >
+                详情分析
+                <el-icon class="ml-1"><ArrowRight /></el-icon>
+              </el-button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div v-else class="text-center py-12">
-        <p class="text-gray-500">暂无需求记录</p>
+      <div v-else class="text-center py-24">
+        <el-empty description="没有找到任何业务需求" :image-size="200">
+          <template #extra>
+            <el-button 
+              type="primary" 
+              @click="router.push('/requirements/new')" 
+              plain 
+              class="!rounded-2xl px-10 !h-12 !font-bold"
+            >
+              录入首个需求
+            </el-button>
+          </template>
+        </el-empty>
       </div>
     </div>
-
-    <!-- 创建/编辑侧边抽屉 -->
-    <el-drawer
-      v-model="showDrawer"
-      title=""
-      size="600px"
-      direction="rtl"
-      :with-header="false"
-    >
-      <div class="p-6">
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-xl font-bold text-gray-900">
-            {{ isEditing ? '编辑需求' : '创建新需求' }}
-          </h3>
-          <el-button
-            @click="closeDrawer"
-            size="small"
-            text
-            :icon="CircleClose"
-            class="text-gray-500 hover:text-gray-700"
-          />
-        </div>
-        
-        <el-form :model="currentRequirement" label-width="80px" class="space-y-5">
-          <el-form-item label="标题" required>
-            <el-input
-              v-model="currentRequirement.title"
-              placeholder="请输入需求标题"
-              class="rounded-lg"
-              size="large"
-            />
-          </el-form-item>
-          
-          <el-form-item label="描述">
-            <el-input
-              v-model="currentRequirement.description"
-              type="textarea"
-              rows="4"
-              placeholder="请输入需求详细描述"
-              class="rounded-lg"
-              size="large"
-            />
-          </el-form-item>
-          
-          <el-form-item label="原始输入">
-            <el-input
-              v-model="currentRequirement.rawInput"
-              type="textarea"
-              rows="3"
-              placeholder="请输入原始需求输入（可选）"
-              class="rounded-lg"
-              size="large"
-            />
-          </el-form-item>
-        </el-form>
-        
-        <div class="mt-8 flex justify-end space-x-3">
-          <el-button
-            @click="closeDrawer"
-            class="rounded-lg"
-          >
-            取消
-          </el-button>
-          <el-button
-            @click="saveRequirement"
-            type="primary"
-            :disabled="!currentRequirement.title"
-            class="rounded-lg"
-          >
-            {{ isEditing ? '更新' : '创建' }}
-          </el-button>
-        </div>
-      </div>
-    </el-drawer>
     
     <!-- 操作反馈提示条 -->
     <div
@@ -174,8 +139,18 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from '../utils/api'
-import { CircleClose, Check } from '@element-plus/icons-vue'
+import { 
+  CircleClose, 
+  Check, 
+  Plus, 
+  Edit, 
+  Delete, 
+  ArrowRight 
+} from '@element-plus/icons-vue'
+
+const router = useRouter()
 
 interface QualityScore {
   clarity: number
@@ -206,13 +181,6 @@ interface ActionFeedback {
 }
 
 const requirements = ref<Requirement[]>([])
-const showDrawer = ref(false)
-const isEditing = ref(false)
-const currentRequirement = ref<Partial<Requirement>>({
-  title: '',
-  description: '',
-  rawInput: ''
-})
 
 const actionFeedback = ref<ActionFeedback>({
   show: false,
@@ -227,10 +195,10 @@ const deletedRequirementBackup = ref<Requirement | null>(null)
 
 const fetchRequirements = async () => {
   try {
-    const response = await axios.get('/api/requirements')
+    const response = await axios.get('/requirements')
     requirements.value = response.data
-  } catch (error) {
-    console.error('Error fetching requirements:', error)
+  } catch (err: any) {
+    console.error('Error fetching requirements:', err)
     requirements.value = []
     showFeedback('获取需求失败', 'error')
   }
@@ -260,40 +228,14 @@ const handleUndo = () => {
   actionFeedback.value.show = false
 }
 
-const createRequirement = async () => {
-  try {
-    const response = await axios.post('/api/requirements', currentRequirement.value)
-    closeDrawer()
-    fetchRequirements()
-    resetCurrentRequirement()
-    showFeedback('需求创建成功', 'success')
-  } catch (error) {
-    console.error('Error creating requirement:', error)
-    showFeedback('创建需求失败，请重试', 'error')
-  }
-}
 
-const updateRequirement = async () => {
-  if (!currentRequirement.value.id) return
-
-  try {
-    await axios.put(`/api/requirements/${currentRequirement.value.id}`, currentRequirement.value)
-    closeDrawer()
-    fetchRequirements()
-    resetCurrentRequirement()
-    showFeedback('需求更新成功', 'success')
-  } catch (error) {
-    console.error('Error updating requirement:', error)
-    showFeedback('更新需求失败，请重试', 'error')
-  }
-}
 
 const deleteRequirement = async (id: string) => {
   // 先备份要删除的需求，用于撤销操作
   const requirementToDelete = requirements.value.find(req => req.id === id)
   
   try {
-    await axios.delete(`/api/requirements/${id}`)
+    await axios.delete(`/requirements/${id}`)
     
     // 从本地列表中移除
     const index = requirements.value.findIndex(req => req.id === id)
@@ -306,47 +248,33 @@ const deleteRequirement = async (id: string) => {
       if (requirementToDelete) {
         try {
           // 重新创建需求
-          await axios.post('/api/requirements', requirementToDelete)
+          await axios.post('/requirements', requirementToDelete)
           await fetchRequirements()
           showFeedback('删除已撤销', 'success')
-        } catch (error) {
-          console.error('Error undoing delete:', error)
+        } catch (err: any) {
+          console.error('Error undoing delete:', err)
           showFeedback('撤销删除失败', 'error')
         }
       }
     })
-  } catch (error) {
-    console.error('Error deleting requirement:', error)
+  } catch (err: any) {
+    console.error('Error deleting requirement:', err)
     showFeedback('删除需求失败，请重试', 'error')
   }
 }
 
-const editRequirement = (requirement: Requirement) => {
-  currentRequirement.value = { ...requirement }
-  isEditing.value = true
-  showDrawer.value = true
+
+
+const getScoreColor = (score: number) => {
+  if (score >= 8) return 'text-emerald-600'
+  if (score >= 6) return 'text-amber-600'
+  return 'text-rose-600'
 }
 
-const saveRequirement = () => {
-  if (isEditing.value) {
-    updateRequirement()
-  } else {
-    createRequirement()
-  }
-}
-
-const closeDrawer = () => {
-  showDrawer.value = false
-  isEditing.value = false
-  resetCurrentRequirement()
-}
-
-const resetCurrentRequirement = () => {
-  currentRequirement.value = {
-    title: '',
-    description: '',
-    rawInput: ''
-  }
+const getScoreProgressColor = (score: number) => {
+  if (score >= 8) return '#10b981'
+  if (score >= 6) return '#f59e0b'
+  return '#f43f5e'
 }
 
 const formatDate = (dateString: string) => {

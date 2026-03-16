@@ -19,19 +19,19 @@
       <!-- 侧边栏导航 -->
       <el-aside
         :class="[
-          'fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 shadow-xl transform transition-all duration-300 ease-in-out',
+          'fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-slate-900 to-indigo-950 shadow-2xl transform transition-transform duration-300 ease-out border-r border-slate-800/50',
           isSidebarOpen || isDesktop ? 'translate-x-0' : '-translate-x-full'
         ]"
       >
         <!-- 侧边栏头部 -->
-        <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700">
-          <div class="flex items-center space-x-2">
-            <div class="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center">
-              <span class="text-white font-bold">AI</span>
+        <div class="flex items-center justify-between h-16 px-6 border-b border-slate-700/50 bg-slate-900/50 backdrop-blur-sm">
+          <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+              <span class="text-white font-bold text-lg leading-none">AI</span>
             </div>
-            <div>
-              <h1 class="text-xl font-bold">OOPS-AI</h1>
-              <span class="text-xs text-gray-500 dark:text-gray-400">需求智能体</span>
+            <div class="flex flex-col">
+              <h1 class="text-lg font-bold tracking-wide text-white">OOPS-AI</h1>
+              <span class="text-[10px] text-indigo-300/80 uppercase font-semibold tracking-wider">需求智能体</span>
             </div>
           </div>
           <el-button
@@ -40,6 +40,7 @@
             size="small"
             text
             :icon="CircleClose"
+            class="text-slate-400 hover:text-white"
           />
         </div>
 
@@ -47,22 +48,23 @@
         <el-menu
           :default-active="$route.path"
           router
-          class="el-menu-vertical-demo h-[calc(100%-4rem)] overflow-y-auto"
-          background-color="#ffffff"
-          text-color="#303133"
-          active-text-color="#3b82f6"
-          dark-background-color="#1f2937"
-          dark-text-color="#ffffff"
-          dark-active-text-color="#60a5fa"
+          class="custom-sidebar-menu h-[calc(100%-4rem)] overflow-y-auto border-none pt-4 pb-6 px-3 bg-transparent flex flex-col gap-1"
+          background-color="transparent"
+          text-color="#94a3b8"
+          active-text-color="#ffffff"
         >
           <el-menu-item
             v-for="item in menuItems"
             :key="item.path"
             :index="item.path"
+            class="rounded-lg mb-1 relative overflow-hidden transition-all duration-200 hover:bg-white/5"
+            :class="{ 'bg-indigo-600/10 text-white font-medium': $route.path === item.path }"
             @click="!isDesktop && toggleSidebar"
           >
-            <el-icon><DocumentCopy /></el-icon>
-            <template #title>{{ item.label }}</template>
+            <!-- 左侧激活指示条 -->
+            <div v-if="$route.path === item.path" class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-400 to-purple-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]"></div>
+            <el-icon class="mr-3 text-lg opacity-80" :class="{ 'text-indigo-400 opacity-100': $route.path === item.path }"><DocumentCopy /></el-icon>
+            <template #title><span>{{ item.label }}</span></template>
           </el-menu-item>
         </el-menu>
       </el-aside>
@@ -70,8 +72,8 @@
       <!-- 主内容区 -->
       <div :class="['flex-1 transition-all duration-300', isDesktop ? 'ml-64' : 'ml-0']">
         <!-- 顶部导航栏 -->
-        <el-header class="sticky top-0 z-30 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-          <div class="px-6 py-4 flex items-center justify-between">
+        <el-header class="sticky top-0 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-sm border-b border-gray-200/80 dark:border-gray-800 h-16 transition-all duration-200">
+          <div class="h-full px-6 flex items-center justify-between">
             <div class="flex items-center space-x-4">
               <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ currentPageTitle }}</h2>
             </div>
@@ -85,10 +87,10 @@
               />
               <!-- 用户菜单 -->
               <el-dropdown @command="handleDropdownCommand">
-                <span class="el-dropdown-link cursor-pointer">
-                  <div class="flex items-center space-x-2">
-                    <el-avatar :size="32" class="border-2 border-gray-200 dark:border-gray-700">{{ userInitials }}</el-avatar>
-                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ userName }}</span>
+                <span class="el-dropdown-link cursor-pointer outline-none hover:opacity-80 transition-opacity">
+                  <div class="flex items-center space-x-2.5 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 py-1.5 px-3 rounded-full transition-colors">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm font-semibold shadow-sm">{{ userInitials }}</div>
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300 hidden sm:block">{{ userName }}</span>
                     <el-icon class="el-icon--right text-gray-500 dark:text-gray-400"><ArrowDown /></el-icon>
                   </div>
                 </span>
@@ -110,8 +112,12 @@
         </el-header>
 
         <!-- 页面内容 -->
-        <el-main class="p-6 md:p-8">
-          <router-view />
+        <el-main class="p-6 md:p-8 pb-20">
+          <router-view v-slot="{ Component }">
+            <transition name="fade" mode="out-in">
+              <component :is="Component" />
+            </transition>
+          </router-view>
         </el-main>
       </div>
     </div>
