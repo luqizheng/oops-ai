@@ -62,6 +62,7 @@
               placeholder="your@email.com"
               prefix-icon="Message"
               size="large"
+              class="rounded-lg"
             />
           </div>
 
@@ -71,7 +72,7 @@
               <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 密码
               </label>
-              <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
+              <a href="#" class="text-sm font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 transition-colors duration-150">
                 忘记密码？
               </a>
             </div>
@@ -84,6 +85,7 @@
               placeholder="••••••••"
               prefix-icon="Lock"
               size="large"
+              class="rounded-lg"
             />
           </div>
 
@@ -93,7 +95,7 @@
               type="primary"
               native-type="submit"
               :loading="isLoading"
-              class="w-full"
+              class="w-full rounded-lg h-12 text-base"
               size="large"
             >
               登录
@@ -106,6 +108,7 @@
             :title="errorMessage"
             type="error"
             show-icon
+            class="rounded-lg"
           />
 
           <!-- 注册链接 -->

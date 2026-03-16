@@ -1,19 +1,19 @@
 <template>
-  <div class="space-y-6">
-    <div class="bg-white rounded-lg shadow p-6">
+  <div class="space-y-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-200">
       <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold">项目挂历</h2>
+        <h2 class="text-2xl font-bold text-gray-900">项目挂历</h2>
       </div>
 
       <!-- 日历导航 -->
       <div class="flex justify-between items-center mb-4">
-        <button @click="previousMonth" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">
+        <el-button @click="previousMonth" type="default" size="small" class="rounded-lg">
           上个月
-        </button>
-        <h3 class="text-xl font-semibold">{{ currentYear }}年{{ currentMonth + 1 }}月</h3>
-        <button @click="nextMonth" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">
+        </el-button>
+        <h3 class="text-xl font-semibold text-gray-900">{{ currentYear }}年{{ currentMonth + 1 }}月</h3>
+        <el-button @click="nextMonth" type="default" size="small" class="rounded-lg">
           下个月
-        </button>
+        </el-button>
       </div>
 
       <!-- 日历网格 -->
@@ -27,7 +27,7 @@
         <div
           v-for="date in calendarDays"
           :key="date.date"
-          class="min-h-[100px] border border-gray-200 p-1 rounded"
+          class="min-h-[100px] border border-gray-200 p-1 rounded-lg"
           :class="{
             'bg-gray-50': !date.isCurrentMonth,
             'bg-blue-50': isToday(date.date)
@@ -42,7 +42,7 @@
             <div
               v-for="event in getEventsForDate(date.date)"
               :key="event.id"
-              class="text-xs p-1 rounded truncate"
+              class="text-xs p-1 rounded-full truncate"
               :class="event.type === 'project' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'"
               :title="event.title"
             >
@@ -54,17 +54,17 @@
     </div>
 
     <!-- 项目列表 -->
-    <div class="bg-white rounded-lg shadow p-6">
-      <h3 class="text-xl font-semibold mb-4">项目列表</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-200">
+      <h3 class="text-xl font-semibold text-gray-900 mb-4">项目列表</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div
           v-for="project in projects"
           :key="project.id"
-          class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+          class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-all duration-200 hover:-translate-y-1"
         >
-          <h4 class="font-medium text-blue-600">{{ project.name }}</h4>
-          <p class="text-sm text-gray-500 mt-1">{{ project.description || '无描述' }}</p>
-          <div class="mt-2 text-xs text-gray-600">
+          <h4 class="font-semibold text-lg text-blue-600">{{ project.name }}</h4>
+          <p class="text-sm text-gray-500 mt-2">{{ project.description || '无描述' }}</p>
+          <div class="mt-3 text-xs text-gray-600">
             <span>创建时间: {{ formatDate(project.createdAt) }}</span>
           </div>
         </div>

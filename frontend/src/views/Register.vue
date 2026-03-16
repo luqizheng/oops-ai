@@ -62,6 +62,7 @@
               placeholder="您的姓名"
               prefix-icon="User"
               size="large"
+              class="rounded-lg"
             />
           </div>
 
@@ -79,6 +80,7 @@
               placeholder="your@email.com"
               prefix-icon="Message"
               size="large"
+              class="rounded-lg"
             />
           </div>
 
@@ -97,6 +99,7 @@
               placeholder="•••••••• (至少6位)"
               prefix-icon="Lock"
               size="large"
+              class="rounded-lg"
             />
           </div>
 
@@ -106,7 +109,7 @@
               type="primary"
               native-type="submit"
               :loading="isLoading"
-              class="w-full"
+              class="w-full rounded-lg h-12 text-base"
               size="large"
             >
               注册
@@ -119,6 +122,7 @@
             :title="errorMessage"
             type="error"
             show-icon
+            class="rounded-lg"
           />
 
           <!-- 登录链接 -->
@@ -136,6 +140,25 @@
         </form>
       </div>
     </div>
+    
+    <!-- 操作反馈提示条 -->
+    <div
+      v-if="actionFeedback.show"
+      :class="[
+        'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg p-4 z-40 transform transition-transform duration-300',
+        actionFeedback.show ? 'translate-y-0' : 'translate-y-full'
+      ]"
+    >
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <el-icon :class="actionFeedback.type === 'success' ? 'text-green-500' : 'text-red-500'">
+            <Check v-if="actionFeedback.type === 'success'" />
+            <CircleClose v-else />
+          </el-icon>
+          <span class="text-gray-700 dark:text-gray-300">{{ actionFeedback.message }}</span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -143,11 +166,18 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from '../utils/api'
+import { Check, CircleClose } from '@element-plus/icons-vue'
 
 interface RegisterForm {
   name: string
   email: string
   password: string
+}
+
+interface ActionFeedback {
+  show: boolean
+  message: string
+  type: 'success' | 'error'
 }
 
 const registerForm = ref<RegisterForm>({
@@ -159,6 +189,25 @@ const registerForm = ref<RegisterForm>({
 const router = useRouter()
 const isLoading = ref(false)
 const errorMessage = ref('')
+const actionFeedback = ref<ActionFeedback>({
+  show: false,
+  message: '',
+  type: 'success'
+})
+
+// 显示操作反馈
+const showFeedback = (message: string, type: 'success' | 'error' = 'success') => {
+  actionFeedback.value = {
+    show: true,
+    message,
+    type
+  }
+  
+  // 5秒后自动隐藏
+  setTimeout(() => {
+    actionFeedback.value.show = false
+  }, 5000)
+}
 
 const handleRegister = async () => {
   errorMessage.value = ''
@@ -166,8 +215,11 @@ const handleRegister = async () => {
   
   try {
     await axios.post('/auth/register', registerForm.value)
-    alert('注册成功，请登录')
-    router.push('/login')
+    showFeedback('注册成功，请登录', 'success')
+    // 延迟跳转，让用户看到反馈
+    setTimeout(() => {
+      router.push('/login')
+    }, 1000)
   } catch (error: any) {
     console.error('Registration failed:', error)
     errorMessage.value = error.response?.data?.message || '注册失败，请检查信息是否正确'

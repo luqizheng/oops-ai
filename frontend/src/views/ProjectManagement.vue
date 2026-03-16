@@ -1,275 +1,294 @@
 <template>
-  <div class="space-y-6">
-    <div class="bg-white rounded-lg shadow p-6">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold">项目管理</h2>
+  <div class="space-y-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-200">
+      <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">项目管理</h2>
         <div class="flex space-x-3">
           <router-link
             to="/project-calendar"
-            class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            class="rounded-lg px-5 py-2 h-10 text-sm bg-green-600 text-white hover:bg-green-700"
           >
             项目挂历
           </router-link>
-          <button
-            @click="showCreateModal = true"
-            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          <el-button
+            @click="showDrawer = true"
+            type="primary"
+            class="rounded-lg px-5 py-2 h-10 text-sm"
           >
             添加新项目
-          </button>
+          </el-button>
         </div>
       </div>
 
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                项目名称
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                关键字
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                描述
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                成员数
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                创建时间
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                操作
-              </th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="project in projects" :key="project.id">
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900">{{ project.name }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-500">{{ project.key }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-500">{{ project.description || '-' }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-500">{{ project.members?.length || 0 }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-500">{{ formatDate(project.createdAt) }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button
-                  @click="manageMembers(project)"
-                  class="text-green-600 hover:text-green-900 mr-4"
-                >
-                  成员管理
-                </button>
-                <button
-                  @click="editProject(project)"
-                  class="text-blue-600 hover:text-blue-900 mr-4"
-                >
-                  编辑
-                </button>
-                <button
-                  @click="deleteProject(project.id)"
-                  class="text-red-600 hover:text-red-900"
-                >
-                  删除
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- 项目卡片网格 -->
+      <div v-if="projects.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+          v-for="project in projects"
+          :key="project.id"
+          class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-all duration-200 hover:-translate-y-1"
+        >
+          <div class="flex justify-between items-start mb-3">
+            <div>
+              <h3 class="font-semibold text-lg text-gray-900">{{ project.name }}</h3>
+              <div class="flex items-center mt-2">
+                <span class="px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded-full">
+                  {{ project.key }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <p class="text-sm text-gray-600 mb-4 line-clamp-3">
+              {{ project.description || '暂无描述' }}
+            </p>
+            
+            <div class="flex justify-between items-center text-sm text-gray-500 mb-4">
+              <span>成员: {{ project.members?.length || 0 }}</span>
+              <span>{{ formatDate(project.createdAt) }}</span>
+            </div>
+
+            <div class="flex space-x-3">
+              <el-button
+                @click="manageMembers(project)"
+                type="primary"
+                size="small"
+                class="flex-1 rounded-lg h-9 text-xs"
+              >
+                成员管理
+              </el-button>
+              <el-button
+                @click="editProject(project)"
+                type="default"
+                size="small"
+                class="flex-1 rounded-lg h-9 text-xs"
+              >
+                编辑
+              </el-button>
+              <el-button
+                @click="deleteProject(project.id)"
+                type="danger"
+                size="small"
+                class="flex-1 rounded-lg h-9 text-xs"
+              >
+                删除
+              </el-button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div v-if="projects.length === 0" class="text-center py-12">
+      <div v-else class="text-center py-12">
         <p class="text-gray-500">暂无项目</p>
         <p class="text-sm text-gray-400 mt-2">点击"添加新项目"按钮开始创建</p>
       </div>
     </div>
 
-    <!-- 创建/编辑模态框 -->
-    <div v-if="showCreateModal || showEditModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
-      <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
-        <div class="p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">
-            {{ showEditModal ? '编辑项目' : '添加新项目' }}
+    <!-- 创建/编辑侧边抽屉 -->
+    <el-drawer
+      v-model="showDrawer"
+      title=""
+      size="480px"
+      direction="rtl"
+      :with-header="false"
+    >
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-bold text-gray-900">
+            {{ isEditing ? '编辑项目' : '添加新项目' }}
           </h3>
+          <el-button
+            @click="closeDrawer"
+            size="small"
+            text
+            :icon="CircleClose"
+            class="text-gray-500 hover:text-gray-700"
+          />
+        </div>
+        
+        <el-form :model="currentProject" label-width="80px" class="space-y-5">
+          <el-form-item label="项目名称" required>
+            <el-input
+              v-model="currentProject.name"
+              placeholder="请输入项目名称"
+              class="rounded-lg"
+              size="large"
+            />
+          </el-form-item>
           
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
-                项目名称 *
-              </label>
-              <input
-                v-model="currentProject.name"
-                type="text"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="请输入项目名称"
-              />
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
-                项目关键字 *
-              </label>
-              <input
-                v-model="currentProject.key"
-                type="text"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="请输入项目关键字（如OPS）"
-              />
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
-                描述
-              </label>
-              <textarea
-                v-model="currentProject.description"
-                rows="3"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="请输入项目描述"
-              ></textarea>
-            </div>
-            
-
-          </div>
+          <el-form-item label="项目关键字" required>
+            <el-input
+              v-model="currentProject.key"
+              placeholder="请输入项目关键字（如OPS）"
+              class="rounded-lg"
+              size="large"
+            />
+          </el-form-item>
           
-          <div class="mt-6 flex justify-end space-x-3">
-            <button
-              @click="closeModal"
-              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-            >
-              取消
-            </button>
-            <button
-              @click="saveProject"
-              :disabled="!currentProject.name || !currentProject.key"
-              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-            >
-              {{ showEditModal ? '更新' : '创建' }}
-            </button>
-          </div>
+          <el-form-item label="描述">
+            <el-input
+              v-model="currentProject.description"
+              type="textarea"
+              rows="3"
+              placeholder="请输入项目描述"
+              class="rounded-lg"
+              size="large"
+            />
+          </el-form-item>
+        </el-form>
+        
+        <div class="mt-8 flex justify-end space-x-3">
+          <el-button
+            @click="closeDrawer"
+            class="rounded-lg"
+          >
+            取消
+          </el-button>
+          <el-button
+            @click="saveProject"
+            :disabled="!currentProject.name || !currentProject.key"
+            type="primary"
+            class="rounded-lg"
+          >
+            {{ isEditing ? '更新' : '创建' }}
+          </el-button>
         </div>
       </div>
-    </div>
+    </el-drawer>
 
-    <!-- 成员管理模态框 -->
-    <div v-if="showMembersModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
-      <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full">
-        <div class="p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">
+    <!-- 成员管理侧边抽屉 -->
+    <el-drawer
+      v-model="showMembersDrawer"
+      title=""
+      size="600px"
+      direction="rtl"
+      :with-header="false"
+    >
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-bold text-gray-900">
             成员管理 - {{ selectedProject?.name }}
           </h3>
+          <el-button
+            @click="closeMembersDrawer"
+            size="small"
+            text
+            :icon="CircleClose"
+            class="text-gray-500 hover:text-gray-700"
+          />
+        </div>
 
-          <!-- 添加成员表单 -->
-          <div class="bg-blue-50 p-4 rounded-md mb-6">
-            <h4 class="text-sm font-medium text-gray-700 mb-3">添加新成员</h4>
-            <div class="grid grid-cols-3 gap-3">
-              <select
-                v-model="newMember.userId"
-                class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">选择用户</option>
-                <option v-for="user in users" :key="user.id" :value="user.id">
-                  {{ user.name || user.email }}
-                </option>
-              </select>
-              <select
-                v-model="newMember.role"
-                class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="developer">开发工程师</option>
-                <option value="tester">测试工程师</option>
-                <option value="product_manager">产品经理</option>
-                <option value="project_manager">项目经理</option>
-              </select>
-              <button
-                @click="addProjectMember"
-                :disabled="!newMember.userId || !newMember.role"
-                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-              >
-                添加
-              </button>
-            </div>
-          </div>
-
-          <!-- 成员列表 -->
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    用户名
-                  </th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    邮箱
-                  </th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    角色
-                  </th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    加入时间
-                  </th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    操作
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                <tr v-for="member in selectedProject?.members" :key="member.userId">
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">{{ member.user.name || '未知' }}</div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-500">{{ member.user.email }}</div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <select
-                      v-model="member.role"
-                      @change="updateProjectMember(member)"
-                      class="px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="developer">开发工程师</option>
-                      <option value="tester">测试工程师</option>
-                      <option value="product_manager">产品经理</option>
-                      <option value="project_manager">项目经理</option>
-                    </select>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-500">{{ formatDate(member.joinedAt) }}</div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      @click="removeProjectMember(member.userId)"
-                      class="text-red-600 hover:text-red-900"
-                    >
-                      移除
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div v-if="!selectedProject?.members || selectedProject.members.length === 0" class="text-center py-12">
-            <p class="text-gray-500">暂无成员</p>
-            <p class="text-sm text-gray-400 mt-2">使用上方表单添加成员</p>
-          </div>
-
-          <div class="mt-6 flex justify-end">
-            <button
-              @click="closeMembersModal"
-              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+        <!-- 添加成员表单 -->
+        <div class="bg-blue-50 p-5 rounded-lg border border-blue-100 mb-6">
+          <h4 class="text-sm font-medium text-gray-700 mb-3">添加新成员</h4>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <el-select
+              v-model="newMember.userId"
+              placeholder="选择用户"
+              class="rounded-lg"
+              size="large"
             >
-              关闭
-            </button>
+              <el-option label="选择用户" value="" />
+              <el-option
+                v-for="user in users"
+                :key="user.id"
+                :label="user.name || user.email"
+                :value="user.id"
+              />
+            </el-select>
+            <el-select
+              v-model="newMember.role"
+              placeholder="选择角色"
+              class="rounded-lg"
+              size="large"
+            >
+              <el-option label="开发工程师" value="developer" />
+              <el-option label="测试工程师" value="tester" />
+              <el-option label="产品经理" value="product_manager" />
+              <el-option label="项目经理" value="project_manager" />
+            </el-select>
+            <el-button
+              @click="addProjectMember"
+              :disabled="!newMember.userId || !newMember.role"
+              type="primary"
+              class="rounded-lg h-11"
+            >
+              添加
+            </el-button>
           </div>
         </div>
+
+        <!-- 成员列表 -->
+        <div v-if="selectedProject?.members && selectedProject.members.length > 0" class="space-y-4">
+          <div
+            v-for="member in selectedProject.members"
+            :key="member.userId"
+            class="bg-white rounded-lg shadow-sm border border-gray-100 p-4 hover:shadow-md transition-all duration-200"
+          >
+            <div class="flex justify-between items-center">
+              <div>
+                <div class="font-medium text-gray-900">{{ member.user.name || '未知用户' }}</div>
+                <div class="text-sm text-gray-500">{{ member.user.email }}</div>
+              </div>
+              <div class="flex items-center space-x-3">
+                <el-select
+                  v-model="member.role"
+                  @change="updateProjectMember(member)"
+                  size="small"
+                  class="w-36 rounded-lg"
+                >
+                  <el-option label="开发工程师" value="developer" />
+                  <el-option label="测试工程师" value="tester" />
+                  <el-option label="产品经理" value="product_manager" />
+                  <el-option label="项目经理" value="project_manager" />
+                </el-select>
+                <el-button
+                  @click="removeProjectMember(member.userId)"
+                  type="danger"
+                  size="small"
+                  class="rounded-lg"
+                >
+                  移除
+                </el-button>
+              </div>
+            </div>
+            <div class="text-xs text-gray-400 mt-2">
+              加入时间: {{ formatDate(member.joinedAt) }}
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="text-center py-12">
+          <p class="text-gray-500">暂无成员</p>
+          <p class="text-sm text-gray-400 mt-2">使用上方表单添加成员</p>
+        </div>
+      </div>
+    </el-drawer>
+    
+    <!-- 操作反馈提示条 -->
+    <div
+      v-if="actionFeedback.show"
+      :class="[
+        'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg p-4 z-40 transform transition-transform duration-300',
+        actionFeedback.show ? 'translate-y-0' : 'translate-y-full'
+      ]"
+    >
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <el-icon :class="actionFeedback.type === 'success' ? 'text-green-500' : 'text-red-500'">
+            <Check v-if="actionFeedback.type === 'success'" />
+            <CircleClose v-else />
+          </el-icon>
+          <span class="text-gray-700 dark:text-gray-300">{{ actionFeedback.message }}</span>
+        </div>
+        <el-button
+          v-if="actionFeedback.undoable"
+          type="text"
+          @click="handleUndo"
+          class="text-primary-600 dark:text-primary-400"
+        >
+          撤销
+        </el-button>
       </div>
     </div>
   </div>
@@ -278,6 +297,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import axios from '../utils/api'
+import { CircleClose, Check } from '@element-plus/icons-vue'
 
 interface ProjectSettings {
   id: string
@@ -314,11 +334,19 @@ interface Project {
   updatedAt: string
 }
 
+interface ActionFeedback {
+  show: boolean
+  message: string
+  type: 'success' | 'error'
+  undoable: boolean
+  undoAction: (() => void) | null
+}
+
 const projects = ref<Project[]>([])
 const users = ref<User[]>([])
-const showCreateModal = ref(false)
-const showEditModal = ref(false)
-const showMembersModal = ref(false)
+const showDrawer = ref(false)
+const isEditing = ref(false)
+const showMembersDrawer = ref(false)
 const currentProject = ref<Partial<Project>>({
   name: '',
   key: '',
@@ -330,6 +358,17 @@ const newMember = ref({
   role: 'developer'
 })
 
+const actionFeedback = ref<ActionFeedback>({
+  show: false,
+  message: '',
+  type: 'success',
+  undoable: false,
+  undoAction: null
+})
+
+// 用于撤销删除的临时存储
+const deletedProjectBackup = ref<Project | null>(null)
+
 const fetchProjects = async () => {
   try {
     const response = await axios.get('/projects')
@@ -337,7 +376,32 @@ const fetchProjects = async () => {
   } catch (error) {
     console.error('Error fetching projects:', error)
     projects.value = []
+    showFeedback('获取项目列表失败', 'error')
   }
+}
+
+// 显示操作反馈
+const showFeedback = (message: string, type: 'success' | 'error' = 'success', undoable = false, undoAction: (() => void) | null = null) => {
+  actionFeedback.value = {
+    show: true,
+    message,
+    type,
+    undoable,
+    undoAction
+  }
+  
+  // 5秒后自动隐藏
+  setTimeout(() => {
+    actionFeedback.value.show = false
+  }, 5000)
+}
+
+// 处理撤销操作
+const handleUndo = () => {
+  if (actionFeedback.value.undoAction) {
+    actionFeedback.value.undoAction()
+  }
+  actionFeedback.value.show = false
 }
 
 const createProject = async () => {
@@ -346,16 +410,17 @@ const createProject = async () => {
     const projectData = { ...currentProject.value }
     
     await axios.post('/projects', projectData)
-    closeModal()
+    closeDrawer()
     fetchProjects()
     resetCurrentProject()
+    showFeedback('项目创建成功', 'success')
   } catch (error) {
     console.error('Error creating project:', error)
     // 获取详细错误信息
     const errorMessage = error.response?.data?.message || 
                         error.response?.data?.error || 
                         '创建项目失败，请重试'
-    alert(`创建项目失败：${errorMessage}`)
+    showFeedback(`创建项目失败：${errorMessage}`, 'error')
   }
 }
 
@@ -367,32 +432,61 @@ const updateProject = async () => {
     const projectData = { ...currentProject.value }
     
     await axios.put(`/projects/${currentProject.value.id}`, projectData)
-    closeModal()
+    closeDrawer()
     fetchProjects()
     resetCurrentProject()
+    showFeedback('项目更新成功', 'success')
   } catch (error) {
     console.error('Error updating project:', error)
     // 获取详细错误信息
     const errorMessage = error.response?.data?.message || 
                         error.response?.data?.error || 
                         '更新项目失败，请重试'
-    alert(`更新项目失败：${errorMessage}`)
+    showFeedback(`更新项目失败：${errorMessage}`, 'error')
   }
 }
 
 const deleteProject = async (id: string) => {
-  if (!confirm('确定要删除这个项目吗？')) return
-
+  // 先备份要删除的项目，用于撤销操作
+  const projectToDelete = projects.value.find(project => project.id === id)
+  if (!projectToDelete) return
+  
+  // 乐观更新UI
+  const index = projects.value.findIndex(project => project.id === id)
+  if (index > -1) {
+    projects.value.splice(index, 1)
+  }
+  
   try {
     await axios.delete(`/projects/${id}`)
-    fetchProjects()
+    
+    // 显示反馈和撤销选项
+    showFeedback('项目已删除', 'success', true, async () => {
+      try {
+        // 重新创建项目
+        await axios.post('/projects', projectToDelete)
+        await fetchProjects()
+        showFeedback('删除已撤销', 'success')
+      } catch (error) {
+        console.error('Error undoing delete:', error)
+        showFeedback('撤销删除失败', 'error')
+        // 恢复UI
+        if (index > -1) {
+          projects.value.splice(index, 0, projectToDelete)
+        }
+      }
+    })
   } catch (error) {
     console.error('Error deleting project:', error)
     // 获取详细错误信息
     const errorMessage = error.response?.data?.message || 
                         error.response?.data?.error || 
                         '删除项目失败，请重试'
-    alert(`删除项目失败：${errorMessage}`)
+    showFeedback(`删除项目失败：${errorMessage}`, 'error')
+    // 恢复UI
+    if (index > -1) {
+      projects.value.splice(index, 0, projectToDelete)
+    }
   }
 }
 
@@ -400,20 +494,21 @@ const editProject = (project: Project) => {
   currentProject.value = { 
     ...project
   }
-  showEditModal.value = true
+  isEditing.value = true
+  showDrawer.value = true
 }
 
 const saveProject = () => {
-  if (showEditModal.value) {
+  if (isEditing.value) {
     updateProject()
   } else {
     createProject()
   }
 }
 
-const closeModal = () => {
-  showCreateModal.value = false
-  showEditModal.value = false
+const closeDrawer = () => {
+  showDrawer.value = false
+  isEditing.value = false
   resetCurrentProject()
 }
 
@@ -453,16 +548,16 @@ const manageMembers = async (project: Project) => {
     // 获取完整的项目数据，包括成员信息
     const response = await axios.get(`/projects/${project.id}`)
     selectedProject.value = response.data
-    showMembersModal.value = true
+    showMembersDrawer.value = true
     await fetchUsers()
   } catch (error) {
     console.error('Error fetching project members:', error)
-    alert('获取成员信息失败，请重试')
+    showFeedback('获取成员信息失败，请重试', 'error')
   }
 }
 
-const closeMembersModal = () => {
-  showMembersModal.value = false
+const closeMembersDrawer = () => {
+  showMembersDrawer.value = false
   selectedProject.value = null
   newMember.value = {
     userId: '',
@@ -483,13 +578,14 @@ const addProjectMember = async () => {
       userId: '',
       role: 'developer'
     }
+    showFeedback('成员添加成功', 'success')
   } catch (error) {
     console.error('Error adding project member:', error)
     // 获取详细错误信息
     const errorMessage = error.response?.data?.message || 
                         error.response?.data?.error || 
                         '添加成员失败，请重试'
-    alert(`添加成员失败：${errorMessage}`)
+    showFeedback(`添加成员失败：${errorMessage}`, 'error')
   }
 }
 
@@ -504,33 +600,65 @@ const updateProjectMember = async (member: ProjectMember) => {
     // 重新获取项目详情以更新成员列表
     const response = await axios.get(`/projects/${selectedProject.value.id}`)
     selectedProject.value = response.data
+    showFeedback('成员角色更新成功', 'success')
   } catch (error) {
     console.error('Error updating project member:', error)
     // 获取详细错误信息
     const errorMessage = error.response?.data?.message || 
                         error.response?.data?.error || 
                         '更新成员角色失败，请重试'
-    alert(`更新成员角色失败：${errorMessage}`)
+    showFeedback(`更新成员角色失败：${errorMessage}`, 'error')
   }
 }
 
 const removeProjectMember = async (userId: string) => {
   if (!selectedProject.value) return
 
-  if (!confirm('确定要移除这个成员吗？')) return
-
+  // 先备份要移除的成员信息，用于撤销操作
+  const memberToRemove = selectedProject.value.members.find(member => member.userId === userId)
+  if (!memberToRemove) return
+  
+  // 乐观更新UI
+  const index = selectedProject.value.members.findIndex(member => member.userId === userId)
+  if (index > -1) {
+    selectedProject.value.members.splice(index, 1)
+  }
+  
   try {
     await axios.delete(`/projects/${selectedProject.value.id}/members/${userId}`)
-    // 重新获取项目详情以更新成员列表
-    const response = await axios.get(`/projects/${selectedProject.value.id}`)
-    selectedProject.value = response.data
+    
+    // 显示反馈和撤销选项
+    showFeedback('成员已移除', 'success', true, async () => {
+      try {
+        // 重新添加成员
+        await axios.post(`/projects/${selectedProject.value.id}/members`, {
+          userId: memberToRemove.userId,
+          role: memberToRemove.role
+        })
+        // 重新获取项目详情以更新成员列表
+        const response = await axios.get(`/projects/${selectedProject.value.id}`)
+        selectedProject.value = response.data
+        showFeedback('移除已撤销', 'success')
+      } catch (error) {
+        console.error('Error undoing remove:', error)
+        showFeedback('撤销移除失败', 'error')
+        // 恢复UI
+        if (index > -1) {
+          selectedProject.value.members.splice(index, 0, memberToRemove)
+        }
+      }
+    })
   } catch (error) {
     console.error('Error removing project member:', error)
     // 获取详细错误信息
     const errorMessage = error.response?.data?.message || 
                         error.response?.data?.error || 
                         '移除成员失败，请重试'
-    alert(`移除成员失败：${errorMessage}`)
+    showFeedback(`移除成员失败：${errorMessage}`, 'error')
+    // 恢复UI
+    if (index > -1) {
+      selectedProject.value.members.splice(index, 0, memberToRemove)
+    }
   }
 }
 

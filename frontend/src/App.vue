@@ -1,10 +1,10 @@
 <template>
-  <div id="app">
+  <div id="app" class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <!-- 对于不需要认证的页面（登录、注册），直接渲染内容 -->
     <router-view v-if="!requiresAuth" />
     
     <!-- 对于需要认证的页面，渲染完整的后台布局 -->
-    <div v-else class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div v-else class="flex flex-col">
       <!-- 移动端侧边栏触发器 -->
       <el-button
         v-if="!isSidebarOpen && !isDesktop"
@@ -19,14 +19,14 @@
       <!-- 侧边栏导航 -->
       <el-aside
         :class="[
-          'fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 shadow-xl transform transition-transform duration-300 ease-in-out',
+          'fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 shadow-xl transform transition-all duration-300 ease-in-out',
           isSidebarOpen || isDesktop ? 'translate-x-0' : '-translate-x-full'
         ]"
       >
         <!-- 侧边栏头部 -->
         <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700">
           <div class="flex items-center space-x-2">
-            <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+            <div class="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center">
               <span class="text-white font-bold">AI</span>
             </div>
             <div>
@@ -47,10 +47,10 @@
         <el-menu
           :default-active="$route.path"
           router
-          class="el-menu-vertical-demo"
+          class="el-menu-vertical-demo h-[calc(100%-4rem)] overflow-y-auto"
           background-color="#ffffff"
           text-color="#303133"
-          active-text-color="#409EFF"
+          active-text-color="#3b82f6"
           dark-background-color="#1f2937"
           dark-text-color="#ffffff"
           dark-active-text-color="#60a5fa"
@@ -61,28 +61,19 @@
             :index="item.path"
             @click="!isDesktop && toggleSidebar"
           >
-            <span slot="title">
-              <i class="el-icon-ep-document-copy"></i>
-              <span>{{ item.label }}</span>
-            </span>
+            <el-icon><DocumentCopy /></el-icon>
+            <template #title>{{ item.label }}</template>
           </el-menu-item>
         </el-menu>
       </el-aside>
 
-      <!-- 遮罩层 -->
-      <div
-        v-if="isSidebarOpen && !isDesktop"
-        @click="toggleSidebar"
-        class="fixed inset-0 z-30 bg-black bg-opacity-50"
-      ></div>
-
       <!-- 主内容区 -->
-      <div :class="['transition-all duration-300', isDesktop ? 'ml-64' : 'ml-0']">
+      <div :class="['flex-1 transition-all duration-300', isDesktop ? 'ml-64' : 'ml-0']">
         <!-- 顶部导航栏 -->
-        <el-header class="sticky top-0 z-30 bg-white dark:bg-gray-800 shadow-sm">
+        <el-header class="sticky top-0 z-30 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
           <div class="px-6 py-4 flex items-center justify-between">
             <div class="flex items-center space-x-4">
-              <h2 class="text-lg font-semibold">{{ currentPageTitle }}</h2>
+              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ currentPageTitle }}</h2>
             </div>
             <div class="flex items-center space-x-4">
               <!-- 通知图标 -->
@@ -90,23 +81,24 @@
                 type="text"
                 :icon="Bell"
                 circle
+                class="text-gray-600 dark:text-gray-300"
               />
               <!-- 用户菜单 -->
               <el-dropdown @command="handleDropdownCommand">
-                <span class="el-dropdown-link">
+                <span class="el-dropdown-link cursor-pointer">
                   <div class="flex items-center space-x-2">
-                    <el-avatar>{{ userInitials }}</el-avatar>
-                    <span class="text-sm font-medium">{{ userName }}</span>
-                    <el-icon class="el-icon--right"><ArrowDown /></el-icon>
+                    <el-avatar :size="32" class="border-2 border-gray-200 dark:border-gray-700">{{ userInitials }}</el-avatar>
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ userName }}</span>
+                    <el-icon class="el-icon--right text-gray-500 dark:text-gray-400"><ArrowDown /></el-icon>
                   </div>
                 </span>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item command="changePassword">
+                    <el-dropdown-item command="changePassword" class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
                       <el-icon><Lock /></el-icon>
                       更改密码
                     </el-dropdown-item>
-                    <el-dropdown-item command="logout">
+                    <el-dropdown-item command="logout" class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
                       <el-icon><SwitchButton /></el-icon>
                       退出登录
                     </el-dropdown-item>
@@ -118,52 +110,70 @@
         </el-header>
 
         <!-- 页面内容 -->
-        <el-main class="p-6">
+        <el-main class="p-6 md:p-8">
           <router-view />
         </el-main>
       </div>
     </div>
 
-    <!-- 更改密码模态框 -->
-    <el-dialog
-      v-model="showChangePasswordModal"
+    <!-- 更改密码侧边抽屉 -->
+    <el-drawer
+      v-model="showChangePasswordDrawer"
       title="更改密码"
-      width="500px"
+      size="480px"
+      direction="rtl"
+      :with-header="false"
     >
-      <el-form :model="changePasswordForm" label-width="80px">
-        <el-form-item label="当前密码" prop="currentPassword">
-          <el-input
-            type="password"
-            v-model="changePasswordForm.currentPassword"
-            placeholder="请输入当前密码"
-            show-password
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white">更改密码</h3>
+          <el-button
+            @click="showChangePasswordDrawer = false"
+            size="small"
+            text
+            :icon="CircleClose"
+            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
           />
-        </el-form-item>
-        <el-form-item label="新密码" prop="newPassword">
-          <el-input
-            type="password"
-            v-model="changePasswordForm.newPassword"
-            placeholder="请输入新密码（至少6位）"
-            minlength="6"
-            show-password
-          />
-        </el-form-item>
-        <el-form-item label="确认新密码" prop="confirmPassword">
-          <el-input
-            type="password"
-            v-model="changePasswordForm.confirmPassword"
-            placeholder="请再次输入新密码"
-            minlength="6"
-            show-password
-          />
-        </el-form-item>
+        </div>
+        <el-form :model="changePasswordForm" label-width="80px">
+          <el-form-item label="当前密码" prop="currentPassword">
+            <el-input
+              type="password"
+              v-model="changePasswordForm.currentPassword"
+              placeholder="请输入当前密码"
+              show-password
+              class="rounded-lg"
+            />
+          </el-form-item>
+          <el-form-item label="新密码" prop="newPassword">
+            <el-input
+              type="password"
+              v-model="changePasswordForm.newPassword"
+              placeholder="请输入新密码（至少6位）"
+              minlength="6"
+              show-password
+              class="rounded-lg"
+            />
+          </el-form-item>
+          <el-form-item label="确认新密码" prop="confirmPassword">
+            <el-input
+              type="password"
+              v-model="changePasswordForm.confirmPassword"
+              placeholder="请再次输入新密码"
+              minlength="6"
+              show-password
+              class="rounded-lg"
+            />
+          </el-form-item>
+        </el-form>
+        
         <!-- 错误提示 -->
         <el-alert
           v-if="changePasswordError"
           :title="changePasswordError"
           type="error"
           show-icon
-          class="mt-4"
+          class="mt-4 rounded-lg"
         />
         <!-- 成功提示 -->
         <el-alert
@@ -171,18 +181,54 @@
           :title="changePasswordSuccess"
           type="success"
           show-icon
-          class="mt-4"
+          class="mt-4 rounded-lg"
         />
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="showChangePasswordModal = false">取消</el-button>
-          <el-button type="primary" @click="handleChangePassword" :loading="isChangingPassword">
+        
+        <div class="flex justify-end space-x-3 mt-6">
+          <el-button
+            @click="showChangePasswordDrawer = false"
+            class="rounded-lg"
+          >
+            取消
+          </el-button>
+          <el-button
+            type="primary"
+            @click="handleChangePassword"
+            :loading="isChangingPassword"
+            class="rounded-lg"
+          >
             保存更改
           </el-button>
-        </span>
-      </template>
-    </el-dialog>
+        </div>
+      </div>
+    </el-drawer>
+    
+    <!-- 操作反馈提示条 -->
+    <div
+      v-if="actionFeedback.show"
+      :class="[
+        'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg p-4 z-40 transform transition-transform duration-300',
+        actionFeedback.show ? 'translate-y-0' : 'translate-y-full'
+      ]"
+    >
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <el-icon :class="actionFeedback.type === 'success' ? 'text-green-500' : 'text-red-500'">
+            <Check v-if="actionFeedback.type === 'success'" />
+            <CircleClose v-else />
+          </el-icon>
+          <span class="text-gray-700 dark:text-gray-300">{{ actionFeedback.message }}</span>
+        </div>
+        <el-button
+          v-if="actionFeedback.undoable"
+          type="text"
+          @click="handleUndo"
+          class="text-primary-600 dark:text-primary-400"
+        >
+          撤销
+        </el-button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -190,7 +236,16 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from './utils/api'
-import { Menu, CircleClose, Bell, ArrowDown, Lock, SwitchButton } from '@element-plus/icons-vue'
+import { 
+  Menu, 
+  CircleClose, 
+  Bell, 
+  ArrowDown, 
+  Lock, 
+  SwitchButton,
+  DocumentCopy,
+  Check
+} from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -198,8 +253,7 @@ const isSidebarOpen = ref(false)
 const isDesktop = ref(window.innerWidth >= 1024)
 
 // 用户菜单相关
-const isUserMenuOpen = ref(false)
-const showChangePasswordModal = ref(false)
+const showChangePasswordDrawer = ref(false)
 const isChangingPassword = ref(false)
 const changePasswordError = ref('')
 const changePasswordSuccess = ref('')
@@ -209,6 +263,15 @@ const changePasswordForm = ref({
   currentPassword: '',
   newPassword: '',
   confirmPassword: ''
+})
+
+// 操作反馈系统
+const actionFeedback = ref({
+  show: false,
+  message: '',
+  type: 'success' as 'success' | 'error',
+  undoable: false,
+  undoAction: null as (() => void) | null
 })
 
 // 判断当前页面是否需要认证
@@ -239,10 +302,34 @@ const userInitials = computed(() => {
 // 处理下拉菜单命令
 const handleDropdownCommand = (command: string) => {
   if (command === 'changePassword') {
-    showChangePasswordModal.value = true
+    showChangePasswordDrawer.value = true
   } else if (command === 'logout') {
     handleLogout()
   }
+}
+
+// 显示操作反馈
+const showFeedback = (message: string, type: 'success' | 'error' = 'success', undoable = false, undoAction: (() => void) | null = null) => {
+  actionFeedback.value = {
+    show: true,
+    message,
+    type,
+    undoable,
+    undoAction
+  }
+  
+  // 5秒后自动隐藏
+  setTimeout(() => {
+    actionFeedback.value.show = false
+  }, 5000)
+}
+
+// 处理撤销操作
+const handleUndo = () => {
+  if (actionFeedback.value.undoAction) {
+    actionFeedback.value.undoAction()
+  }
+  actionFeedback.value.show = false
 }
 
 // 处理密码更改
@@ -268,7 +355,8 @@ const handleChangePassword = async () => {
       newPassword: changePasswordForm.value.newPassword
     })
     
-    changePasswordSuccess.value = '密码更改成功'
+    // 显示成功反馈
+    showFeedback('密码更改成功', 'success')
     
     // 清空表单
     changePasswordForm.value = {
@@ -277,10 +365,10 @@ const handleChangePassword = async () => {
       confirmPassword: ''
     }
     
-    // 3秒后关闭模态框
+    // 关闭抽屉
     setTimeout(() => {
-      showChangePasswordModal.value = false
-    }, 3000)
+      showChangePasswordDrawer.value = false
+    }, 1500)
   } catch (error: any) {
     console.error('Change password failed:', error)
     changePasswordError.value = error.response?.data?.message || '密码更改失败，请检查当前密码是否正确'

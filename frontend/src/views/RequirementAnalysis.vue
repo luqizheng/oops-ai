@@ -1,9 +1,9 @@
 <template>
-  <div class="space-y-6">
-    <div class="bg-white rounded-lg shadow p-6">
-      <h2 class="text-2xl font-bold mb-4">需求分析</h2>
+  <div class="space-y-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-200">
+      <h2 class="text-2xl font-bold mb-6 text-gray-900">需求分析</h2>
       
-      <div class="space-y-4">
+      <div class="space-y-6">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">
             输入需求描述
@@ -11,70 +11,71 @@
           <textarea
             v-model="requirementText"
             @input="analyzeFuzzyWords"
-            rows="4"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            rows="5"
+            class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-500 transition-all duration-200"
             placeholder="请输入您的需求描述，例如：'用户希望系统响应速度更快'"
           ></textarea>
         </div>
 
-        <div v-if="fuzzyWordsAnalysis.fuzzyWords.length > 0" class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+        <div v-if="fuzzyWordsAnalysis.fuzzyWords.length > 0" class="p-4 bg-yellow-50 border-l-2 border-yellow-400 rounded-r-lg">
           <h3 class="text-lg font-medium text-yellow-800 mb-2">模糊词检测</h3>
           <div class="text-yellow-700 mb-2" v-html="highlightedText"></div>
           <p class="text-sm text-yellow-600">{{ fuzzyWordsAnalysis.suggestion }}</p>
         </div>
 
-        <div class="flex space-x-4">
-          <button
+        <div class="flex flex-wrap gap-3">
+          <el-button
             @click="generateQuestions"
             :disabled="!requirementText"
-            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            type="primary"
+            class="rounded-lg px-5 py-2 h-10 text-sm"
           >
             生成追问
-          </button>
-          <button
+          </el-button>
+          <el-button
             @click="generateUserStories"
             :disabled="!requirementText"
-            class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            class="rounded-lg px-5 py-2 h-10 text-sm bg-green-500 hover:bg-green-600 text-white"
           >
             生成用户故事
-          </button>
-          <button
+          </el-button>
+          <el-button
             @click="generateAcceptanceCriteria"
             :disabled="!requirementText"
-            class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            class="rounded-lg px-5 py-2 h-10 text-sm bg-purple-500 hover:bg-purple-600 text-white"
           >
             生成验收条件
-          </button>
-          <button
+          </el-button>
+          <el-button
             @click="getQualityScore"
             :disabled="!requirementText"
-            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            class="rounded-lg px-5 py-2 h-10 text-sm bg-red-500 hover:bg-red-600 text-white"
           >
             质量评分
-          </button>
+          </el-button>
         </div>
       </div>
     </div>
 
-    <div v-if="questions.length > 0" class="bg-white rounded-lg shadow p-6">
-      <h3 class="text-xl font-bold mb-4">智能追问</h3>
-      <div class="space-y-3">
-        <div v-for="(question, index) in questions" :key="index" class="p-3 bg-gray-50 rounded-md">
-          <p class="font-medium">{{ index + 1 }}. {{ question.question }}</p>
-          <p class="text-sm text-gray-500 mt-1">类型: {{ question.type }}</p>
-        </div>
-      </div>
-    </div>
-
-    <div v-if="userStories.length > 0" class="bg-white rounded-lg shadow p-6">
-      <h3 class="text-xl font-bold mb-4">用户故事</h3>
+    <div v-if="questions.length > 0" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-200">
+      <h3 class="text-xl font-bold mb-5 text-gray-900">智能追问</h3>
       <div class="space-y-4">
-        <div v-for="(story, index) in userStories" :key="index" class="p-4 border border-gray-200 rounded-md">
-          <p class="font-medium">作为 <span class="text-blue-600">{{ story.role }}</span>，</p>
-          <p class="mt-1">我想要 <span class="text-green-600">{{ story.feature }}</span>，</p>
-          <p class="mt-1">以便 <span class="text-purple-600">{{ story.value }}</span></p>
-          <div v-if="story.storyPoints" class="mt-2">
-            <span class="inline-block px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded">
+        <div v-for="(question, index) in questions" :key="index" class="p-4 bg-gray-50 rounded-lg transition-all duration-200 hover:bg-gray-100">
+          <p class="font-medium text-gray-800">{{ index + 1 }}. {{ question.question }}</p>
+          <p class="text-sm text-gray-500 mt-2">类型: {{ question.type }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="userStories.length > 0" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-200">
+      <h3 class="text-xl font-bold mb-5 text-gray-900">用户故事</h3>
+      <div class="space-y-5">
+        <div v-for="(story, index) in userStories" :key="index" class="p-5 border border-gray-200 rounded-lg transition-all duration-200 hover:shadow-sm">
+          <p class="font-medium text-gray-800">作为 <span class="text-primary-600">{{ story.role }}</span>，</p>
+          <p class="mt-2">我想要 <span class="text-green-600">{{ story.feature }}</span>，</p>
+          <p class="mt-2">以便 <span class="text-purple-600">{{ story.value }}</span></p>
+          <div v-if="story.storyPoints" class="mt-3">
+            <span class="inline-block px-3 py-1 text-xs font-semibold bg-primary-100 text-primary-800 rounded-full">
               故事点: {{ story.storyPoints }}
             </span>
           </div>
@@ -82,66 +83,66 @@
       </div>
     </div>
 
-    <div v-if="acceptanceCriteria.length > 0" class="bg-white rounded-lg shadow p-6">
-      <h3 class="text-xl font-bold mb-4">验收条件</h3>
-      <div class="space-y-4">
-        <div v-for="(criterion, index) in acceptanceCriteria" :key="index" class="p-4 border border-gray-200 rounded-md">
-          <div class="flex items-center mb-2">
-            <span class="px-2 py-1 text-xs font-semibold rounded"
+    <div v-if="acceptanceCriteria.length > 0" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-200">
+      <h3 class="text-xl font-bold mb-5 text-gray-900">验收条件</h3>
+      <div class="space-y-5">
+        <div v-for="(criterion, index) in acceptanceCriteria" :key="index" class="p-5 border border-gray-200 rounded-lg transition-all duration-200 hover:shadow-sm">
+          <div class="flex items-center mb-3">
+            <span class="px-3 py-1 text-xs font-semibold rounded-full"
                   :class="getScenarioClass(criterion.scenarioType)">
               {{ getScenarioText(criterion.scenarioType) }}
             </span>
           </div>
-          <p class="font-medium">Given {{ criterion.given }}</p>
-          <p class="mt-1">When {{ criterion.when }}</p>
-          <p class="mt-1">Then {{ criterion.then }}</p>
+          <p class="font-medium text-gray-800">Given {{ criterion.given }}</p>
+          <p class="mt-2 text-gray-700">When {{ criterion.when }}</p>
+          <p class="mt-2 text-gray-700">Then {{ criterion.then }}</p>
         </div>
       </div>
     </div>
 
-    <div v-if="qualityScore" class="bg-white rounded-lg shadow p-6">
-      <h3 class="text-xl font-bold mb-4">质量评分</h3>
+    <div v-if="qualityScore" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-200">
+      <h3 class="text-xl font-bold mb-5 text-gray-900">质量评分</h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <div class="space-y-4">
+          <div class="space-y-5">
             <div>
-              <div class="flex justify-between mb-1">
+              <div class="flex justify-between mb-2">
                 <span class="text-sm font-medium text-gray-700">清晰度</span>
-                <span class="text-sm font-bold">{{ qualityScore.clarity }}/10</span>
+                <span class="text-sm font-bold text-gray-900">{{ qualityScore.clarity }}/10</span>
               </div>
-              <div class="w-full bg-gray-200 rounded-full h-2">
-                <div class="bg-blue-600 h-2 rounded-full" :style="{ width: `${qualityScore.clarity * 10}%` }"></div>
+              <div class="w-full bg-gray-200 rounded-full h-3">
+                <div class="bg-primary-500 h-3 rounded-full transition-all duration-500 ease-out" :style="{ width: `${qualityScore.clarity * 10}%` }"></div>
               </div>
             </div>
             <div>
-              <div class="flex justify-between mb-1">
+              <div class="flex justify-between mb-2">
                 <span class="text-sm font-medium text-gray-700">可测试性</span>
-                <span class="text-sm font-bold">{{ qualityScore.testability }}/10</span>
+                <span class="text-sm font-bold text-gray-900">{{ qualityScore.testability }}/10</span>
               </div>
-              <div class="w-full bg-gray-200 rounded-full h-2">
-                <div class="bg-green-600 h-2 rounded-full" :style="{ width: `${qualityScore.testability * 10}%` }"></div>
+              <div class="w-full bg-gray-200 rounded-full h-3">
+                <div class="bg-green-500 h-3 rounded-full transition-all duration-500 ease-out" :style="{ width: `${qualityScore.testability * 10}%` }"></div>
               </div>
             </div>
             <div>
-              <div class="flex justify-between mb-1">
+              <div class="flex justify-between mb-2">
                 <span class="text-sm font-medium text-gray-700">完整性</span>
-                <span class="text-sm font-bold">{{ qualityScore.completeness }}/10</span>
+                <span class="text-sm font-bold text-gray-900">{{ qualityScore.completeness }}/10</span>
               </div>
-              <div class="w-full bg-gray-200 rounded-full h-2">
-                <div class="bg-purple-600 h-2 rounded-full" :style="{ width: `${qualityScore.completeness * 10}%` }"></div>
+              <div class="w-full bg-gray-200 rounded-full h-3">
+                <div class="bg-purple-500 h-3 rounded-full transition-all duration-500 ease-out" :style="{ width: `${qualityScore.completeness * 10}%` }"></div>
               </div>
             </div>
           </div>
-          <div class="mt-6 p-4 bg-blue-50 rounded-md">
-            <p class="text-lg font-bold text-blue-800">总分: {{ qualityScore.totalScore }}/10</p>
+          <div class="mt-8 p-4 bg-primary-50 rounded-lg border-l-2 border-primary-400">
+            <p class="text-lg font-bold text-primary-800">总分: {{ qualityScore.totalScore }}/10</p>
           </div>
         </div>
         <div>
-          <h4 class="font-medium text-gray-700 mb-3">改进建议</h4>
-          <ul class="space-y-2">
+          <h4 class="font-medium text-gray-700 mb-4">改进建议</h4>
+          <ul class="space-y-3">
             <li v-for="(suggestion, index) in qualityScore.suggestions" :key="index" class="flex items-start">
-              <span class="inline-block w-2 h-2 bg-blue-500 rounded-full mt-2 mr-2"></span>
-              <span class="text-gray-600">{{ suggestion }}</span>
+              <span class="inline-block w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+              <span class="text-gray-700">{{ suggestion }}</span>
             </li>
           </ul>
         </div>
