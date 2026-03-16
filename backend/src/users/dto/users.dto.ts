@@ -17,9 +17,6 @@ export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   roleId: string
-
-  @IsOptional()
-  organizationIds?: string[]
 }
 
 export class UpdateUserDto {
@@ -39,9 +36,6 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   roleId?: string
-
-  @IsOptional()
-  organizationIds?: string[]
 }
 
 export class UserDto {
@@ -50,7 +44,6 @@ export class UserDto {
   name: string | null
   roleId: string
   role: { name: string }
-  userOrganizations: { organization: { id: string; name: string } }[]
   createdAt: Date
   updatedAt: Date
 }

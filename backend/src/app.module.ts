@@ -7,7 +7,7 @@ import { VectorModule } from './vector/vector.module'
 import { AuthModule } from './auth/auth.module'
 import { UsersModule } from './users/users.module'
 import { RolesModule } from './roles/roles.module'
-import { OrganizationsModule } from './organizations/organizations.module'
+
 import { ProjectsModule } from './projects/projects.module'
 
 @Module({
@@ -22,7 +22,6 @@ import { ProjectsModule } from './projects/projects.module'
     VectorModule,
     UsersModule,
     RolesModule,
-    OrganizationsModule,
     ProjectsModule,
   ],
 })

@@ -41,7 +41,6 @@ model Project {
   createdBy       String?          @map("created_by")
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @default(now()) @updatedAt @map("updated_at")
-  organizations   OrganizationProject[]
   members         ProjectMember[]
   projectSettings ProjectSettings?
   requirements    Requirement[]
@@ -60,17 +59,6 @@ model ProjectMember {
 
   @@id([projectId, userId])
   @@map("project_members")
-}
-
-model OrganizationProject {
-  organizationId String       @map("organization_id")
-  projectId      String       @map("project_id")
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  createdAt      DateTime     @default(now()) @map("created_at")
-
-  @@id([organizationId, projectId])
-  @@map("organization_projects")
 }
 
 model ProjectSettings {
@@ -118,7 +106,6 @@ model User {
   createdAt            DateTime           @default(now()) @map("created_at")
   updatedAt            DateTime           @default(now()) @updatedAt @map("updated_at")
   roleId               String             @map("role_id")
-  userOrganizations    UserOrganization[]
   role                 Role               @relation(fields: [roleId], references: [id])
   assignedRequirements Requirement[]      @relation(name: "RequirementAssignee")
   reportedRequirements Requirement[]      @relation(name: "RequirementReporter")
@@ -139,18 +126,6 @@ model Role {
   @@map("roles")
 }
 
-model Organization {
-  id                String             @id @default(uuid())
-  name              String             @unique
-  description       String?
-  createdAt         DateTime           @default(now()) @map("created_at")
-  updatedAt         DateTime           @default(now()) @updatedAt @map("updated_at")
-  userOrganizations UserOrganization[]
-  projects          OrganizationProject[]
-
-  @@map("organizations")
-}
-
 model Permission {
   id          String   @id @default(uuid())
   name        String   @unique
@@ -161,15 +136,4 @@ model Permission {
   role        Role     @relation(fields: [roleId], references: [id])
 
   @@map("permissions")
-}
-
-model UserOrganization {
-  userId         String       @map("user_id")
-  organizationId String       @map("organization_id")
-  createdAt      DateTime     @default(now()) @map("created_at")
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  user           User         @relation(fields: [userId], references: [id])
-
-  @@id([userId, organizationId])
-  @@map("user_organizations")
 }

@@ -362,6 +362,32 @@
 
 ### 4.3 数据模型设计
 
+#### 项目实体 (Project)
+
+**定义**：项目是需求管理的基本组织单位，包含一组相关的需求、团队成员和配置信息。每个项目独立管理需求、版本控制和团队权限。
+
+```sql
+CREATE TABLE projects (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL, -- 项目名称
+    description TEXT, -- 项目描述
+    key VARCHAR(50) UNIQUE, -- 项目关键字（如OPS）
+    created_by UUID, -- 创建人
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    status VARCHAR(50), -- active, archived
+    settings JSONB -- 项目配置（工作流、通知规则等）
+);
+
+CREATE TABLE project_members (
+    project_id UUID REFERENCES projects(id),
+    user_id UUID NOT NULL,
+    role VARCHAR(50), -- product_manager, developer, tester, admin
+    joined_at TIMESTAMP DEFAULT NOW(),
+    PRIMARY KEY (project_id, user_id)
+);
+```
+
 #### 需求实体 (Requirement)
 
 ```sql
@@ -529,6 +555,8 @@ def calculate_clarity_score(text):
 ### 8.1 项目管理功能
 
 #### 8.1.1 项目实体管理
+
+**定义**：项目是需求管理的基本组织单位，用于集中管理一组相关的需求、团队成员和配置信息。每个项目拥有独立的需求池、版本控制和权限体系，支持不同团队并行开展工作。
 - **项目创建与配置**: 支持创建多个项目，每个项目独立管理需求
 - **项目成员管理**: 支持添加/移除项目成员，分配不同角色权限
 - **项目设置**: 配置项目基本信息、工作流、通知规则等

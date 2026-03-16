@@ -77,12 +77,6 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from '../utils/api'
 
-interface Organization {
-  id: string
-  name: string
-  description: string | null
-}
-
 interface ProjectSettings {
   id: string
   projectId: string
@@ -93,8 +87,6 @@ interface Project {
   id: string
   name: string
   description: string | null
-  organizationId: string
-  organization: Organization | null
   projectSettings: ProjectSettings | null
   createdAt: string
   updatedAt: string

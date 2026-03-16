@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common'
+import { Injectable, NotFoundException, ForbiddenException, HttpException, HttpStatus } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateProjectDto, UpdateProjectDto } from './dto/projects.dto'
 import { AddMemberDto, UpdateMemberDto } from './dto/members.dto'
@@ -10,56 +10,54 @@ export class ProjectsService {
 
   // 项目CRUD操作
   async createProject(userId: string, data: CreateProjectDto) {
-    // Create project with basic data and project manager
-    const project = await this.prisma.project.create({
-      data: {
-        name: data.name,
-        description: data.description,
-        key: data.key,
-        createdBy: userId,
-        members: {
-          create: {
-            userId,
-            role: 'project_manager', // 创建者默认是项目经理
+    try {
+      // Create project with basic data and project manager
+      const project = await this.prisma.project.create({
+        data: {
+          name: data.name,
+          description: data.description,
+          key: data.key,
+          createdBy: userId,
+          members: {
+            create: {
+              userId,
+              role: 'project_manager', // 创建者默认是项目经理
+            },
+          },
+          projectSettings: {
+            create: {},
           },
         },
-        projectSettings: {
-          create: {},
-        },
-        // Create associations with organizations if provided
-        organizations: data.organizationIds
-          ? {
-              create: data.organizationIds.map((orgId) => ({ organizationId: orgId })),
-            }
-          : undefined,
-      },
-    })
-
-    // If organizationIds are provided, add all organization members to the project
-    if (data.organizationIds && data.organizationIds.length > 0) {
-      // Get all users in the organizations
-      const organizationMembers = await this.prisma.userOrganization.findMany({
-        where: { organizationId: { in: data.organizationIds } },
-        select: { userId: true },
       })
 
-      // Add each organization member to the project as reporter, except the creator
-      for (const member of organizationMembers) {
-        if (member.userId !== userId) {
-          // Skip the creator since they're already added as project manager
-          await this.prisma.projectMember.create({
-            data: {
-              projectId: project.id,
-              userId: member.userId,
-              role: 'reporter',
-              permissions: {},
-            },
-          })
+      return project
+    } catch (error: any) {
+      // 处理数据库唯一约束错误
+      if (error.code === 'P2002') {
+        if (error.meta?.target?.includes('key')) {
+          throw new HttpException(
+            { message: `项目关键字 "${data.key}" 已存在，请使用其他关键字` },
+            HttpStatus.CONFLICT
+          )
         }
+        throw new HttpException(
+          { message: '项目创建失败，数据已存在' },
+          HttpStatus.CONFLICT
+        )
       }
+      // 处理其他数据库错误
+      if (error.code?.startsWith('P')) {
+        throw new HttpException(
+          { message: `数据库错误：${error.message}` },
+          HttpStatus.INTERNAL_SERVER_ERROR
+        )
+      }
+      // 处理其他未知错误
+      throw new HttpException(
+        { message: `创建项目失败：${error.message}` },
+        HttpStatus.INTERNAL_SERVER_ERROR
+      )
     }
-
-    return project
   }
 
   async getProjects(userId: string) {
@@ -72,12 +70,8 @@ export class ProjectsService {
         },
       },
       include: {
-        organizations: {
-          include: {
-            organization: true
-          }
-        },
         projectSettings: true,
+        members: true, // 包含成员信息以显示成员数
       },
     })
   }

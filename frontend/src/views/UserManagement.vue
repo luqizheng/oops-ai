@@ -1,223 +1,221 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 p-4">
     <!-- 页面标题和操作按钮 -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+    <el-card shadow="hover">
       <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
         <div>
           <h2 class="text-2xl font-bold text-gray-900 dark:text-white">用户管理</h2>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">管理系统用户账号</p>
         </div>
-        <button
+        <el-button
+          type="primary"
+          :icon="Plus"
           @click="showCreateModal = true"
-          class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center space-x-2"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-          </svg>
-          <span>添加新用户</span>
-        </button>
+          添加新用户
+        </el-button>
       </div>
-    </div>
+    </el-card>
 
     <!-- 数据表格 -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
-      <div class="p-4 border-b border-gray-200 dark:border-gray-700">
-        <div class="relative">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="搜索用户名或邮箱..."
-            class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-          />
-          <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-          </svg>
-        </div>
+    <el-card shadow="hover">
+      <div class="mb-4">
+        <el-input
+          v-model="searchQuery"
+          placeholder="搜索用户名或邮箱..."
+          :prefix-icon="Search"
+          clearable
+        />
       </div>
 
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead class="bg-gray-50 dark:bg-gray-700">
-            <tr>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                用户名
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                电子邮件
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                角色
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                创建时间
-              </th>
-              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                操作
-              </th>
-            </tr>
-          </thead>
-          <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150">
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center space-x-3">
-                  <div class="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ user.name?.charAt(0) || 'U' }}</span>
-                  </div>
-                  <div>
-                    <div class="text-sm font-medium text-gray-900 dark:text-white">{{ user.name || '-' }}</div>
-                  </div>
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-500 dark:text-gray-400">{{ user.email }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                  {{ user.role.name }}
-                </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-500 dark:text-gray-400">{{ formatDate(user.createdAt) }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
-                <button
-                  @click="editUser(user)"
-                  class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 transition-colors duration-150 px-3 py-1 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/30"
-                >
-                  编辑
-                </button>
-                <button
-                  @click="deleteUser(user.id)"
-                  class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors duration-150 px-3 py-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30"
-                >
-                  删除
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <el-table
+        v-loading="loading"
+        :data="filteredUsers"
+        stripe
+        style="width: 100%"
+      >
+        <el-table-column
+          prop="name"
+          label="用户名"
+          width="200"
+        >
+          <template #default="scope">
+            <div class="flex items-center">
+              <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2">
+                <span class="text-sm font-medium text-blue-800">{{ scope.row.name?.charAt(0) || 'U' }}</span>
+              </div>
+              <span>{{ scope.row.name || '-' }}</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="email"
+          label="电子邮件"
+          width="250"
+        />
+        <el-table-column
+          prop="role.name"
+          label="角色"
+          width="150"
+        >
+          <template #default="scope">
+            <el-tag type="primary">{{ scope.row.role.name }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="createdAt"
+          label="创建时间"
+          width="200"
+        >
+          <template #default="scope">
+            {{ formatDate(scope.row.createdAt) }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="操作"
+          width="180"
+          fixed="right"
+        >
+          <template #default="scope">
+            <el-button
+              type="primary"
+              size="small"
+              :icon="Edit"
+              @click.stop="editUser(scope.row)"
+              class="mr-2"
+            >
+              编辑
+            </el-button>
+            <el-button
+              type="danger"
+              size="small"
+              :icon="Delete"
+              @click.stop="deleteUser(scope.row.id)"
+            >
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
 
       <!-- 空状态 -->
-      <div v-if="filteredUsers.length === 0" class="text-center py-12 px-4">
-        <svg class="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-        </svg>
-        <p class="text-gray-500 dark:text-gray-400 mt-4 text-lg font-medium">暂无用户</p>
-        <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">点击"添加新用户"按钮开始创建</p>
-      </div>
+      <el-empty
+        v-if="filteredUsers.length === 0"
+        description="暂无用户数据"
+      />
 
       <!-- 分页 -->
-      <div v-if="filteredUsers.length > 0" class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-        <div class="text-sm text-gray-500 dark:text-gray-400">
-          共 {{ filteredUsers.length }} 条记录
-        </div>
-        <div class="flex items-center space-x-2">
-          <button class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-            上一页
-          </button>
-          <button class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-            下一页
-          </button>
-        </div>
+      <div v-if="filteredUsers.length > 0" class="mt-4 flex justify-center">
+        <el-pagination
+          background
+          layout="prev, pager, next"
+          :total="filteredUsers.length"
+          :page-size="10"
+          :current-page="currentPage"
+          @current-change="handleCurrentChange"
+        />
       </div>
-    </div>
+    </el-card>
 
     <!-- 创建/编辑模态框 -->
-    <div v-if="showCreateModal || showEditModal" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-black/70 flex items-center justify-center p-4 z-50">
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full animate-fadeIn">
-        <div class="p-6">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-              {{ showEditModal ? '编辑用户' : '添加新用户' }}
-            </h3>
-            <button
-              @click="closeModal"
-              class="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 transition-colors duration-150"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
-            </button>
-          </div>
-          
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                用户名 *
-              </label>
-              <input
-                v-model="currentUser.name"
-                type="text"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                placeholder="请输入用户名"
-              />
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                电子邮件 *
-              </label>
-              <input
-                v-model="currentUser.email"
-                type="email"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                placeholder="请输入电子邮件"
-              />
-            </div>
-            
-            <div v-if="!showEditModal">
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                密码 *
-              </label>
-              <input
-                v-model="currentUser.password"
-                type="password"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                placeholder="请输入密码（至少6位）"
-              />
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                角色 *
-              </label>
-              <select
-                v-model="currentUser.roleId"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-              >
-                <option value="">请选择角色</option>
-                <option v-for="role in roles" :key="role.id" :value="role.id">
-                  {{ role.name }}
-                </option>
-              </select>
-            </div>
-          </div>
-          
-          <div class="mt-6 flex justify-end space-x-3">
-            <button
-              @click="closeModal"
-              class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150"
-            >
-              取消
-            </button>
-            <button
-              @click="saveUser"
-              :disabled="!currentUser.name || !currentUser.email || !currentUser.roleId || (!showEditModal && !currentUser.password)"
-              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed"
-            >
-              {{ showEditModal ? '更新' : '创建' }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <el-dialog
+      v-model="dialogVisible"
+      :title="showEditModal ? '编辑用户' : '添加新用户'"
+      width="600px"
+      :close-on-click-modal="false"
+    >
+      <el-form
+        ref="userFormRef"
+        :model="currentUser"
+        label-position="top"
+      >
+        <el-form-item
+          label="用户名"
+        >
+          <el-input
+            v-model="currentUser.name"
+            placeholder="请输入用户名"
+          />
+        </el-form-item>
+        
+        <el-form-item
+          label="电子邮件"
+        >
+          <el-input
+            v-model="currentUser.email"
+            type="email"
+            placeholder="请输入电子邮件"
+          />
+        </el-form-item>
+        
+        <el-form-item
+          v-if="!showEditModal"
+          label="密码"
+        >
+          <el-input
+            v-model="currentUser.password"
+            type="password"
+            placeholder="请输入密码（至少6位）"
+            show-password
+          />
+        </el-form-item>
+        
+        <el-form-item
+          label="角色"
+        >
+          <el-select
+            v-model="currentUser.roleId"
+            placeholder="请选择角色"
+          >
+            <el-option
+              v-for="role in roles"
+              :key="role.id"
+              :label="role.name"
+              :value="role.id"
+            />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="closeModal">取消</el-button>
+          <el-button
+            type="primary"
+            @click="saveUser"
+            :disabled="!currentUser.name || !currentUser.email || !currentUser.roleId || (!showEditModal && !currentUser.password)"
+          >
+            {{ showEditModal ? '更新' : '创建' }}
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import axios from '../utils/api'
+import { 
+  ElTable, 
+  ElTableColumn, 
+  ElButton, 
+  ElInput, 
+  ElDialog, 
+  ElForm, 
+  ElFormItem, 
+  ElSelect, 
+  ElOption, 
+  ElPagination, 
+  ElEmpty, 
+  ElTag
+} from 'element-plus'
+import { 
+  Plus, 
+  Edit, 
+  Delete, 
+  Search
+} from '@element-plus/icons-vue'
 
 interface Role {
   id: string
@@ -239,7 +237,16 @@ const roles = ref<Role[]>([])
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const searchQuery = ref('')
+const loading = ref(false)
+const currentPage = ref(1)
+const userFormRef = ref()
+
 const currentUser = ref<Partial<User>>({
+})
+
+// 计算属性：控制对话框显示
+const dialogVisible = computed(() => {
+  return showCreateModal.value || showEditModal.value
 })
 
 // 搜索过滤
@@ -253,12 +260,15 @@ const filteredUsers = computed(() => {
 })
 
 const fetchUsers = async () => {
+  loading.value = true
   try {
     const response = await axios.get('/users')
     users.value = response.data
   } catch (error) {
     console.error('Error fetching users:', error)
     users.value = []
+  } finally {
+    loading.value = false
   }
 }
 
@@ -347,6 +357,10 @@ const formatDate = (dateString: string) => {
     hour: '2-digit',
     minute: '2-digit'
   })
+}
+
+const handleCurrentChange = (val: number) => {
+  currentPage.value = val
 }
 
 onMounted(async () => {
