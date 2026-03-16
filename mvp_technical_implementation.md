@@ -1020,9 +1020,9 @@ class LLMServiceFactory {
 
 // 统一LLM服务接口
 interface LLMService {
-  generateCompletion(prompt: string, options?: any): Promise<string>;
+  generateCompletion(prompt: string, config?: any, options?: any): Promise<string>;
   generateChatCompletion(messages: Array<any>, options?: any): Promise<string>;
-  testConnection(): Promise<boolean>;
+  testConnection(config: any): Promise<boolean>;
 }
 ```
 

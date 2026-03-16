@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "ux-admin-portal": {
+      "source": "williamfontaine/claude-plugins-marketplace",
+      "sourceType": "github",
+      "computedHash": "5a3707958d2b9deef43f1e0c2b4b35fb0a04aecf66e0da74d9deae95b9cdd2f7"
+    }
+  }
+}

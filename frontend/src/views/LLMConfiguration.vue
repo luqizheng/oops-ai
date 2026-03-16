@@ -274,7 +274,7 @@ const currentConfig = ref<Partial<LLMConfig>>({
 
 const fetchConfigurations = async () => {
   try {
-    const response = await axios.get('/api/llm/configurations')
+    const response = await axios.get('/llm/configurations')
     configurations.value = response.data
   } catch (error) {
     console.error('Error fetching configurations:', error)
@@ -284,7 +284,7 @@ const fetchConfigurations = async () => {
 
 const createConfig = async () => {
   try {
-    await axios.post('/api/llm/configurations', currentConfig.value)
+    await axios.post('/llm/configurations', currentConfig.value)
     closeModal()
     fetchConfigurations()
     resetCurrentConfig()
@@ -298,7 +298,7 @@ const updateConfig = async () => {
   if (!currentConfig.value.id) return
 
   try {
-    await axios.put(`/api/llm/configurations/${currentConfig.value.id}`, currentConfig.value)
+    await axios.put(`/llm/configurations/${currentConfig.value.id}`, currentConfig.value)
     closeModal()
     fetchConfigurations()
     resetCurrentConfig()
@@ -312,7 +312,7 @@ const deleteConfig = async (id: string) => {
   if (!confirm('确定要删除这个配置吗？')) return
 
   try {
-    await axios.delete(`/api/llm/configurations/${id}`)
+    await axios.delete(`/llm/configurations/${id}`)
     fetchConfigurations()
   } catch (error) {
     console.error('Error deleting config:', error)
@@ -324,7 +324,7 @@ const testConnection = async (config: LLMConfig) => {
   testingConfigId.value = config.id
 
   try {
-    const response = await axios.post(`/api/llm/configurations/${config.id}/test`, {
+    const response = await axios.post(`/llm/configurations/${config.id}/test`, {
       testPrompt: 'Hello, please respond with "OK"'
     })
     
@@ -345,7 +345,7 @@ const testCurrentConfig = async () => {
   testingCurrentConfig.value = true
 
   try {
-    const response = await axios.post('/api/llm/configurations/test', {
+    const response = await axios.post('/llm/configurations/test', {
       config: currentConfig.value,
       testPrompt: 'Hello, please respond with "OK"'
     })
@@ -365,7 +365,7 @@ const testCurrentConfig = async () => {
 
 const setAsDefault = async (id: string) => {
   try {
-    await axios.put(`/api/llm/configurations/${id}/default`)
+    await axios.put(`/llm/configurations/${id}/default`)
     fetchConfigurations()
     alert('已设置为默认配置')
   } catch (error) {

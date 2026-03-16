@@ -31,26 +31,27 @@ export class LLMService {
     }
   }
 
-  async generateCompletion(prompt: string, options?: any): Promise<string> {
-    const defaultConfig = await this.getDefaultConfig()
-    
-    if (!defaultConfig) {
+  async generateCompletion(prompt: string, config?: LLMConfig, options?: any): Promise<string> {
+    // Use provided config if available, otherwise get default
+    const finalConfig = config || (await this.getDefaultConfig())
+
+    if (!finalConfig) {
       throw new BadRequestException('No default LLM configuration found')
     }
 
-    switch (defaultConfig.provider) {
+    switch (finalConfig.provider) {
       case 'openai':
-        return this.generateOpenAICompletion(prompt, defaultConfig, options)
+        return this.generateOpenAICompletion(prompt, finalConfig, options)
       case 'ollama':
-        return this.generateOllamaCompletion(prompt, defaultConfig, options)
+        return this.generateOllamaCompletion(prompt, finalConfig, options)
       case 'deepseek':
-        return this.generateDeepSeekCompletion(prompt, defaultConfig, options)
+        return this.generateDeepSeekCompletion(prompt, finalConfig, options)
       case 'qwen':
-        return this.generateQwenCompletion(prompt, defaultConfig, options)
+        return this.generateQwenCompletion(prompt, finalConfig, options)
       case 'local':
-        return this.generateLocalCompletion(prompt, defaultConfig, options)
+        return this.generateLocalCompletion(prompt, finalConfig, options)
       default:
-        throw new BadRequestException(`Unsupported LLM provider: ${defaultConfig.provider}`)
+        throw new BadRequestException(`Unsupported LLM provider: ${finalConfig.provider}`)
     }
   }
 
@@ -84,7 +85,7 @@ export class LLMService {
     options?: any,
   ): Promise<string> {
     const endpoint = config.apiEndpoint || 'http://localhost:11434/api/generate'
-    
+
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -106,8 +107,23 @@ export class LLMService {
         throw new Error(`Ollama API error: ${response.statusText}`)
       }
 
-      const data = await response.json()
-      return data.response || ''
+      const error = await response.text()
+      // Ollama返回的是SSE流格式，需要逐行解析JSON
+      const lines = error.split('\n').filter((line) => line.trim() !== '')
+      let fullResponse = ''
+      for (const line of lines) {
+        try {
+          const data = JSON.parse(line)
+          fullResponse += data.response || ''
+          if (data.done) break
+        } catch (parseError) {
+          console.error('解析Ollama响应行失败:', parseError, '行内容:', line)
+        }
+      }
+      return fullResponse
+
+      // const data = await response.json()
+      // return data.response || ''
     } catch (error) {
       throw new BadRequestException(`Ollama API error: ${error.message}`)
     }
@@ -120,7 +136,7 @@ export class LLMService {
   ): Promise<string> {
     const endpoint = config.apiEndpoint || 'https://api.deepseek.com/v1/chat/completions'
     const apiKey = config.apiKey || this.configService.get<string>('DEEPSEEK_API_KEY')
-    
+
     if (!apiKey) {
       throw new BadRequestException('DeepSeek API key not configured')
     }
@@ -130,7 +146,7 @@ export class LLMService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
           model: config.modelName,
@@ -157,9 +173,10 @@ export class LLMService {
     config: LLMConfig,
     options?: any,
   ): Promise<string> {
-    const endpoint = config.apiEndpoint || 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions'
+    const endpoint =
+      config.apiEndpoint || 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions'
     const apiKey = config.apiKey || this.configService.get<string>('QIANWEN_API_KEY')
-    
+
     if (!apiKey) {
       throw new BadRequestException('Qwen API key not configured')
     }
@@ -169,7 +186,7 @@ export class LLMService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
           model: config.modelName,
@@ -197,7 +214,7 @@ export class LLMService {
     options?: any,
   ): Promise<string> {
     const endpoint = config.apiEndpoint || 'http://localhost:8080/v1/completions'
-    
+
     try {
       const response = await fetch(endpoint, {
         method: 'POST',

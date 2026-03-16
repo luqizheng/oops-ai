@@ -95,9 +95,7 @@ export class RequirementsService {
     return this.prisma.requirement.delete({ where: { id } })
   }
 
-  async analyzeFuzzyWords(
-    analyzeFuzzyWordsDto: AnalyzeFuzzyWordsDto,
-  ): Promise<FuzzyWordAnalysis> {
+  async analyzeFuzzyWords(analyzeFuzzyWordsDto: AnalyzeFuzzyWordsDto): Promise<FuzzyWordAnalysis> {
     const fuzzyWords = [
       '快速',
       '友好',
@@ -136,9 +134,10 @@ export class RequirementsService {
       }
     })
 
-    const suggestion = foundFuzzyWords.length > 0
-      ? `发现 ${foundFuzzyWords.length} 个模糊词，建议用量化指标替代。例如："快速"可以改为"响应时间<2秒"`
-      : '未发现模糊词，需求描述清晰。'
+    const suggestion =
+      foundFuzzyWords.length > 0
+        ? `发现 ${foundFuzzyWords.length} 个模糊词，建议用量化指标替代。例如："快速"可以改为"响应时间<2秒"`
+        : '未发现模糊词，需求描述清晰。'
 
     return {
       text: analyzeFuzzyWordsDto.text,
@@ -158,15 +157,18 @@ export class RequirementsService {
 请输出JSON格式，包含questions数组，每个问题包含question和type字段。`
 
     const response = await this.llmService.generateCompletion(prompt)
-    
+
     try {
       const parsed = JSON.parse(response)
       return { questions: parsed.questions || [] }
     } catch {
-      const questions = response.split('\n').filter(line => line.trim()).map(line => ({
-        question: line.replace(/^\d+\.\s*/, '').trim(),
-        type: 'clarification',
-      }))
+      const questions = response
+        .split('\n')
+        .filter((line) => line.trim())
+        .map((line) => ({
+          question: line.replace(/^\d+\.\s*/, '').trim(),
+          type: 'clarification',
+        }))
       return { questions: questions.slice(0, 5) }
     }
   }
@@ -186,18 +188,22 @@ export class RequirementsService {
       const parsed = JSON.parse(response)
       return { userStories: parsed.userStories || [] }
     } catch {
-      const stories = response.split('\n').filter(line => line.trim()).map(line => {
-        const match = line.match(/作为\[(.+?)\]，我想要\[(.+?)\]，以便\[(.+?)\]/)
-        if (match) {
-          return {
-            role: match[1],
-            feature: match[2],
-            value: match[3],
+      const stories = response
+        .split('\n')
+        .filter((line) => line.trim())
+        .map((line) => {
+          const match = line.match(/作为\[(.+?)\]，我想要\[(.+?)\]，以便\[(.+?)\]/)
+          if (match) {
+            return {
+              role: match[1],
+              feature: match[2],
+              value: match[3],
+            }
           }
-        }
-        return null
-      }).filter(Boolean)
-      
+          return null
+        })
+        .filter(Boolean)
+
       return { userStories: stories.slice(0, 3) }
     }
   }
@@ -212,12 +218,15 @@ export class RequirementsService {
 请输出JSON格式，包含acceptanceCriteria数组，每个条件包含given、when、then、scenarioType字段。`
 
     const response = await this.llmService.generateCompletion(prompt)
-    
+
     try {
       const parsed = JSON.parse(response)
       return { acceptanceCriteria: parsed.acceptanceCriteria || [] }
     } catch {
-      const criteria = response.split('\n').filter(line => line.trim()).map(line => {
+      const criteria = response
+        .split('\n')
+        .filter((line) => line.trim())
+        .map((line) => {
           const match = line.match(/Given (.+?) When (.+?) Then (.+?)$/)
           if (match) {
             return {
@@ -228,21 +237,27 @@ export class RequirementsService {
             }
           }
           return null
-        }).filter(Boolean) as Array<{ given: string; when: string; then: string; scenarioType: 'normal' | 'exception' | 'boundary' }>
-      
+        })
+        .filter(Boolean) as Array<{
+        given: string
+        when: string
+        then: string
+        scenarioType: 'normal' | 'exception' | 'boundary'
+      }>
+
       return { acceptanceCriteria: criteria.slice(0, 5) }
     }
   }
 
   async qualityScore(qualityScoreDto: QualityScoreDto): Promise<QualityScore> {
     const text = qualityScoreDto.text
-    
+
     const clarityScore = this.calculateClarityScore(text)
     const testabilityScore = this.calculateTestabilityScore(text)
     const completenessScore = this.calculateCompletenessScore(text)
-    
+
     const totalScore = Math.round((clarityScore + testabilityScore + completenessScore) / 3)
-    
+
     const suggestions = this.generateSuggestions(
       clarityScore,
       testabilityScore,
@@ -265,7 +280,7 @@ export class RequirementsService {
     const fuzzyCount = fuzzyWords.reduce((count, word) => {
       return count + (text.toLowerCase().includes(word.toLowerCase()) ? 1 : 0)
     }, 0)
-    
+
     const fuzzyRatio = fuzzyCount / fuzzyWords.length
     return Math.max(0, Math.min(10, Math.round(10 - fuzzyRatio * 10)))
   }
@@ -283,16 +298,16 @@ export class RequirementsService {
       '测试',
       '验收',
     ]
-    
+
     const hasNumbers = /\d+/.test(text)
-    const hasConditions = testableIndicators.some(indicator => text.includes(indicator))
+    const hasConditions = testableIndicators.some((indicator) => text.includes(indicator))
     const hasAcceptance = text.includes('验收') || text.includes('测试')
-    
+
     let score = 5
     if (hasNumbers) score += 2
     if (hasConditions) score += 2
     if (hasAcceptance) score += 1
-    
+
     return Math.min(10, score)
   }
 
@@ -309,18 +324,18 @@ export class RequirementsService {
       '价值',
       '目标',
     ]
-    
+
     const wordCount = text.split(/\s+/).length
     const hasMultipleSentences = (text.match(/[.!?]/g) || []).length >= 2
-    const hasKeyElements = completenessIndicators.some(indicator => 
-      text.toLowerCase().includes(indicator.toLowerCase())
+    const hasKeyElements = completenessIndicators.some((indicator) =>
+      text.toLowerCase().includes(indicator.toLowerCase()),
     )
-    
+
     let score = 5
     if (wordCount > 20) score += 2
     if (hasMultipleSentences) score += 2
     if (hasKeyElements) score += 1
-    
+
     return Math.min(10, score)
   }
 
