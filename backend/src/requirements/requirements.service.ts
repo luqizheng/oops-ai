@@ -25,12 +25,18 @@ export class RequirementsService {
     private vectorService: VectorService,
   ) {}
 
-  async create(createRequirementDto: CreateRequirementDto) {
+  async create(userId: string, createRequirementDto: CreateRequirementDto) {
     const requirement = await this.prisma.requirement.create({
       data: {
         title: createRequirementDto.title,
         description: createRequirementDto.description,
         rawInput: createRequirementDto.rawInput,
+        projectId: createRequirementDto.projectId,
+        status: createRequirementDto.status || 'draft',
+        priority: createRequirementDto.priority || 'medium',
+        storyPoints: createRequirementDto.storyPoints,
+        assigneeId: createRequirementDto.assigneeId,
+        reporterId: userId,
       },
     })
 
@@ -76,6 +82,11 @@ export class RequirementsService {
         description: updateRequirementDto.description || requirement.description,
         structuredData: updateRequirementDto.structuredData,
         qualityScore: updateRequirementDto.qualityScore,
+        status: updateRequirementDto.status || requirement.status,
+        priority: updateRequirementDto.priority || requirement.priority,
+        storyPoints: updateRequirementDto.storyPoints || requirement.storyPoints,
+        assigneeId: updateRequirementDto.assigneeId || requirement.assigneeId,
+        dueDate: updateRequirementDto.dueDate || requirement.dueDate,
       },
     })
 
@@ -93,6 +104,33 @@ export class RequirementsService {
     await this.findOne(id)
     await this.vectorService.removeRequirement(id)
     return this.prisma.requirement.delete({ where: { id } })
+  }
+
+  async findByProject(projectId: string) {
+    return this.prisma.requirement.findMany({
+      where: { projectId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        assignee: true,
+        reporter: true,
+      },
+    })
+  }
+
+  async updateStatus(id: string, status: string) {
+    const requirement = await this.findOne(id)
+    return this.prisma.requirement.update({
+      where: { id },
+      data: { status },
+    })
+  }
+
+  async assign(id: string, assigneeId: string) {
+    const requirement = await this.findOne(id)
+    return this.prisma.requirement.update({
+      where: { id },
+      data: { assigneeId },
+    })
   }
 
   async analyzeFuzzyWords(analyzeFuzzyWordsDto: AnalyzeFuzzyWordsDto): Promise<FuzzyWordAnalysis> {

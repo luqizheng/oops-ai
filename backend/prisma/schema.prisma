@@ -8,17 +8,71 @@ datasource db {
 }
 
 model Requirement {
-  id              String   @id @default(uuid())
+  id              String    @id @default(uuid())
+  projectId       String    @map("project_id")
   title           String
   description     String?
-  rawInput        String?  @map("raw_input")
-  structuredData  Json?    @map("structured_data")
-  qualityScore    Json?    @map("quality_score")
-  vectorEmbedding String?  @map("vector_embedding")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+  rawInput        String?   @map("raw_input")
+  structuredData  Json?     @map("structured_data")
+  qualityScore    Json?     @map("quality_score")
+  vectorEmbedding String?   @map("vector_embedding")
+  status          String    @default("draft")
+  priority        String    @default("medium")
+  storyPoints     Int?      @map("story_points")
+  assigneeId      String?   @map("assignee_id")
+  reporterId      String    @map("reporter_id")
+  dueDate         DateTime? @map("due_date")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at")
+  project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignee        User?     @relation(name: "RequirementAssignee", fields: [assigneeId], references: [id])
+  reporter        User      @relation(name: "RequirementReporter", fields: [reporterId], references: [id])
 
   @@map("requirements")
+}
+
+model Project {
+  id              String           @id @default(uuid())
+  organizationId  String?          @map("organization_id")
+  name            String
+  description     String?
+  key             String           @unique
+  settings        Json             @default("{}")
+  status          String           @default("active")
+  createdBy       String?          @map("created_by")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @default(now()) @updatedAt @map("updated_at")
+  organization    Organization?    @relation(fields: [organizationId], references: [id])
+  members         ProjectMember[]
+  projectSettings ProjectSettings?
+  requirements    Requirement[]
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  projectId   String   @map("project_id")
+  userId      String   @map("user_id")
+  role        String   @default("developer")
+  permissions Json     @default("{}")
+  joinedAt    DateTime @default(now()) @map("joined_at")
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, userId])
+  @@map("project_members")
+}
+
+model ProjectSettings {
+  projectId          String   @map("project_id")
+  workflowConfig     Json     @default("{\"states\": [\"draft\", \"reviewing\", \"approved\", \"developing\", \"testing\", \"done\"], \"transitions\": [{\"from\": \"draft\", \"to\": \"reviewing\", \"roles\": [\"product_manager\", \"project_manager\"]}, {\"from\": \"reviewing\", \"to\": \"approved\", \"roles\": [\"product_manager\", \"project_manager\", \"developer\"]}, {\"from\": \"approved\", \"to\": \"developing\", \"roles\": [\"project_manager\", \"developer\"]}, {\"from\": \"developing\", \"to\": \"testing\", \"roles\": [\"developer\"]}, {\"from\": \"testing\", \"to\": \"done\", \"roles\": [\"tester\", \"project_manager\"]}]}") @map("workflow_config")
+  notificationConfig Json     @default("{\"email_notifications\": true, \"in_app_notifications\": true, \"slack_integration\": false, \"mention_notifications\": true}") @map("notification_config")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at")
+  project            Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@id([projectId])
+  @@map("project_settings")
 }
 
 model QuestionTemplate {
@@ -47,15 +101,18 @@ model LLMConfiguration {
 }
 
 model User {
-  id                String             @id @default(uuid())
-  email             String             @unique
-  password          String
-  name              String?
-  createdAt         DateTime           @default(now()) @map("created_at")
-  updatedAt         DateTime           @default(now()) @updatedAt @map("updated_at")
-  roleId            String             @map("role_id")
-  userOrganizations UserOrganization[]
-  role              Role               @relation(fields: [roleId], references: [id])
+  id                   String             @id @default(uuid())
+  email                String             @unique
+  password             String
+  name                 String?
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @default(now()) @updatedAt @map("updated_at")
+  roleId               String             @map("role_id")
+  userOrganizations    UserOrganization[]
+  role                 Role               @relation(fields: [roleId], references: [id])
+  assignedRequirements Requirement[]      @relation(name: "RequirementAssignee")
+  reportedRequirements Requirement[]      @relation(name: "RequirementReporter")
+  projectMembers       ProjectMember[]
 
   @@map("users")
 }
@@ -77,8 +134,9 @@ model Organization {
   name              String             @unique
   description       String?
   createdAt         DateTime           @default(now()) @map("created_at")
-  updatedAt         DateTime           @default(now()) @updatedAt @ma p("updated_at")
+  updatedAt         DateTime           @default(now()) @updatedAt @map("updated_at")
   userOrganizations UserOrganization[]
+  projects          Project[]
 
   @@map("organizations")
 }

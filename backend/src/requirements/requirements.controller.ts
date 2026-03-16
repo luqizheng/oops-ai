@@ -7,6 +7,7 @@ import {
   Put,
   Delete,
   UseGuards,
+  Req,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { RequirementsService } from './requirements.service'
@@ -30,8 +31,8 @@ export class RequirementsController {
   @Post()
   @ApiOperation({ summary: '创建新需求' })
   @ApiResponse({ status: 201, description: '需求创建成功' })
-  create(@Body() createRequirementDto: CreateRequirementDto) {
-    return this.requirementsService.create(createRequirementDto)
+  create(@Req() req, @Body() createRequirementDto: CreateRequirementDto) {
+    return this.requirementsService.create(req.user.id, createRequirementDto)
   }
 
   @Get()

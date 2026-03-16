@@ -23,6 +23,30 @@ export class CreateRequirementDto {
   @IsOptional()
   @IsString()
   rawInput?: string
+
+  @ApiProperty({ description: '项目ID' })
+  @IsString()
+  projectId: string
+
+  @ApiProperty({ description: '状态', required: false, default: 'draft' })
+  @IsOptional()
+  @IsString()
+  status?: string
+
+  @ApiProperty({ description: '优先级', required: false, default: 'medium' })
+  @IsOptional()
+  @IsString()
+  priority?: string
+
+  @ApiProperty({ description: '故事点', required: false })
+  @IsOptional()
+  @IsNumber()
+  storyPoints?: number
+
+  @ApiProperty({ description: '负责人ID', required: false })
+  @IsOptional()
+  @IsString()
+  assigneeId?: string
 }
 
 export class UpdateRequirementDto {
@@ -43,6 +67,30 @@ export class UpdateRequirementDto {
   @ApiProperty({ description: '质量评分', required: false })
   @IsOptional()
   qualityScore?: any
+
+  @ApiProperty({ description: '状态', required: false })
+  @IsOptional()
+  @IsString()
+  status?: string
+
+  @ApiProperty({ description: '优先级', required: false })
+  @IsOptional()
+  @IsString()
+  priority?: string
+
+  @ApiProperty({ description: '故事点', required: false })
+  @IsOptional()
+  @IsNumber()
+  storyPoints?: number
+
+  @ApiProperty({ description: '负责人ID', required: false })
+  @IsOptional()
+  @IsString()
+  assigneeId?: string
+
+  @ApiProperty({ description: '截止日期', required: false })
+  @IsOptional()
+  dueDate?: Date
 }
 
 export class AnalyzeFuzzyWordsDto {

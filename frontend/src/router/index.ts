@@ -50,6 +50,18 @@ const router = createRouter({
       name: 'organizations',
       component: () => import('@/views/OrganizationManagement.vue'),
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/projects',
+      name: 'projects',
+      component: () => import('@/views/ProjectManagement.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/project-calendar',
+      name: 'project-calendar',
+      component: () => import('@/views/ProjectCalendar.vue'),
+      meta: { requiresAuth: true }
     }
   ]
 })
