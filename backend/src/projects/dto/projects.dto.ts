@@ -1,34 +1,35 @@
-import { IsString, IsOptional, IsUUID } from 'class-validator';
+import { IsString, IsOptional, IsUUID, IsArray } from 'class-validator'
 
 export class CreateProjectDto {
   @IsString()
-  name: string;
+  name: string
 
   @IsOptional()
   @IsString()
-  description?: string;
+  description?: string
 
   @IsString()
-  key: string;
+  key: string
 
   @IsOptional()
-  @IsUUID()
-  organizationId?: string;
+  @IsArray()
+  @IsUUID('4', { each: true })
+  organizationIds?: string[]
 }
 
 export class UpdateProjectDto {
   @IsOptional()
   @IsString()
-  name?: string;
+  name?: string
 
   @IsOptional()
   @IsString()
-  description?: string;
+  description?: string
 
   @IsOptional()
   @IsString()
-  status?: string;
+  status?: string
 
   @IsOptional()
-  settings?: any;
+  settings?: any
 }

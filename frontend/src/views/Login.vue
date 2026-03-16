@@ -53,22 +53,16 @@
             <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               电子邮箱
             </label>
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                </svg>
-              </div>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                v-model="loginForm.email"
-                required
-                class="w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                placeholder="your@email.com"
-              />
-            </div>
+            <el-input
+              id="email"
+              name="email"
+              type="email"
+              v-model="loginForm.email"
+              required
+              placeholder="your@email.com"
+              prefix-icon="Message"
+              size="large"
+            />
           </div>
 
           <!-- 密码输入 -->
@@ -81,46 +75,38 @@
                 忘记密码？
               </a>
             </div>
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                </svg>
-              </div>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                v-model="loginForm.password"
-                required
-                class="w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                placeholder="••••••••"
-              />
-            </div>
+            <el-input
+              id="password"
+              name="password"
+              type="password"
+              v-model="loginForm.password"
+              required
+              placeholder="••••••••"
+              prefix-icon="Lock"
+              size="large"
+            />
           </div>
 
           <!-- 登录按钮 -->
           <div>
-            <button
-              type="submit"
-              :disabled="isLoading"
-              class="group relative w-full flex justify-center py-3 px-6 border border-transparent text-base font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+            <el-button
+              type="primary"
+              native-type="submit"
+              :loading="isLoading"
+              class="w-full"
+              size="large"
             >
-              <span v-if="!isLoading">登录</span>
-              <span v-else class="flex items-center">
-                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                登录中...
-              </span>
-            </button>
+              登录
+            </el-button>
           </div>
 
           <!-- 错误提示 -->
-          <div v-if="errorMessage" class="p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
-            <p class="text-sm text-red-600 dark:text-red-300">{{ errorMessage }}</p>
-          </div>
+          <el-alert
+            v-if="errorMessage"
+            :title="errorMessage"
+            type="error"
+            show-icon
+          />
 
           <!-- 注册链接 -->
           <div class="text-center">

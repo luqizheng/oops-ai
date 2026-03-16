@@ -49,7 +49,11 @@
                 <div class="text-sm text-gray-500">{{ project.description || '-' }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-500">{{ project.organization?.name || '-' }}</div>
+                <div class="text-sm text-gray-500">
+                  {{ project.organizations && project.organizations.length > 0 
+                      ? project.organizations.map(asso => asso.organization?.name).filter(Boolean).join(', ') 
+                      : '-' }}
+                </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm text-gray-500">{{ formatDate(project.createdAt) }}</div>
@@ -114,13 +118,13 @@
             
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
-                组织ID
+                组织ID (多个ID用逗号分隔)
               </label>
               <input
-                v-model="currentProject.organizationId"
+                v-model="currentProject.organizationIds"
                 type="text"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="请输入组织ID"
+                placeholder="请输入组织ID，多个ID用逗号分隔"
               />
             </div>
           </div>
@@ -162,12 +166,18 @@ interface ProjectSettings {
   workflowConfig: any
 }
 
+interface OrganizationProject {
+  id: string
+  organizationId: string
+  projectId: string
+  organization: Organization | null
+}
+
 interface Project {
   id: string
   name: string
   description: string | null
-  organizationId: string
-  organization: Organization | null
+  organizations: OrganizationProject[]
   projectSettings: ProjectSettings | null
   createdAt: string
   updatedAt: string
@@ -176,10 +186,10 @@ interface Project {
 const projects = ref<Project[]>([])
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
-const currentProject = ref<Partial<Project>>({
+const currentProject = ref<Partial<Project> & { organizationIds?: string }>({
   name: '',
   description: '',
-  organizationId: ''
+  organizationIds: ''
 })
 
 const fetchProjects = async () => {
@@ -194,7 +204,18 @@ const fetchProjects = async () => {
 
 const createProject = async () => {
   try {
-    await axios.post('/projects', currentProject.value)
+    // Prepare project data
+    const projectData = { ...currentProject.value }
+    
+    // Convert comma-separated organization IDs to array
+    if (projectData.organizationIds) {
+      projectData.organizationIds = projectData.organizationIds
+        .split(',')
+        .map(id => id.trim())
+        .filter(id => id)
+    }
+    
+    await axios.post('/projects', projectData)
     closeModal()
     fetchProjects()
     resetCurrentProject()
@@ -208,7 +229,18 @@ const updateProject = async () => {
   if (!currentProject.value.id) return
 
   try {
-    await axios.put(`/projects/${currentProject.value.id}`, currentProject.value)
+    // Prepare project data
+    const projectData = { ...currentProject.value }
+    
+    // Convert comma-separated organization IDs to array if provided
+    if (projectData.organizationIds) {
+      projectData.organizationIds = projectData.organizationIds
+        .split(',')
+        .map(id => id.trim())
+        .filter(id => id)
+    }
+    
+    await axios.put(`/projects/${currentProject.value.id}`, projectData)
     closeModal()
     fetchProjects()
     resetCurrentProject()
@@ -231,7 +263,15 @@ const deleteProject = async (id: string) => {
 }
 
 const editProject = (project: Project) => {
-  currentProject.value = { ...project }
+  // Convert organization IDs to comma-separated string for editing
+  const organizationIds = project.organizations 
+    ? project.organizations.map(asso => asso.organizationId).join(', ')
+    : ''
+    
+  currentProject.value = { 
+    ...project,
+    organizationIds
+  }
   showEditModal.value = true
 }
 
@@ -253,7 +293,7 @@ const resetCurrentProject = () => {
   currentProject.value = {
     name: '',
     description: '',
-    organizationId: ''
+    organizationIds: ''
   }
 }
 

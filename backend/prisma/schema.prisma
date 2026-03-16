@@ -33,7 +33,6 @@ model Requirement {
 
 model Project {
   id              String           @id @default(uuid())
-  organizationId  String?          @map("organization_id")
   name            String
   description     String?
   key             String           @unique
@@ -42,7 +41,7 @@ model Project {
   createdBy       String?          @map("created_by")
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @default(now()) @updatedAt @map("updated_at")
-  organization    Organization?    @relation(fields: [organizationId], references: [id])
+  organizations   OrganizationProject[]
   members         ProjectMember[]
   projectSettings ProjectSettings?
   requirements    Requirement[]
@@ -61,6 +60,17 @@ model ProjectMember {
 
   @@id([projectId, userId])
   @@map("project_members")
+}
+
+model OrganizationProject {
+  organizationId String       @map("organization_id")
+  projectId      String       @map("project_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  @@id([organizationId, projectId])
+  @@map("organization_projects")
 }
 
 model ProjectSettings {
@@ -136,7 +146,7 @@ model Organization {
   createdAt         DateTime           @default(now()) @map("created_at")
   updatedAt         DateTime           @default(now()) @updatedAt @map("updated_at")
   userOrganizations UserOrganization[]
-  projects          Project[]
+  projects          OrganizationProject[]
 
   @@map("organizations")
 }

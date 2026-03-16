@@ -6,18 +6,18 @@
     <!-- 对于需要认证的页面，渲染完整的后台布局 -->
     <div v-else class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <!-- 移动端侧边栏触发器 -->
-      <button
+      <el-button
         v-if="!isSidebarOpen && !isDesktop"
         @click="toggleSidebar"
-        class="fixed top-4 left-4 z-50 p-2 rounded-lg bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-shadow"
-      >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-        </svg>
-      </button>
+        class="fixed top-4 left-4 z-50"
+        size="small"
+        type="primary"
+        circle
+        :icon="Menu"
+      />
 
       <!-- 侧边栏导航 -->
-      <aside
+      <el-aside
         :class="[
           'fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 shadow-xl transform transition-transform duration-300 ease-in-out',
           isSidebarOpen || isDesktop ? 'translate-x-0' : '-translate-x-full'
@@ -34,36 +34,40 @@
               <span class="text-xs text-gray-500 dark:text-gray-400">需求智能体</span>
             </div>
           </div>
-          <button
+          <el-button
             v-if="!isDesktop"
             @click="toggleSidebar"
-            class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
+            size="small"
+            text
+            :icon="CircleClose"
+          />
         </div>
 
         <!-- 导航菜单 -->
-        <nav class="px-4 py-4">
-          <div class="space-y-1">
-            <router-link
-              v-for="item in menuItems"
-              :key="item.path"
-              :to="item.path"
-              @click="!isDesktop && toggleSidebar"
-              class="flex items-center px-4 py-3 rounded-lg transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-              :class="$route.path === item.path ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : ''"
-            >
-              <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="item.icon"></path>
-              </svg>
+        <el-menu
+          :default-active="$route.path"
+          router
+          class="el-menu-vertical-demo"
+          background-color="#ffffff"
+          text-color="#303133"
+          active-text-color="#409EFF"
+          dark-background-color="#1f2937"
+          dark-text-color="#ffffff"
+          dark-active-text-color="#60a5fa"
+        >
+          <el-menu-item
+            v-for="item in menuItems"
+            :key="item.path"
+            :index="item.path"
+            @click="!isDesktop && toggleSidebar"
+          >
+            <span slot="title">
+              <i class="el-icon-ep-document-copy"></i>
               <span>{{ item.label }}</span>
-            </router-link>
-          </div>
-        </nav>
-      </aside>
+            </span>
+          </el-menu-item>
+        </el-menu>
+      </el-aside>
 
       <!-- 遮罩层 -->
       <div
@@ -75,173 +79,110 @@
       <!-- 主内容区 -->
       <div :class="['transition-all duration-300', isDesktop ? 'ml-64' : 'ml-0']">
         <!-- 顶部导航栏 -->
-        <header class="sticky top-0 z-30 bg-white dark:bg-gray-800 shadow-sm">
+        <el-header class="sticky top-0 z-30 bg-white dark:bg-gray-800 shadow-sm">
           <div class="px-6 py-4 flex items-center justify-between">
             <div class="flex items-center space-x-4">
               <h2 class="text-lg font-semibold">{{ currentPageTitle }}</h2>
             </div>
             <div class="flex items-center space-x-4">
               <!-- 通知图标 -->
-              <button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
-                <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                </svg>
-              </button>
+              <el-button
+                type="text"
+                :icon="Bell"
+                circle
+              />
               <!-- 用户菜单 -->
-              <div class="relative">
-                <button 
-                  @click="toggleUserMenu"
-                  class="flex items-center space-x-2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                  <div class="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-                    <span class="text-sm font-medium">{{ userInitials }}</span>
+              <el-dropdown @command="handleDropdownCommand">
+                <span class="el-dropdown-link">
+                  <div class="flex items-center space-x-2">
+                    <el-avatar>{{ userInitials }}</el-avatar>
+                    <span class="text-sm font-medium">{{ userName }}</span>
+                    <el-icon class="el-icon--right"><ArrowDown /></el-icon>
                   </div>
-                  <span class="text-sm font-medium">{{ userName }}</span>
-                  <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                  </svg>
-                </button>
-                
-                <!-- 下拉菜单 -->
-                <div 
-                  v-if="isUserMenuOpen" 
-                  class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl py-1 z-50 ring-1 ring-black ring-opacity-5 focus:outline-none"
-                  @click.outside="isUserMenuOpen = false"
-                >
-                  <button 
-                    @click="showChangePasswordModal = true; isUserMenuOpen = false"
-                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
-                  >
-                    <div class="flex items-center space-x-2">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                      </svg>
-                      <span>更改密码</span>
-                    </div>
-                  </button>
-                  <button 
-                    @click="handleLogout; isUserMenuOpen = false"
-                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
-                  >
-                    <div class="flex items-center space-x-2">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                      </svg>
-                      <span>退出登录</span>
-                    </div>
-                  </button>
-                </div>
-              </div>
+                </span>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="changePassword">
+                      <el-icon><Lock /></el-icon>
+                      更改密码
+                    </el-dropdown-item>
+                    <el-dropdown-item command="logout">
+                      <el-icon><SwitchButton /></el-icon>
+                      退出登录
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </div>
           </div>
-        </header>
+        </el-header>
 
         <!-- 页面内容 -->
-        <main class="p-6">
+        <el-main class="p-6">
           <router-view />
-        </main>
+        </el-main>
       </div>
     </div>
 
     <!-- 更改密码模态框 -->
-    <div v-if="showChangePasswordModal" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-black/70 flex items-center justify-center p-4 z-50">
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full animate-fadeIn">
-        <div class="p-6">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-              更改密码
-            </h3>
-            <button
-              @click="showChangePasswordModal = false"
-              class="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 transition-colors duration-150"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
-            </button>
-          </div>
-          
-          <div class="space-y-4">
-            <div>
-              <label for="currentPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                当前密码
-              </label>
-              <input
-                id="currentPassword"
-                type="password"
-                v-model="changePasswordForm.currentPassword"
-                required
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                placeholder="请输入当前密码"
-              />
-            </div>
-            
-            <div>
-              <label for="newPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                新密码
-              </label>
-              <input
-                id="newPassword"
-                type="password"
-                v-model="changePasswordForm.newPassword"
-                required
-                minlength="6"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                placeholder="请输入新密码（至少6位）"
-              />
-            </div>
-            
-            <div>
-              <label for="confirmPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                确认新密码
-              </label>
-              <input
-                id="confirmPassword"
-                type="password"
-                v-model="changePasswordForm.confirmPassword"
-                required
-                minlength="6"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                placeholder="请再次输入新密码"
-              />
-            </div>
-          </div>
-          
-          <!-- 错误提示 -->
-          <div v-if="changePasswordError" class="mt-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
-            <p class="text-sm text-red-600 dark:text-red-300">{{ changePasswordError }}</p>
-          </div>
-          
-          <!-- 成功提示 -->
-          <div v-if="changePasswordSuccess" class="mt-4 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg">
-            <p class="text-sm text-green-600 dark:text-green-300">{{ changePasswordSuccess }}</p>
-          </div>
-          
-          <div class="mt-6 flex justify-end space-x-3">
-            <button
-              @click="showChangePasswordModal = false"
-              class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150"
-            >
-              取消
-            </button>
-            <button
-              @click="handleChangePassword"
-              :disabled="isChangingPassword"
-              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-              <span v-if="!isChangingPassword">保存更改</span>
-              <span v-else class="flex items-center">
-                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                保存中...
-              </span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <el-dialog
+      v-model="showChangePasswordModal"
+      title="更改密码"
+      width="500px"
+    >
+      <el-form :model="changePasswordForm" label-width="80px">
+        <el-form-item label="当前密码" prop="currentPassword">
+          <el-input
+            type="password"
+            v-model="changePasswordForm.currentPassword"
+            placeholder="请输入当前密码"
+            show-password
+          />
+        </el-form-item>
+        <el-form-item label="新密码" prop="newPassword">
+          <el-input
+            type="password"
+            v-model="changePasswordForm.newPassword"
+            placeholder="请输入新密码（至少6位）"
+            minlength="6"
+            show-password
+          />
+        </el-form-item>
+        <el-form-item label="确认新密码" prop="confirmPassword">
+          <el-input
+            type="password"
+            v-model="changePasswordForm.confirmPassword"
+            placeholder="请再次输入新密码"
+            minlength="6"
+            show-password
+          />
+        </el-form-item>
+        <!-- 错误提示 -->
+        <el-alert
+          v-if="changePasswordError"
+          :title="changePasswordError"
+          type="error"
+          show-icon
+          class="mt-4"
+        />
+        <!-- 成功提示 -->
+        <el-alert
+          v-if="changePasswordSuccess"
+          :title="changePasswordSuccess"
+          type="success"
+          show-icon
+          class="mt-4"
+        />
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="showChangePasswordModal = false">取消</el-button>
+          <el-button type="primary" @click="handleChangePassword" :loading="isChangingPassword">
+            保存更改
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -249,6 +190,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from './utils/api'
+import { Menu, CircleClose, Bell, ArrowDown, Lock, SwitchButton } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -294,9 +236,13 @@ const userInitials = computed(() => {
   return 'U'
 })
 
-// 切换用户菜单
-const toggleUserMenu = () => {
-  isUserMenuOpen.value = !isUserMenuOpen.value
+// 处理下拉菜单命令
+const handleDropdownCommand = (command: string) => {
+  if (command === 'changePassword') {
+    showChangePasswordModal.value = true
+  } else if (command === 'logout') {
+    handleLogout()
+  }
 }
 
 // 处理密码更改
@@ -346,7 +292,7 @@ const handleChangePassword = async () => {
 // 处理退出登录
 const handleLogout = async () => {
   try {
-    // 可选：调用后端退出接口
+    // 调用后端退出接口
     await axios.post('/auth/logout')
   } catch (error) {
     console.error('Logout failed:', error)
@@ -355,7 +301,7 @@ const handleLogout = async () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     
-    // 跳转到登录页面
+    // 强制跳转到登录页面，确保路由变化
     router.push('/login')
   }
 }
