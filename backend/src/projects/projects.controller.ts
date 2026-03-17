@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Req, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { ProjectsService } from './projects.service';
-import { CreateProjectDto, UpdateProjectDto } from './dto/projects.dto';
-import { AddMemberDto, UpdateMemberDto } from './dto/members.dto';
-import { UpdateSettingsDto } from './dto/settings.dto';
+import { Controller, Get, Post, Put, Delete, Param, Body, Req, UseGuards } from '@nestjs/common'
+import { AuthGuard } from '@nestjs/passport'
+import { ProjectsService } from './projects.service'
+import { CreateProjectDto, UpdateProjectDto } from './dto/projects.dto'
+import { AddMemberDto, UpdateMemberDto } from './dto/members.dto'
+import { UpdateSettingsDto } from './dto/settings.dto'
 
 @Controller('projects')
 @UseGuards(AuthGuard('jwt'))
@@ -13,69 +13,73 @@ export class ProjectsController {
   // 项目CRUD操作
   @Post()
   createProject(@Req() req, @Body() data: CreateProjectDto) {
-    return this.projectsService.createProject(req.user.id, data);
+    return this.projectsService.createProject(req.user.id, data)
   }
 
   @Get()
   getProjects(@Req() req) {
-    return this.projectsService.getProjects(req.user.id);
+    return this.projectsService.getProjects(req.user.id)
   }
 
   @Get(':id')
   getProjectById(@Param('id') id: string) {
-    return this.projectsService.getProjectById(id);
+    return this.projectsService.getProjectById(id)
   }
 
   @Put(':id')
   updateProject(@Param('id') id: string, @Body() data: UpdateProjectDto) {
-    return this.projectsService.updateProject(id, data);
+    return this.projectsService.updateProject(id, data)
   }
 
   @Delete(':id')
   deleteProject(@Param('id') id: string) {
-    return this.projectsService.deleteProject(id);
+    return this.projectsService.deleteProject(id)
   }
 
   // 项目成员管理
   @Get(':id/members')
   getProjectMembers(@Param('id') id: string) {
-    return this.projectsService.getProjectMembers(id);
+    return this.projectsService.getProjectMembers(id)
   }
 
   @Post(':id/members')
   addMember(@Param('id') id: string, @Body() data: AddMemberDto) {
-    return this.projectsService.addMember(id, data);
+    return this.projectsService.addMember(id, data)
   }
 
   @Put(':id/members/:userId')
-  updateMember(@Param('id') id: string, @Param('userId') userId: string, @Body() data: UpdateMemberDto) {
-    return this.projectsService.updateMember(id, userId, data);
+  updateMember(
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+    @Body() data: UpdateMemberDto,
+  ) {
+    return this.projectsService.updateMember(id, userId, data)
   }
 
   @Delete(':id/members/:userId')
   removeMember(@Param('id') id: string, @Param('userId') userId: string) {
-    return this.projectsService.removeMember(id, userId);
+    return this.projectsService.removeMember(id, userId)
   }
 
   // 项目设置管理
   @Get(':id/settings')
   getProjectSettings(@Param('id') id: string) {
-    return this.projectsService.getProjectSettings(id);
+    return this.projectsService.getProjectSettings(id)
   }
 
   @Put(':id/settings')
   updateProjectSettings(@Param('id') id: string, @Body() data: UpdateSettingsDto) {
-    return this.projectsService.updateProjectSettings(id, data);
+    return this.projectsService.updateProjectSettings(id, data)
   }
 
   // 工作流管理
   @Get(':id/workflow')
   getWorkflow(@Param('id') id: string) {
-    return this.projectsService.getProjectSettings(id).then(settings => settings?.workflowConfig);
+    return this.projectsService.getProjectSettings(id).then((settings) => settings?.workflowConfig)
   }
 
   @Put(':id/workflow')
   updateWorkflow(@Param('id') id: string, @Body() workflowConfig: any) {
-    return this.projectsService.updateWorkflow(id, workflowConfig);
+    return this.projectsService.updateWorkflow(id, workflowConfig)
   }
 }

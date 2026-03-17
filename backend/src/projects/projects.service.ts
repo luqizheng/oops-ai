@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, ForbiddenException, HttpException, HttpStatus } from '@nestjs/common'
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateProjectDto, UpdateProjectDto } from './dto/projects.dto'
 import { AddMemberDto, UpdateMemberDto } from './dto/members.dto'
@@ -37,25 +43,22 @@ export class ProjectsService {
         if (error.meta?.target?.includes('key')) {
           throw new HttpException(
             { message: `项目关键字 "${data.key}" 已存在，请使用其他关键字` },
-            HttpStatus.CONFLICT
+            HttpStatus.CONFLICT,
           )
         }
-        throw new HttpException(
-          { message: '项目创建失败，数据已存在' },
-          HttpStatus.CONFLICT
-        )
+        throw new HttpException({ message: '项目创建失败，数据已存在' }, HttpStatus.CONFLICT)
       }
       // 处理其他数据库错误
       if (error.code?.startsWith('P')) {
         throw new HttpException(
           { message: `数据库错误：${error.message}` },
-          HttpStatus.INTERNAL_SERVER_ERROR
+          HttpStatus.INTERNAL_SERVER_ERROR,
         )
       }
       // 处理其他未知错误
       throw new HttpException(
         { message: `创建项目失败：${error.message}` },
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       )
     }
   }

@@ -13,10 +13,10 @@ export class PromptTemplateInitService implements OnModuleInit {
   async initializeDefaultTemplates() {
     try {
       const existingCount = await this.prisma.promptTemplate.count()
-      
+
       if (existingCount === 0) {
         console.log('正在初始化默认提示词模板...')
-        
+
         for (const template of defaultPromptTemplates) {
           await this.prisma.promptTemplate.create({
             data: {
@@ -32,7 +32,7 @@ export class PromptTemplateInitService implements OnModuleInit {
             },
           })
         }
-        
+
         console.log(`成功初始化 ${defaultPromptTemplates.length} 个默认提示词模板`)
       }
     } catch (error) {

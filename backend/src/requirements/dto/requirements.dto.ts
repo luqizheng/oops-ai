@@ -1,12 +1,4 @@
-import {
-  IsString,
-  IsOptional,
-  IsNumber,
-  IsArray,
-  ValidateNested,
-  IsEnum,
-} from 'class-validator'
-import { Type } from 'class-transformer'
+import { IsString, IsOptional, IsNumber, IsArray } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 
 export class CreateRequirementDto {

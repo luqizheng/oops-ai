@@ -4,13 +4,6 @@ import { RequirementsService } from './requirements.service'
 import {
   CreateRequirementDto,
   UpdateRequirementDto,
-  AnalyzeFuzzyWordsDto,
-  AnalyzeRequirementDto,
-  GenerateQuestionsDto,
-  GenerateUserStoriesDto,
-  GenerateAcceptanceCriteriaDto,
-  QualityScoreDto,
-  RequirementAnalysisResponse,
   CreateRawRequirementDto,
   UpdateRawRequirementDto,
   CreateUserStoryDto,
@@ -67,41 +60,28 @@ export class RequirementsController {
     return this.requirementsService.remove(id)
   }
 
-  @Post('analyze/fuzzy-words')
-  @ApiOperation({ summary: '分析模糊词' })
-  analyzeFuzzyWords(@Body() analyzeFuzzyWordsDto: AnalyzeFuzzyWordsDto) {
-    return this.requirementsService.analyzeFuzzyWords(analyzeFuzzyWordsDto)
+  @Get('project/:projectId')
+  @ApiOperation({ summary: '获取项目下的所有需求' })
+  findByProject(@Param('projectId') projectId: string) {
+    return this.requirementsService.findByProject(projectId)
   }
 
-  @Post('analyze/requirement')
-  @ApiOperation({ summary: 'AI分析需求' })
-  @ApiResponse({ status: 200, type: RequirementAnalysisResponse })
-  analyzeRequirement(@Body() analyzeRequirementDto: AnalyzeRequirementDto) {
-    return this.requirementsService.analyzeRequirement(analyzeRequirementDto)
+  @Put(':id/status')
+  @ApiOperation({ summary: '更新需求状态' })
+  updateStatus(@Param('id') id: string, @Body('status') status: string) {
+    return this.requirementsService.updateStatus(id, status)
   }
 
-  @Post('questions')
-  @ApiOperation({ summary: '生成追问列表' })
-  generateQuestions(@Body() generateQuestionsDto: GenerateQuestionsDto) {
-    return this.requirementsService.generateQuestions(generateQuestionsDto)
+  @Put(':id/assign')
+  @ApiOperation({ summary: '分配需求给负责人' })
+  assign(@Param('id') id: string, @Body('assigneeId') assigneeId: string) {
+    return this.requirementsService.assign(id, assigneeId)
   }
 
-  @Post('user-stories')
-  @ApiOperation({ summary: '生成用户故事' })
-  generateUserStories(@Body() generateUserStoriesDto: GenerateUserStoriesDto) {
-    return this.requirementsService.generateUserStories(generateUserStoriesDto)
-  }
-
-  @Post('acceptance-criteria')
-  @ApiOperation({ summary: '生成验收条件' })
-  generateAcceptanceCriteria(@Body() generateAcceptanceCriteriaDto: GenerateAcceptanceCriteriaDto) {
-    return this.requirementsService.generateAcceptanceCriteria(generateAcceptanceCriteriaDto)
-  }
-
-  @Post('quality-score')
-  @ApiOperation({ summary: '生成质量评分' })
-  qualityScore(@Body() qualityScoreDto: QualityScoreDto) {
-    return this.requirementsService.qualityScore(qualityScoreDto)
+  @Get(':id/details')
+  @ApiOperation({ summary: '获取需求详情（包含所有关联信息）' })
+  getRequirementDetails(@Param('id') id: string) {
+    return this.requirementsService.getRequirementDetails(id)
   }
 
   // ============================================
@@ -388,8 +368,8 @@ export class RequirementsController {
   @Post(':id/acceptance-signoffs')
   @ApiOperation({ summary: '为需求添加验收签名' })
   createAcceptanceSignoff(
-    @Req() req,
     @Param('id') id: string,
+    @Req() req,
     @Body() createAcceptanceSignoffDto: CreateAcceptanceSignoffDto,
   ) {
     return this.requirementsService.createAcceptanceSignoff(
@@ -414,8 +394,8 @@ export class RequirementsController {
   @Put('acceptance-signoffs/:signoffId')
   @ApiOperation({ summary: '更新验收签名' })
   updateAcceptanceSignoff(
-    @Req() req,
     @Param('signoffId') signoffId: string,
+    @Req() req,
     @Body() updateAcceptanceSignoffDto: UpdateAcceptanceSignoffDto,
   ) {
     return this.requirementsService.updateAcceptanceSignoff(
@@ -429,15 +409,5 @@ export class RequirementsController {
   @ApiOperation({ summary: '删除验收签名' })
   deleteAcceptanceSignoff(@Param('signoffId') signoffId: string) {
     return this.requirementsService.deleteAcceptanceSignoff(signoffId)
-  }
-
-  // ============================================
-  // 需求详情API
-  // ============================================
-
-  @Get(':id/details')
-  @ApiOperation({ summary: '获取需求的完整详情（包含所有关联信息）' })
-  getRequirementDetails(@Param('id') id: string) {
-    return this.requirementsService.getRequirementDetails(id)
   }
 }

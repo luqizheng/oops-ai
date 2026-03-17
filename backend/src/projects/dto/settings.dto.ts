@@ -1,11 +1,11 @@
-import { IsOptional, IsObject } from 'class-validator';
+import { IsOptional, IsObject } from 'class-validator'
 
 export class UpdateSettingsDto {
   @IsOptional()
   @IsObject()
-  workflowConfig?: any;
+  workflowConfig?: any
 
   @IsOptional()
   @IsObject()
-  notificationConfig?: any;
+  notificationConfig?: any
 }

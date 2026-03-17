@@ -15,20 +15,20 @@ export class CreatePromptTemplateDto {
   @IsString()
   template: string
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: '模板类别',
     enum: [
-      'raw-to-requirement',    // 原始需求->需求
-      'requirement-to-story',  // 需求->用户故事
-      'story-to-use-case',     // 用户故事->用例
-      'generate-acceptance',   // 生成验收标准
-      'identify-ambiguity',    // 识别模糊词汇
-      'generate-questions',    // 生成追问
-      'quality-assessment',    // 质量评估
-      'code-analysis',         // 代码分析
-      'test-generation',       // 测试生成
-      'other',                 // 其他
-    ]
+      'raw-to-requirement', // 原始需求->需求
+      'requirement-to-story', // 需求->用户故事
+      'story-to-use-case', // 用户故事->用例
+      'generate-acceptance', // 生成验收标准
+      'identify-ambiguity', // 识别模糊词汇
+      'generate-questions', // 生成追问
+      'quality-assessment', // 质量评估
+      'code-analysis', // 代码分析
+      'test-generation', // 测试生成
+      'other', // 其他
+    ],
   })
   @IsEnum([
     'raw-to-requirement',
@@ -44,10 +44,10 @@ export class CreatePromptTemplateDto {
   ])
   category: string
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'LLM供应商',
     enum: ['openai', 'ollama', 'deepseek', 'qwen', 'local'],
-    required: false 
+    required: false,
   })
   @IsOptional()
   @IsEnum(['openai', 'ollama', 'deepseek', 'qwen', 'local'])
@@ -91,7 +91,7 @@ export class UpdatePromptTemplateDto {
   @IsString()
   template?: string
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: '模板类别',
     enum: [
       'raw-to-requirement',
@@ -105,7 +105,7 @@ export class UpdatePromptTemplateDto {
       'test-generation',
       'other',
     ],
-    required: false 
+    required: false,
   })
   @IsOptional()
   @IsEnum([
@@ -122,10 +122,10 @@ export class UpdatePromptTemplateDto {
   ])
   category?: string
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'LLM供应商',
     enum: ['openai', 'ollama', 'deepseek', 'qwen', 'local'],
-    required: false 
+    required: false,
   })
   @IsOptional()
   @IsEnum(['openai', 'ollama', 'deepseek', 'qwen', 'local'])

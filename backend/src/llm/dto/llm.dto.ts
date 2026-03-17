@@ -2,7 +2,10 @@ import { IsString, IsNumber, IsBoolean, IsOptional, IsEnum } from 'class-validat
 import { ApiProperty } from '@nestjs/swagger'
 
 export class CreateLLMConfigDto {
-  @ApiProperty({ description: 'LLM供应商', enum: ['openai', 'ollama', 'deepseek', 'qwen', 'local'] })
+  @ApiProperty({
+    description: 'LLM供应商',
+    enum: ['openai', 'ollama', 'deepseek', 'qwen', 'local'],
+  })
   @IsEnum(['openai', 'ollama', 'deepseek', 'qwen', 'local'])
   provider: string
 

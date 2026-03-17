@@ -9,7 +9,7 @@ async function verifySystem() {
   try {
     // 创建NestJS应用
     const app = await NestFactory.createApplicationContext(AppModule)
-    
+
     console.log('✅ NestJS应用创建成功')
 
     // 获取服务实例
@@ -40,7 +40,9 @@ async function verifySystem() {
         testCase.provider,
         testCase.modelName,
       )
-      console.log(`  ${testCase.category} (${testCase.provider}/${testCase.modelName}): ${match ? '✅ 找到匹配' : '⚠️ 未找到匹配'}`)
+      console.log(
+        `  ${testCase.category} (${testCase.provider}/${testCase.modelName}): ${match ? '✅ 找到匹配' : '⚠️ 未找到匹配'}`,
+      )
       if (match) {
         console.log(`    模板: ${match.name}`)
       }
@@ -70,7 +72,7 @@ async function verifySystem() {
       'GET /prompt-templates/render/:category',
     ]
 
-    endpoints.forEach(endpoint => {
+    endpoints.forEach((endpoint) => {
       console.log(`  ${endpoint}: ✅ 已配置`)
     })
 

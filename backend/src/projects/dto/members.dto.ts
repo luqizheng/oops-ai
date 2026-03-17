@@ -1,20 +1,20 @@
-import { IsString, IsOptional, IsUUID } from 'class-validator';
+import { IsString, IsOptional, IsUUID } from 'class-validator'
 
 export class AddMemberDto {
   @IsUUID()
-  userId: string;
+  userId: string
 
   @IsString()
-  role: string;
+  role: string
 
   @IsOptional()
-  permissions?: any;
+  permissions?: any
 }
 
 export class UpdateMemberDto {
   @IsString()
-  role: string;
+  role: string
 
   @IsOptional()
-  permissions?: any;
+  permissions?: any
 }

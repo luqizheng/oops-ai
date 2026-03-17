@@ -1,21 +1,8 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Body,
-  Param,
-  Query,
-  UseGuards,
-} from '@nestjs/common'
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger'
 import { PromptTemplateService } from './prompt-template.service'
-import {
-  PromptTemplateCreateInput,
-  PromptTemplateUpdateInput,
-} from './prompt-template.service'
+import { PromptTemplateCreateInput, PromptTemplateUpdateInput } from './prompt-template.service'
 
 @ApiTags('prompt-templates')
 @Controller('prompt-templates')
@@ -53,20 +40,12 @@ export class PromptTemplateController {
     @Query('modelName') modelName?: string,
     @Body() variables?: Record<string, any>,
   ) {
-    return this.promptTemplateService.renderTemplate(
-      category,
-      variables || {},
-      provider,
-      modelName,
-    )
+    return this.promptTemplateService.renderTemplate(category, variables || {}, provider, modelName)
   }
 
   @Post(':id/render')
   @ApiOperation({ summary: '渲染指定ID的提示词模板' })
-  async renderTemplateById(
-    @Param('id') id: string,
-    @Body() variables: Record<string, any>,
-  ) {
+  async renderTemplateById(@Param('id') id: string, @Body() variables: Record<string, any>) {
     return this.promptTemplateService.renderTemplate(id, variables)
   }
 

@@ -1,7 +1,7 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { RegisterDto, LoginDto } from './dto/auth.dto';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common'
+import { AuthService } from './auth.service'
+import { RegisterDto, LoginDto } from './dto/auth.dto'
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger'
 
 @ApiTags('auth')
 @Controller('auth')
@@ -13,7 +13,7 @@ export class AuthController {
   @ApiResponse({ status: HttpStatus.CREATED, description: 'User registered successfully' })
   @ApiResponse({ status: HttpStatus.CONFLICT, description: 'Email already exists' })
   async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+    return this.authService.register(registerDto)
   }
 
   @Post('login')
@@ -22,7 +22,7 @@ export class AuthController {
   @ApiResponse({ status: HttpStatus.OK, description: 'Login successful' })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid credentials' })
   async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+    return this.authService.login(loginDto)
   }
 
   @Post('logout')
@@ -32,6 +32,6 @@ export class AuthController {
   async logout() {
     // For JWT authentication, we don't need to do anything on the server side
     // The client will handle removing the token from local storage
-    return { message: 'Logout successful' };
+    return { message: 'Logout successful' }
   }
 }

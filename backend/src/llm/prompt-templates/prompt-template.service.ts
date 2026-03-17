@@ -70,11 +70,7 @@ export class PromptTemplateService {
 
     const templates = await this.prisma.promptTemplate.findMany({
       where,
-      orderBy: [
-        { isDefault: 'desc' },
-        { category: 'asc' },
-        { name: 'asc' },
-      ],
+      orderBy: [{ isDefault: 'desc' }, { category: 'asc' }, { name: 'asc' }],
     })
 
     return templates.map(this.mapToPromptTemplate)
@@ -92,7 +88,11 @@ export class PromptTemplateService {
     return this.mapToPromptTemplate(template)
   }
 
-  async findBestMatch(category: string, provider?: string, modelName?: string): Promise<PromptTemplate | null> {
+  async findBestMatch(
+    category: string,
+    provider?: string,
+    modelName?: string,
+  ): Promise<PromptTemplate | null> {
     // 查找优先级：特定模型 > 特定供应商 > 默认配置
     const templates = await this.prisma.promptTemplate.findMany({
       where: {

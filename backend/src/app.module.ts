@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { PrismaModule } from './prisma/prisma.module'
 import { RequirementsModule } from './requirements/requirements.module'
+import { AIRequirementsModule } from './requirements/ai-requirements.module'
 import { LLMModule } from './llm/llm.module'
 import { VectorModule } from './vector/vector.module'
 import { AuthModule } from './auth/auth.module'
@@ -18,6 +19,7 @@ import { ProjectsModule } from './projects/projects.module'
     PrismaModule,
     AuthModule,
     RequirementsModule,
+    AIRequirementsModule,
     LLMModule,
     VectorModule,
     UsersModule,

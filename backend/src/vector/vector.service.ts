@@ -20,8 +20,8 @@ export class VectorService implements OnModuleInit {
       // 由于ChromaDB需要embeddingFunction参数，我们使用一个简单的实现
       const embeddingFunction = {
         generate: async (texts: string[]) => {
-          return Promise.all(texts.map(text => this.generateEmbedding(text)))
-        }
+          return Promise.all(texts.map((text) => this.generateEmbedding(text)))
+        },
       }
 
       // 简化实现，直接尝试创建或获取集合
@@ -29,14 +29,14 @@ export class VectorService implements OnModuleInit {
         // 尝试获取现有集合
         this.collection = await this.client.getCollection({
           name: this.collectionName,
-          embeddingFunction
+          embeddingFunction,
         })
       } catch {
         // 如果集合不存在，创建新集合
         this.collection = await this.client.createCollection({
           name: this.collectionName,
           metadata: { description: 'Requirements vector store' },
-          embeddingFunction
+          embeddingFunction,
         })
       }
     } catch (error) {
@@ -60,7 +60,7 @@ export class VectorService implements OnModuleInit {
 
     const magnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0))
     if (magnitude > 0) {
-      return embedding.map(val => val / magnitude)
+      return embedding.map((val) => val / magnitude)
     }
 
     return embedding
@@ -70,7 +70,7 @@ export class VectorService implements OnModuleInit {
     let hash = 0
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i)
-      hash = ((hash << 5) - hash) + char
+      hash = (hash << 5) - hash + char
       hash = hash & hash
     }
     return Math.abs(hash)

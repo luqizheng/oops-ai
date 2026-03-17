@@ -5,7 +5,7 @@ import { AppModule } from '../../app.module'
 
 async function testAPIs() {
   console.log('开始测试API端点...')
-  
+
   let app: INestApplication
 
   try {
@@ -28,18 +28,16 @@ async function testAPIs() {
 
     if (templatesResponse.body.length > 0) {
       const template = templatesResponse.body[0]
-      
+
       // 测试2: 获取单个模板
       console.log('\n2. 测试获取单个模板...')
-      await request(app.getHttpServer())
-        .get(`/prompt-templates/${template.id}`)
-        .expect(200)
+      await request(app.getHttpServer()).get(`/prompt-templates/${template.id}`).expect(200)
       console.log('✅ 获取单个模板成功')
 
       // 测试3: 渲染模板
       console.log('\n3. 测试渲染模板...')
       const renderData: Record<string, any> = {}
-      
+
       // 为模板中的每个变量设置测试值
       if (template.variables && Array.isArray(template.variables)) {
         template.variables.forEach((variable: string) => {
@@ -93,9 +91,7 @@ async function testAPIs() {
 
     // 测试6: 删除模板
     console.log('\n6. 测试删除模板...')
-    await request(app.getHttpServer())
-      .delete(`/prompt-templates/${newTemplateId}`)
-      .expect(200)
+    await request(app.getHttpServer()).delete(`/prompt-templates/${newTemplateId}`).expect(200)
 
     console.log('✅ 删除模板成功')
 
