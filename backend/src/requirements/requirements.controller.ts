@@ -5,10 +5,12 @@ import {
   CreateRequirementDto,
   UpdateRequirementDto,
   AnalyzeFuzzyWordsDto,
+  AnalyzeRequirementDto,
   GenerateQuestionsDto,
   GenerateUserStoriesDto,
   GenerateAcceptanceCriteriaDto,
   QualityScoreDto,
+  RequirementAnalysisResponse,
   CreateRawRequirementDto,
   UpdateRawRequirementDto,
   CreateUserStoryDto,
@@ -69,6 +71,13 @@ export class RequirementsController {
   @ApiOperation({ summary: '分析模糊词' })
   analyzeFuzzyWords(@Body() analyzeFuzzyWordsDto: AnalyzeFuzzyWordsDto) {
     return this.requirementsService.analyzeFuzzyWords(analyzeFuzzyWordsDto)
+  }
+
+  @Post('analyze/requirement')
+  @ApiOperation({ summary: 'AI分析需求' })
+  @ApiResponse({ status: 200, type: RequirementAnalysisResponse })
+  analyzeRequirement(@Body() analyzeRequirementDto: AnalyzeRequirementDto) {
+    return this.requirementsService.analyzeRequirement(analyzeRequirementDto)
   }
 
   @Post('questions')

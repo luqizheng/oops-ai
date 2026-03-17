@@ -16,6 +16,10 @@ model Requirement {
   projectId         String   @map("project_id")
   project           Project  @relation(fields: [projectId], references: [id])
   
+  // 原始需求关联
+  rawRequirementId  String?  @map("raw_requirement_id")
+  rawRequirement    RawRequirement? @relation(fields: [rawRequirementId], references: [id])
+  
   // 基础信息
   title             String
   description       String?
@@ -41,7 +45,6 @@ model Requirement {
   updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at")
   
   // 关联的核心需求管理点
-  rawRequirements   RawRequirement[]      // 1. 原始需求
   userStories       UserStory[]           // 2. 用户故事
   acceptanceCriteria AcceptanceCriteria[] // 3. 验收标准
   testCases         TestCase[]            // 4. 测试用例
@@ -60,8 +63,6 @@ model Requirement {
 
 model RawRequirement {
   id              String   @id @default(uuid())
-  requirementId   String   @map("requirement_id")
-  requirement     Requirement @relation(fields: [requirementId], references: [id])
   
   // 原始内容
   content         String   @db.Text     // 原始文本
@@ -73,10 +74,17 @@ model RawRequirement {
   proposedAt      DateTime @map("proposed_at") // 提出时间
   scenario        String?  @db.Text      // 提出场景
   
+  // 项目关联
+  projectId       String   @map("project_id")
+  project         Project  @relation(fields: [projectId], references: [id])
+  
+  // 关联的需求（一对多关系）
+  requirements    Requirement[]
+  
   // 时间戳
   createdAt       DateTime @default(now()) @map("created_at")
   
-  @@index([requirementId])
+  @@index([projectId])
   @@index([sourceType])
   @@map("raw_requirements")
 }
@@ -392,6 +400,7 @@ model Project {
   members         ProjectMember[]
   projectSettings ProjectSettings?
   requirements    Requirement[]
+  rawRequirements RawRequirement[]
 
   @@map("projects")
 }

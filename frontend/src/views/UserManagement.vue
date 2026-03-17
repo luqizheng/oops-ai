@@ -57,9 +57,10 @@
             <div
               class="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900 dark:to-purple-900 flex items-center justify-center mr-4 shadow-sm"
             >
-              <span class="text-lg font-bold text-indigo-700 dark:text-indigo-300">{{
-                user.name?.charAt(0) || "U"
-              }}</span>
+              <span
+                class="text-lg font-bold text-indigo-700 dark:text-indigo-300"
+                >{{ user.name?.charAt(0) || "U" }}</span
+              >
             </div>
             <div>
               <h3 class="font-semibold text-lg text-gray-900">
@@ -68,7 +69,12 @@
               <p class="text-sm text-gray-500">{{ user.email }}</p>
             </div>
           </div>
-          <el-tag :type="user.role.name === '管理员' ? 'danger' : 'primary'" size="small" effect="light" class="rounded-full px-3">
+          <el-tag
+            :type="user.role.name === '管理员' ? 'danger' : 'primary'"
+            size="small"
+            effect="light"
+            class="rounded-full px-3"
+          >
             {{ user.role.name }}
           </el-tag>
         </div>
@@ -106,7 +112,6 @@
     >
       <el-empty description="暂无用户数据" />
     </div>
-
 
     <!-- 操作反馈提示条 -->
     <div
@@ -149,12 +154,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "../utils/api";
-import {
-  ElButton,
-  ElInput,
-  ElEmpty,
-  ElTag,
-} from "element-plus";
+import { ElButton, ElInput, ElEmpty, ElTag } from "element-plus";
 import {
   Plus,
   Edit,
@@ -271,7 +271,6 @@ const fetchRoles = async () => {
   }
 };
 
-
 const deleteUser = async (id: string) => {
   // 先备份要删除的用户，用于撤销操作
   const userToDelete = users.value.find((user) => user.id === id);
@@ -321,8 +320,6 @@ const deleteUser = async (id: string) => {
     }
   }
 };
-
-
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);

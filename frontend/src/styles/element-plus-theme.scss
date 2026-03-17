@@ -2,56 +2,51 @@
 // 基于 OOPS-AI 设计系统
 
 // 主色调
-@forward 'element-plus/theme-chalk/src/common/var.scss' with (
+@forward "element-plus/theme-chalk/src/common/var.scss" with (
   // 主题色
   $colors: (
-    'primary': (
-      'base': #3b82f6,
+      "primary": (
+        "base": #3b82f6,
+      ),
+      "success": (
+        "base": #10b981,
+      ),
+      "warning": (
+        "base": #f59e0b,
+      ),
+      "danger": (
+        "base": #ef4444,
+      ),
+      "info": (
+        "base": #6366f1,
+      )
     ),
-    'success': (
-      'base': #10b981,
-    ),
-    'warning': (
-      'base': #f59e0b,
-    ),
-    'danger': (
-      'base': #ef4444,
-    ),
-    'info': (
-      'base': #6366f1,
-    ),
-  ),
-  
+
   // 字体
   $font-size: (
-    'extra-large': 24px,
-    'large': 18px,
-    'medium': 16px,
-    'base': 14px,
-    'small': 12px,
-    'extra-small': 11px,
-  ),
-  
+      "extra-large": 24px,
+      "large": 18px,
+      "medium": 16px,
+      "base": 14px,
+      "small": 12px,
+      "extra-small": 11px
+    ),
+
   // 圆角
-  $border-radius: (
-    'small': 4px,
-    'base': 6px,
-    'medium': 8px,
-    'large': 12px,
-  )
+  $border-radius: ("small": 4px, "base": 6px, "medium": 8px, "large": 12px)
 );
 
 // 导入 Element Plus 样式
-@use 'element-plus/theme-chalk/src/index.scss';
+@use "element-plus/theme-chalk/src/index.scss";
 
 // 自定义 Element Plus 组件样式
 .el-button {
   font-weight: 500;
   transition: all 0.2s ease;
-  
+
   &--primary {
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    
+
     &:hover {
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
@@ -62,7 +57,7 @@
   border-radius: 8px;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   border: 1px solid #f3f4f6;
-  
+
   &:hover {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   }

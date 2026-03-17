@@ -99,6 +99,12 @@ export class AnalyzeFuzzyWordsDto {
   text: string
 }
 
+export class AnalyzeRequirementDto {
+  @ApiProperty({ description: '原始需求文本' })
+  @IsString()
+  requirementText: string
+}
+
 export class GenerateQuestionsDto {
   @ApiProperty({ description: '需求类型' })
   @IsString()
@@ -195,6 +201,14 @@ export class QualityScore {
 
   @ApiProperty({ description: '改进建议', type: [String] })
   suggestions: string[]
+}
+
+export class RequirementAnalysisResponse {
+  @ApiProperty({ description: '分析结果', type: [String] })
+  analysisResults: string[]
+
+  @ApiProperty({ description: '追问问题', type: [String] })
+  questions: string[]
 }
 
 // ============================================

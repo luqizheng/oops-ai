@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import {
   CreateRequirementDto,
   UpdateRequirementDto,
   AnalyzeFuzzyWordsDto,
+  AnalyzeRequirementDto,
   GenerateQuestionsDto,
   GenerateUserStoriesDto,
   GenerateAcceptanceCriteriaDto,
@@ -13,6 +14,7 @@ import {
   UserStory,
   AcceptanceCriterion,
   QualityScore,
+  RequirementAnalysisResponse,
   CreateRawRequirementDto,
   UpdateRawRequirementDto,
   CreateUserStoryDto,
@@ -426,26 +428,19 @@ export class RequirementsService {
   // 1. 原始需求 (Raw Need) 相关方法
   // ============================================
 
-  async createRawRequirement(
-    requirementId: string,
-    createRawRequirementDto: CreateRawRequirementDto,
-  ) {
-    await this.findOne(requirementId)
+  async createRawRequirement(projectId: string, createRawRequirementDto: CreateRawRequirementDto) {
     return this.prisma.rawRequirement.create({
       data: {
         ...createRawRequirementDto,
         proposedAt: createRawRequirementDto.proposedAt || new Date(),
-        requirement: {
-          connect: { id: requirementId },
-        },
+        projectId,
       },
     })
   }
 
-  async getRawRequirements(requirementId: string) {
-    await this.findOne(requirementId)
+  async getRawRequirements(projectId: string) {
     return this.prisma.rawRequirement.findMany({
-      where: { requirementId },
+      where: { projectId },
       orderBy: { createdAt: 'desc' },
     })
   }
@@ -876,7 +871,7 @@ export class RequirementsService {
     const requirement = await this.prisma.requirement.findUnique({
       where: { id: requirementId },
       include: {
-        rawRequirements: true,
+        rawRequirement: true,
         userStories: true,
         acceptanceCriteria: {
           include: {
@@ -907,5 +902,103 @@ export class RequirementsService {
     }
 
     return requirement
+  }
+
+  // ============================================
+  // AI需求分析方法
+  // ============================================
+
+  async analyzeRequirement(analyzeRequirementDto: AnalyzeRequirementDto): Promise<RequirementAnalysisResponse> {
+    const prompt = `你是一个资深产品经理，请分析以下原始需求，将其拆解为具体的功能点，并生成需要追问的问题：
+
+原始需求：${analyzeRequirementDto.requirementText}
+
+请按照以下JSON格式输出：
+{
+  "analysisResults": ["需求点1", "需求点2", "需求点3", "需求点4"],
+  "questions": ["追问问题1", "追问问题2"]
+}
+
+分析要求：
+1. 识别需求中的核心功能点
+2. 识别性能、安全等非功能需求
+3. 识别模糊词汇，生成追问问题
+4. 每个需求点应该是具体可执行的任务
+5. 追问问题应该帮助澄清模糊点
+
+示例：
+原始需求："我希望系统登录体验更好，要快一点，还要安全，最好能支持微信登录，忘记密码也要能方便找回"
+输出：
+{
+  "analysisResults": ["登录速度优化", "微信登录支持", "忘记密码找回", "登录失败锁定"],
+  "questions": ["\"更快\"具体指多少秒？", "需要支持哪些登录方式？"]
+}`
+
+    try {
+      const response = await this.llmService.generateCompletion(prompt)
+      
+      // 尝试解析JSON响应
+      try {
+        const parsed = JSON.parse(response)
+        return {
+          analysisResults: parsed.analysisResults || [],
+          questions: parsed.questions || []
+        }
+      } catch (jsonError) {
+        // 如果JSON解析失败，尝试从文本中提取
+        console.warn('Failed to parse JSON response, trying to extract from text:', response)
+        
+        // 简单的文本提取逻辑
+        const analysisResults: string[] = []
+        const questions: string[] = []
+        
+        const lines = response.split('\n')
+        let inAnalysisResults = false
+        let inQuestions = false
+        
+        for (const line of lines) {
+          const trimmedLine = line.trim()
+          
+          if (trimmedLine.includes('analysisResults') || trimmedLine.includes('需求点')) {
+            inAnalysisResults = true
+            inQuestions = false
+            continue
+          }
+          
+          if (trimmedLine.includes('questions') || trimmedLine.includes('追问')) {
+            inAnalysisResults = false
+            inQuestions = true
+            continue
+          }
+          
+          if (inAnalysisResults && trimmedLine && !trimmedLine.includes('{') && !trimmedLine.includes('}') && !trimmedLine.includes('[') && !trimmedLine.includes(']')) {
+            const cleanLine = trimmedLine.replace(/^[-\*•]\s*/, '').replace(/["',]/g, '').trim()
+            if (cleanLine) {
+              analysisResults.push(cleanLine)
+            }
+          }
+          
+          if (inQuestions && trimmedLine && !trimmedLine.includes('{') && !trimmedLine.includes('}') && !trimmedLine.includes('[') && !trimmedLine.includes(']')) {
+            const cleanLine = trimmedLine.replace(/^[-\*•]\s*/, '').replace(/["',]/g, '').trim()
+            if (cleanLine) {
+              questions.push(cleanLine)
+            }
+          }
+        }
+        
+        // 如果没有提取到结果，使用默认值
+        if (analysisResults.length === 0) {
+          analysisResults.push('需求分析失败，请重试')
+        }
+        
+        return {
+          analysisResults,
+          questions
+        }
+      }
+    } catch (error) {
+      console.error('Error in AI requirement analysis:', error)
+      throw new BadRequestException(`AI分析失败: ${error.message}`)
+    }
   }
 }
