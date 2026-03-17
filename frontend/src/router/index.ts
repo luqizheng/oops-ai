@@ -34,6 +34,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: "/prompt-templates",
+      name: "prompt-templates",
+      component: () => import("@/views/PromptTemplateManagement.vue"),
+      meta: { requiresAuth: true },
+    },
+    {
       path: "/roles",
       name: "roles",
       component: () => import("@/views/RoleManagement.vue"),

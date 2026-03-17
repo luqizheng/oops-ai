@@ -232,78 +232,134 @@ export class RequirementsService {
   async generateUserStories(
     generateUserStoriesDto: GenerateUserStoriesDto,
   ): Promise<{ userStories: UserStory[] }> {
-    const prompt = `请将以下一句话需求转换为标准用户故事格式："作为[角色]，我想要[功能]，以便[价值]"
+    try {
+      const response = await this.llmService.generateCompletionWithTemplate(
+        'requirement-to-story',
+        { requirement: generateUserStoriesDto.userInput },
+      )
+      
+      console.log('调用 llm之后，返回的:', response)
+      
+      // 去除响应开头的 ```json 和结尾的 ``` 标记
+      const cleanedResponse = response.replace(/^```json\s*/, '').replace(/\s*```$/, '')
+      const parsed = JSON.parse(cleanedResponse)
+      return { userStories: parsed.userStories || [] }
+    } catch (error) {
+      console.error('生成用户故事失败:', error)
+      
+      // 回退到直接调用
+      const prompt = `请将以下一句话需求转换为标准用户故事格式："作为[角色]，我想要[功能]，以便[价值]"
 
 原始需求：${generateUserStoriesDto.userInput}
 
 请输出JSON格式，包含userStories数组，每个故事包含role、feature、value字段。`
 
-    const response = await this.llmService.generateCompletion(prompt)
-    console.log('调用 llm之后，返回的:', response)
-    try {
-      // 去除响应开头的 ```json 和结尾的 ``` 标记
-      const cleanedResponse = response.replace(/^```json\s*/, '').replace(/\s*```$/, '')
-      const parsed = JSON.parse(cleanedResponse)
-      return { userStories: parsed.userStories || [] }
-    } catch {
-      const stories = response
-        .split('\n')
-        .filter((line) => line.trim())
-        .map((line) => {
-          const match = line.match(/作为\[(.+?)\]，我想要\[(.+?)\]，以便\[(.+?)\]/)
-          if (match) {
-            return {
-              role: match[1],
-              feature: match[2],
-              value: match[3],
+      const response = await this.llmService.generateCompletion(prompt)
+      
+      try {
+        const cleanedResponse = response.replace(/^```json\s*/, '').replace(/\s*```$/, '')
+        const parsed = JSON.parse(cleanedResponse)
+        return { userStories: parsed.userStories || [] }
+      } catch {
+        const stories = response
+          .split('\n')
+          .filter((line) => line.trim())
+          .map((line) => {
+            const match = line.match(/作为\[(.+?)\]，我想要\[(.+?)\]，以便\[(.+?)\]/)
+            if (match) {
+              return {
+                role: match[1],
+                feature: match[2],
+                value: match[3],
+              }
             }
-          }
-          return null
-        })
-        .filter(Boolean)
+            return null
+          })
+          .filter(Boolean)
 
-      return { userStories: stories.slice(0, 3) }
+        return { userStories: stories.slice(0, 3) }
+      }
     }
   }
 
   async generateAcceptanceCriteria(
     generateAcceptanceCriteriaDto: GenerateAcceptanceCriteriaDto,
   ): Promise<{ acceptanceCriteria: AcceptanceCriterion[] }> {
-    const prompt = `请为以下需求生成3-5个Given-When-Then格式的验收条件，覆盖正常流程、异常流程和边界条件：
+    try {
+      const response = await this.llmService.generateCompletionWithTemplate(
+        'generate-acceptance',
+        { requirementContent: generateAcceptanceCriteriaDto.requirementContent },
+      )
+
+      try {
+        const parsed = JSON.parse(response)
+        return { acceptanceCriteria: parsed.acceptanceCriteria || [] }
+      } catch {
+        // 回退到直接解析
+        const criteria = response
+          .split('\n')
+          .filter((line) => line.trim())
+          .map((line) => {
+            const match = line.match(/Given (.+?) When (.+?) Then (.+?)$/)
+            if (match) {
+              return {
+                given: match[1],
+                when: match[2],
+                then: match[3],
+                scenarioType: 'normal' as const,
+              }
+            }
+            return null
+          })
+          .filter(Boolean) as Array<{
+          given: string
+          when: string
+          then: string
+          scenarioType: 'normal' | 'exception' | 'boundary'
+        }>
+
+        return { acceptanceCriteria: criteria.slice(0, 5) }
+      }
+    } catch (error) {
+      console.error('生成验收标准失败:', error)
+      
+      // 回退到直接调用
+      const prompt = `请为以下需求生成3-5个Given-When-Then格式的验收条件，覆盖正常流程、异常流程和边界条件：
 
 需求内容：${generateAcceptanceCriteriaDto.requirementContent}
 
 请输出JSON格式，包含acceptanceCriteria数组，每个条件包含given、when、then、scenarioType字段。`
 
-    const response = await this.llmService.generateCompletion(prompt)
+      const response = await this.llmService.generateCompletion(prompt)
 
-    try {
-      const parsed = JSON.parse(response)
-      return { acceptanceCriteria: parsed.acceptanceCriteria || [] }
-    } catch {
-      const criteria = response
-        .split('\n')
-        .filter((line) => line.trim())
-        .map((line) => {
-          const match = line.match(/Given (.+?) When (.+?) Then (.+?)$/)
-          if (match) {
-            return {
-              given: match[1],
-              when: match[2],
-              then: match[3],
-              scenarioType: 'normal' as const,
+      try {
+        const parsed = JSON.parse(response)
+        return { acceptanceCriteria: parsed.acceptanceCriteria || [] }
+      } catch {
+        const criteria = response
+          .split('\n')
+          .filter((line) => line.trim())
+          .map((line) => {
+            const match = line.match(/Given (.+?) When (.+?) Then (.+?)$/)
+            if (match) {
+              return {
+                given: match[1],
+                when: match[2],
+                then: match[3],
+                scenarioType: 'normal' as const,
+              }
             }
-          }
-          return null
-        })
-        .filter(Boolean) as Array<{
-        given: string
-        when: string
-        then: string
-        scenarioType: 'normal' | 'exception' | 'boundary'
-      }>
+            return null
+          })
+          .filter(Boolean) as Array<{
+          given: string
+          when: string
+          then: string
+          scenarioType: 'normal' | 'exception' | 'boundary'
+        }>
 
-      return { acceptanceCriteria: criteria.slice(0, 5) }
+        return { acceptanceCriteria: criteria.slice(0, 5) }
+      }
     }
   }
 

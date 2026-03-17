@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { PrismaService } from '../prisma/prisma.service'
+import { PromptTemplateService } from './prompt-templates/prompt-template.service'
 import OpenAI from 'openai'
 
 interface LLMConfig {
@@ -20,6 +21,7 @@ export class LLMService {
   constructor(
     private configService: ConfigService,
     private prisma: PrismaService,
+    private promptTemplateService: PromptTemplateService,
   ) {
     this.initializeOpenAI()
   }
@@ -53,6 +55,31 @@ export class LLMService {
       default:
         throw new BadRequestException(`Unsupported LLM provider: ${finalConfig.provider}`)
     }
+  }
+
+  async generateCompletionWithTemplate(
+    category: string,
+    variables: Record<string, any>,
+    config?: LLMConfig,
+    options?: any,
+  ): Promise<string> {
+    // Use provided config if available, otherwise get default
+    const finalConfig = config || (await this.getDefaultConfig())
+
+    if (!finalConfig) {
+      throw new BadRequestException('No default LLM configuration found')
+    }
+
+    // 获取并渲染提示词模板
+    const prompt = await this.promptTemplateService.renderTemplate(
+      category,
+      variables,
+      finalConfig.provider,
+      finalConfig.modelName,
+    )
+
+    // 使用渲染后的提示词调用LLM
+    return this.generateCompletion(prompt, finalConfig, options)
   }
 
   private async generateOpenAICompletion(
@@ -108,13 +135,12 @@ export class LLMService {
       }
 
       const content = await response.text()
-     
+
       // Ollama返回的是SSE流格式，需要逐行解析JSON
       const lines = content.split('\n').filter((line) => line.trim() !== '')
       let fullResponse = ''
 
       for (const line of lines) {
-     
         try {
           // 处理标准SSE格式（如"data: {...}"）和普通JSON行
           const jsonLine = line.startsWith('data: ') ? line.slice(6).trim() : line.trim()
@@ -136,7 +162,7 @@ export class LLMService {
           console.debug('解析Ollama响应行失败，跳过该行:', line)
         }
       }
-    
+
       // 如果没有找到完整响应，返回已解析的部分
       return fullResponse
 

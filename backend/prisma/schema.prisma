@@ -498,3 +498,25 @@ model LLMConfiguration {
 
   @@map("llm_configurations")
 }
+
+model PromptTemplate {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  template    String   @db.Text
+  category    String
+  provider    String?
+  modelName   String?  @map("model_name")
+  isDefault   Boolean  @default(false) @map("is_default")
+  isActive    Boolean  @default(true) @map("is_active")
+  variables   String[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@unique([category, provider, modelName, isDefault])
+  @@index([category])
+  @@index([provider])
+  @@index([modelName])
+  @@index([isActive])
+  @@map("prompt_templates")
+}
