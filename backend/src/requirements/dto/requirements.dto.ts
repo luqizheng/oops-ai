@@ -196,3 +196,630 @@ export class QualityScore {
   @ApiProperty({ description: '改进建议', type: [String] })
   suggestions: string[]
 }
+
+// ============================================
+// 1. 原始需求 (Raw Need) DTO
+// ============================================
+
+export class CreateRawRequirementDto {
+  @ApiProperty({ description: '原始需求内容' })
+  @IsString()
+  content: string
+
+  @ApiProperty({ description: '来源类型', default: 'manual_input' })
+  @IsOptional()
+  @IsString()
+  sourceType?: string
+
+  @ApiProperty({ description: '来源元数据', required: false })
+  @IsOptional()
+  sourceMeta?: any
+
+  @ApiProperty({ description: '提出人', required: false })
+  @IsOptional()
+  @IsString()
+  proposedBy?: string
+
+  @ApiProperty({ description: '提出时间', required: false })
+  @IsOptional()
+  proposedAt?: Date
+
+  @ApiProperty({ description: '提出场景', required: false })
+  @IsOptional()
+  @IsString()
+  scenario?: string
+}
+
+export class UpdateRawRequirementDto {
+  @ApiProperty({ description: '原始需求内容', required: false })
+  @IsOptional()
+  @IsString()
+  content?: string
+
+  @ApiProperty({ description: '来源类型', required: false })
+  @IsOptional()
+  @IsString()
+  sourceType?: string
+
+  @ApiProperty({ description: '来源元数据', required: false })
+  @IsOptional()
+  sourceMeta?: any
+
+  @ApiProperty({ description: '提出人', required: false })
+  @IsOptional()
+  @IsString()
+  proposedBy?: string
+
+  @ApiProperty({ description: '提出时间', required: false })
+  @IsOptional()
+  proposedAt?: Date
+
+  @ApiProperty({ description: '提出场景', required: false })
+  @IsOptional()
+  @IsString()
+  scenario?: string
+}
+
+// ============================================
+// 2. 用户故事 (User Story) DTO
+// ============================================
+
+export class CreateUserStoryDto {
+  @ApiProperty({ description: '角色' })
+  @IsString()
+  role: string
+
+  @ApiProperty({ description: '想要的功能' })
+  @IsString()
+  want: string
+
+  @ApiProperty({ description: '带来的价值', required: false })
+  @IsOptional()
+  @IsString()
+  soThat?: string
+
+  @ApiProperty({ description: '验收要点', required: false })
+  @IsOptional()
+  @IsString()
+  acceptanceNotes?: string
+
+  @ApiProperty({ description: '故事点估算', required: false })
+  @IsOptional()
+  @IsNumber()
+  storyPoints?: number
+}
+
+export class UpdateUserStoryDto {
+  @ApiProperty({ description: '角色', required: false })
+  @IsOptional()
+  @IsString()
+  role?: string
+
+  @ApiProperty({ description: '想要的功能', required: false })
+  @IsOptional()
+  @IsString()
+  want?: string
+
+  @ApiProperty({ description: '带来的价值', required: false })
+  @IsOptional()
+  @IsString()
+  soThat?: string
+
+  @ApiProperty({ description: '验收要点', required: false })
+  @IsOptional()
+  @IsString()
+  acceptanceNotes?: string
+
+  @ApiProperty({ description: '故事点估算', required: false })
+  @IsOptional()
+  @IsNumber()
+  storyPoints?: number
+}
+
+// ============================================
+// 3. 验收标准 (Acceptance Criteria) DTO
+// ============================================
+
+export class CreateAcceptanceCriteriaDto {
+  @ApiProperty({ description: '场景名称' })
+  @IsString()
+  scenario: string
+
+  @ApiProperty({ description: '前置条件', type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  given: string[]
+
+  @ApiProperty({ description: '操作' })
+  @IsString()
+  when: string
+
+  @ApiProperty({ description: '预期结果', type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  then: string[]
+
+  @ApiProperty({ description: '补充条件', type: [String], required: false })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  and?: string[]
+
+  @ApiProperty({ description: '场景类型', default: 'normal' })
+  @IsOptional()
+  @IsString()
+  scenarioType?: string
+}
+
+export class UpdateAcceptanceCriteriaDto {
+  @ApiProperty({ description: '场景名称', required: false })
+  @IsOptional()
+  @IsString()
+  scenario?: string
+
+  @ApiProperty({ description: '前置条件', type: [String], required: false })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  given?: string[]
+
+  @ApiProperty({ description: '操作', required: false })
+  @IsOptional()
+  @IsString()
+  when?: string
+
+  @ApiProperty({ description: '预期结果', type: [String], required: false })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  then?: string[]
+
+  @ApiProperty({ description: '补充条件', type: [String], required: false })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  and?: string[]
+
+  @ApiProperty({ description: '场景类型', required: false })
+  @IsOptional()
+  @IsString()
+  scenarioType?: string
+
+  @ApiProperty({ description: '验收状态', required: false })
+  @IsOptional()
+  @IsString()
+  status?: string
+
+  @ApiProperty({ description: '测试证据', required: false })
+  @IsOptional()
+  @IsString()
+  testEvidence?: string
+}
+
+// ============================================
+// 4. 测试用例 (Test Cases) DTO
+// ============================================
+
+export class CreateTestCaseDto {
+  @ApiProperty({ description: '测试用例标题' })
+  @IsString()
+  title: string
+
+  @ApiProperty({ description: '测试用例描述', required: false })
+  @IsOptional()
+  @IsString()
+  description?: string
+
+  @ApiProperty({ description: '前置条件', type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  preconditions: string[]
+
+  @ApiProperty({ description: '测试步骤', type: [Object] })
+  @IsArray()
+  testSteps: Array<{ step: string; data?: string; expected: string }>
+
+  @ApiProperty({ description: '测试数据', required: false })
+  @IsOptional()
+  testData?: any
+
+  @ApiProperty({ description: '自动化状态', default: 'manual' })
+  @IsOptional()
+  @IsString()
+  automationStatus?: string
+
+  @ApiProperty({ description: '自动化脚本', required: false })
+  @IsOptional()
+  @IsString()
+  automationScript?: string
+
+  @ApiProperty({ description: '自动化框架', required: false })
+  @IsOptional()
+  @IsString()
+  automationFramework?: string
+
+  @ApiProperty({ description: '关联的验收标准ID', required: false })
+  @IsOptional()
+  @IsString()
+  acceptanceCriteriaId?: string
+}
+
+export class UpdateTestCaseDto {
+  @ApiProperty({ description: '测试用例标题', required: false })
+  @IsOptional()
+  @IsString()
+  title?: string
+
+  @ApiProperty({ description: '测试用例描述', required: false })
+  @IsOptional()
+  @IsString()
+  description?: string
+
+  @ApiProperty({ description: '前置条件', type: [String], required: false })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  preconditions?: string[]
+
+  @ApiProperty({ description: '测试步骤', type: [Object], required: false })
+  @IsOptional()
+  @IsArray()
+  testSteps?: Array<{ step: string; data?: string; expected: string }>
+
+  @ApiProperty({ description: '测试数据', required: false })
+  @IsOptional()
+  testData?: any
+
+  @ApiProperty({ description: '自动化状态', required: false })
+  @IsOptional()
+  @IsString()
+  automationStatus?: string
+
+  @ApiProperty({ description: '自动化脚本', required: false })
+  @IsOptional()
+  @IsString()
+  automationScript?: string
+
+  @ApiProperty({ description: '自动化框架', required: false })
+  @IsOptional()
+  @IsString()
+  automationFramework?: string
+
+  @ApiProperty({ description: '关联的验收标准ID', required: false })
+  @IsOptional()
+  @IsString()
+  acceptanceCriteriaId?: string
+}
+
+// ============================================
+// 5. 业务规则 (Business Rules) DTO
+// ============================================
+
+export class CreateBusinessRuleDto {
+  @ApiProperty({ description: '业务规则编号' })
+  @IsString()
+  ruleId: string
+
+  @ApiProperty({ description: '业务规则名称' })
+  @IsString()
+  ruleName: string
+
+  @ApiProperty({ description: '业务规则类型', default: 'constraint' })
+  @IsOptional()
+  @IsString()
+  ruleType?: string
+
+  @ApiProperty({ description: '业务规则表达式' })
+  @IsString()
+  ruleExpression: string
+
+  @ApiProperty({ description: '业务规则描述' })
+  @IsString()
+  ruleDescription: string
+
+  @ApiProperty({ description: '条件', required: false })
+  @IsOptional()
+  @IsString()
+  condition?: string
+
+  @ApiProperty({ description: '动作', required: false })
+  @IsOptional()
+  @IsString()
+  action?: string
+
+  @ApiProperty({ description: '否则动作', required: false })
+  @IsOptional()
+  @IsString()
+  elseAction?: string
+
+  @ApiProperty({ description: '生效时间', required: false })
+  @IsOptional()
+  effectiveFrom?: Date
+
+  @ApiProperty({ description: '失效时间', required: false })
+  @IsOptional()
+  effectiveTo?: Date
+
+  @ApiProperty({ description: '优先级', default: 0 })
+  @IsOptional()
+  @IsNumber()
+  priority?: number
+
+  @ApiProperty({ description: '影响的模块', type: [String], required: false })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  affectedModules?: string[]
+}
+
+export class UpdateBusinessRuleDto {
+  @ApiProperty({ description: '业务规则编号', required: false })
+  @IsOptional()
+  @IsString()
+  ruleId?: string
+
+  @ApiProperty({ description: '业务规则名称', required: false })
+  @IsOptional()
+  @IsString()
+  ruleName?: string
+
+  @ApiProperty({ description: '业务规则类型', required: false })
+  @IsOptional()
+  @IsString()
+  ruleType?: string
+
+  @ApiProperty({ description: '业务规则表达式', required: false })
+  @IsOptional()
+  @IsString()
+  ruleExpression?: string
+
+  @ApiProperty({ description: '业务规则描述', required: false })
+  @IsOptional()
+  @IsString()
+  ruleDescription?: string
+
+  @ApiProperty({ description: '条件', required: false })
+  @IsOptional()
+  @IsString()
+  condition?: string
+
+  @ApiProperty({ description: '动作', required: false })
+  @IsOptional()
+  @IsString()
+  action?: string
+
+  @ApiProperty({ description: '否则动作', required: false })
+  @IsOptional()
+  @IsString()
+  elseAction?: string
+
+  @ApiProperty({ description: '生效时间', required: false })
+  @IsOptional()
+  effectiveFrom?: Date
+
+  @ApiProperty({ description: '失效时间', required: false })
+  @IsOptional()
+  effectiveTo?: Date
+
+  @ApiProperty({ description: '优先级', required: false })
+  @IsOptional()
+  @IsNumber()
+  priority?: number
+
+  @ApiProperty({ description: '影响的模块', type: [String], required: false })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  affectedModules?: string[]
+}
+
+// ============================================
+// 6. 非功能需求 (Non-functional Requirements) DTO
+// ============================================
+
+export class CreateNFRRequirementDto {
+  @ApiProperty({ description: '非功能需求类型' })
+  @IsString()
+  nfrType: string
+
+  @ApiProperty({ description: '指标名称' })
+  @IsString()
+  metric: string
+
+  @ApiProperty({ description: '目标值' })
+  @IsNumber()
+  targetValue: number
+
+  @ApiProperty({ description: '单位' })
+  @IsString()
+  unit: string
+
+  @ApiProperty({ description: '比较符号', default: '<=' })
+  @IsOptional()
+  @IsString()
+  comparison?: string
+
+  @ApiProperty({ description: '警告阈值', required: false })
+  @IsOptional()
+  @IsNumber()
+  warningThreshold?: number
+
+  @ApiProperty({ description: '临界阈值', required: false })
+  @IsOptional()
+  @IsNumber()
+  criticalThreshold?: number
+
+  @ApiProperty({ description: '测量方法', required: false })
+  @IsOptional()
+  @IsString()
+  measurementMethod?: string
+
+  @ApiProperty({ description: '测量工具', required: false })
+  @IsOptional()
+  @IsString()
+  measurementTool?: string
+}
+
+export class UpdateNFRRequirementDto {
+  @ApiProperty({ description: '非功能需求类型', required: false })
+  @IsOptional()
+  @IsString()
+  nfrType?: string
+
+  @ApiProperty({ description: '指标名称', required: false })
+  @IsOptional()
+  @IsString()
+  metric?: string
+
+  @ApiProperty({ description: '目标值', required: false })
+  @IsOptional()
+  @IsNumber()
+  targetValue?: number
+
+  @ApiProperty({ description: '单位', required: false })
+  @IsOptional()
+  @IsString()
+  unit?: string
+
+  @ApiProperty({ description: '比较符号', required: false })
+  @IsOptional()
+  @IsString()
+  comparison?: string
+
+  @ApiProperty({ description: '警告阈值', required: false })
+  @IsOptional()
+  @IsNumber()
+  warningThreshold?: number
+
+  @ApiProperty({ description: '临界阈值', required: false })
+  @IsOptional()
+  @IsNumber()
+  criticalThreshold?: number
+
+  @ApiProperty({ description: '测量方法', required: false })
+  @IsOptional()
+  @IsString()
+  measurementMethod?: string
+
+  @ApiProperty({ description: '测量工具', required: false })
+  @IsOptional()
+  @IsString()
+  measurementTool?: string
+
+  @ApiProperty({ description: '验证状态', required: false })
+  @IsOptional()
+  @IsString()
+  verificationStatus?: string
+
+  @ApiProperty({ description: '上次验证值', required: false })
+  @IsOptional()
+  @IsNumber()
+  lastVerifiedValue?: number
+}
+
+// ============================================
+// 7. 依赖关系 (Dependencies) DTO
+// ============================================
+
+export class CreateRequirementDependencyDto {
+  @ApiProperty({ description: '依赖的需求ID' })
+  @IsString()
+  dependsOnId: string
+
+  @ApiProperty({ description: '依赖类型', default: 'blocks' })
+  @IsOptional()
+  @IsString()
+  dependencyType?: string
+
+  @ApiProperty({ description: '依赖描述', required: false })
+  @IsOptional()
+  @IsString()
+  description?: string
+
+  @ApiProperty({ description: '依赖强度', default: 1.0 })
+  @IsOptional()
+  @IsNumber()
+  strength?: number
+}
+
+export class UpdateRequirementDependencyDto {
+  @ApiProperty({ description: '依赖类型', required: false })
+  @IsOptional()
+  @IsString()
+  dependencyType?: string
+
+  @ApiProperty({ description: '依赖描述', required: false })
+  @IsOptional()
+  @IsString()
+  description?: string
+
+  @ApiProperty({ description: '依赖强度', required: false })
+  @IsOptional()
+  @IsNumber()
+  strength?: number
+}
+
+// ============================================
+// 8. 验收签名 (Acceptance Sign-off) DTO
+// ============================================
+
+export class CreateAcceptanceSignoffDto {
+  @ApiProperty({ description: '签名类型', default: 'functional' })
+  @IsOptional()
+  @IsString()
+  signoffType?: string
+
+  @ApiProperty({ description: '关联的验收标准ID列表', type: [String], required: false })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  criteriaIds?: string[]
+
+  @ApiProperty({ description: '里程碑', required: false })
+  @IsOptional()
+  @IsString()
+  milestone?: string
+
+  @ApiProperty({ description: '发布版本', required: false })
+  @IsOptional()
+  @IsString()
+  releaseVersion?: string
+}
+
+export class UpdateAcceptanceSignoffDto {
+  @ApiProperty({ description: '签名类型', required: false })
+  @IsOptional()
+  @IsString()
+  signoffType?: string
+
+  @ApiProperty({ description: '签名状态', required: false })
+  @IsOptional()
+  @IsString()
+  signoffStatus?: string
+
+  @ApiProperty({ description: '签名证据', required: false })
+  @IsOptional()
+  @IsString()
+  signoffEvidence?: string
+
+  @ApiProperty({ description: '评论', required: false })
+  @IsOptional()
+  @IsString()
+  comments?: string
+
+  @ApiProperty({ description: '关联的验收标准ID列表', type: [String], required: false })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  criteriaIds?: string[]
+
+  @ApiProperty({ description: '里程碑', required: false })
+  @IsOptional()
+  @IsString()
+  milestone?: string
+
+  @ApiProperty({ description: '发布版本', required: false })
+  @IsOptional()
+  @IsString()
+  releaseVersion?: string
+}
