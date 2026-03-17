@@ -3002,4 +3002,4 @@ export const FUZZY_WORDS = [
   'seeking',
   'looking',
   'hunting',
-  '
+]

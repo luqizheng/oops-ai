@@ -151,7 +151,7 @@
           <el-form-item label="API端点">
             <el-input
               v-model="currentConfig.apiEndpoint"
-              :placeholder="getEndpointPlaceholder(currentConfig.provider)"
+              :placeholder="getEndpointPlaceholder(currentConfig.provider || 'openai')"
               class="rounded-lg"
               size="large"
             />

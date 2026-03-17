@@ -143,6 +143,13 @@ import {
   Loading
 } from '@element-plus/icons-vue'
 
+interface User {
+  name: string
+  email: string
+  password?: string
+  roleId: string
+}
+
 const route = useRoute()
 const router = useRouter()
 
@@ -154,7 +161,7 @@ const loading = ref(false)
 const submitting = ref(false)
 const roles = ref<any[]>([])
 
-const user = ref({
+const user = ref<User>({
   name: '',
   email: '',
   password: '',

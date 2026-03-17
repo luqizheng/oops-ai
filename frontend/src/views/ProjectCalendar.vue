@@ -26,7 +26,7 @@
         <!-- 日历日期 -->
         <div
           v-for="date in calendarDays"
-          :key="date.date"
+          :key="date.date.toISOString()"
           class="min-h-[100px] border border-gray-200 p-1 rounded-lg"
           :class="{
             'bg-gray-50': !date.isCurrentMonth,
