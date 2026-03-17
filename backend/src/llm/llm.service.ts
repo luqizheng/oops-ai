@@ -107,19 +107,37 @@ export class LLMService {
         throw new Error(`Ollama API error: ${response.statusText}`)
       }
 
-      const error = await response.text()
+      const content = await response.text()
+     
       // Ollama返回的是SSE流格式，需要逐行解析JSON
-      const lines = error.split('\n').filter((line) => line.trim() !== '')
+      const lines = content.split('\n').filter((line) => line.trim() !== '')
       let fullResponse = ''
+
       for (const line of lines) {
+     
         try {
-          const data = JSON.parse(line)
-          fullResponse += data.response || ''
-          if (data.done) break
+          // 处理标准SSE格式（如"data: {...}"）和普通JSON行
+          const jsonLine = line.startsWith('data: ') ? line.slice(6).trim() : line.trim()
+          if (!jsonLine) continue
+
+          const data = JSON.parse(jsonLine)
+
+          // 拼接响应内容
+          if (data.response) {
+            fullResponse += data.response
+          }
+
+          // 检查是否完成
+          if (data.done) {
+            break
+          }
         } catch (parseError) {
-          console.error('解析Ollama响应行失败:', parseError, '行内容:', line)
+          // 忽略无法解析的行，继续处理其他行
+          console.debug('解析Ollama响应行失败，跳过该行:', line)
         }
       }
+    
+      // 如果没有找到完整响应，返回已解析的部分
       return fullResponse
 
       // const data = await response.json()
@@ -134,35 +152,30 @@ export class LLMService {
     config: LLMConfig,
     options?: any,
   ): Promise<string> {
-    const endpoint = config.apiEndpoint || 'https://api.deepseek.com/v1/chat/completions'
     const apiKey = config.apiKey || this.configService.get<string>('DEEPSEEK_API_KEY')
-
     if (!apiKey) {
       throw new BadRequestException('DeepSeek API key not configured')
     }
-
+    console.log('use deepseek  request content is:', prompt)
     try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: config.modelName,
-          messages: [{ role: 'user', content: prompt }],
-          temperature: config.temperature,
-          max_tokens: config.maxTokens,
-          ...options,
-        }),
+      const deepseek = new OpenAI({
+        baseURL: config.apiEndpoint || 'https://api.deepseek.com/v1',
+        apiKey: apiKey,
       })
 
-      if (!response.ok) {
-        throw new Error(`DeepSeek API error: ${response.statusText}`)
-      }
+      const completion = await deepseek.chat.completions.create({
+        model: config.modelName,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: config.temperature,
+        max_tokens: config.maxTokens,
+        ...options,
+      })
+      console.log(
+        'use deepseek response content is:',
+        completion.choices[0]?.message?.content || '',
+      )
 
-      const data = await response.json()
-      return data.choices[0]?.message?.content || ''
+      return completion.choices[0]?.message?.content || ''
     } catch (error) {
       throw new BadRequestException(`DeepSeek API error: ${error.message}`)
     }

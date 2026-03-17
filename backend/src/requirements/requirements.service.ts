@@ -237,9 +237,11 @@ export class RequirementsService {
 请输出JSON格式，包含userStories数组，每个故事包含role、feature、value字段。`
 
     const response = await this.llmService.generateCompletion(prompt)
-    
+    console.log('调用 llm之后，返回的:', response)
     try {
-      const parsed = JSON.parse(response)
+      // 去除响应开头的 ```json 和结尾的 ``` 标记
+      const cleanedResponse = response.replace(/^```json\s*/, '').replace(/\s*```$/, '')
+      const parsed = JSON.parse(cleanedResponse)
       return { userStories: parsed.userStories || [] }
     } catch {
       const stories = response
@@ -424,8 +426,11 @@ export class RequirementsService {
   // 1. 原始需求 (Raw Need) 相关方法
   // ============================================
 
-  async createRawRequirement(requirementId: string, createRawRequirementDto: CreateRawRequirementDto) {
-    await this.findOne(requirementId);
+  async createRawRequirement(
+    requirementId: string,
+    createRawRequirementDto: CreateRawRequirementDto,
+  ) {
+    await this.findOne(requirementId)
     return this.prisma.rawRequirement.create({
       data: {
         ...createRawRequirementDto,
@@ -434,42 +439,45 @@ export class RequirementsService {
           connect: { id: requirementId },
         },
       },
-    });
+    })
   }
 
   async getRawRequirements(requirementId: string) {
-    await this.findOne(requirementId);
+    await this.findOne(requirementId)
     return this.prisma.rawRequirement.findMany({
       where: { requirementId },
       orderBy: { createdAt: 'desc' },
-    });
+    })
   }
 
   async getRawRequirementById(rawRequirementId: string) {
     const rawRequirement = await this.prisma.rawRequirement.findUnique({
       where: { id: rawRequirementId },
-    });
+    })
 
     if (!rawRequirement) {
-      throw new NotFoundException(`Raw requirement with ID ${rawRequirementId} not found`);
+      throw new NotFoundException(`Raw requirement with ID ${rawRequirementId} not found`)
     }
 
-    return rawRequirement;
+    return rawRequirement
   }
 
-  async updateRawRequirement(rawRequirementId: string, updateRawRequirementDto: UpdateRawRequirementDto) {
-    await this.getRawRequirementById(rawRequirementId);
+  async updateRawRequirement(
+    rawRequirementId: string,
+    updateRawRequirementDto: UpdateRawRequirementDto,
+  ) {
+    await this.getRawRequirementById(rawRequirementId)
     return this.prisma.rawRequirement.update({
       where: { id: rawRequirementId },
       data: updateRawRequirementDto,
-    });
+    })
   }
 
   async deleteRawRequirement(rawRequirementId: string) {
-    await this.getRawRequirementById(rawRequirementId);
+    await this.getRawRequirementById(rawRequirementId)
     return this.prisma.rawRequirement.delete({
       where: { id: rawRequirementId },
-    });
+    })
   }
 
   // ============================================
@@ -477,100 +485,106 @@ export class RequirementsService {
   // ============================================
 
   async createUserStory(requirementId: string, createUserStoryDto: CreateUserStoryDto) {
-    await this.findOne(requirementId);
+    await this.findOne(requirementId)
     return this.prisma.userStory.create({
       data: {
         ...createUserStoryDto,
         requirementId,
       },
-    });
+    })
   }
 
   async getUserStories(requirementId: string) {
-    await this.findOne(requirementId);
+    await this.findOne(requirementId)
     return this.prisma.userStory.findMany({
       where: { requirementId },
       orderBy: { createdAt: 'desc' },
-    });
+    })
   }
 
   async getUserStoryById(userStoryId: string) {
     const userStory = await this.prisma.userStory.findUnique({
       where: { id: userStoryId },
-    });
+    })
 
     if (!userStory) {
-      throw new NotFoundException(`User story with ID ${userStoryId} not found`);
+      throw new NotFoundException(`User story with ID ${userStoryId} not found`)
     }
 
-    return userStory;
+    return userStory
   }
 
   async updateUserStory(userStoryId: string, updateUserStoryDto: UpdateUserStoryDto) {
-    await this.getUserStoryById(userStoryId);
+    await this.getUserStoryById(userStoryId)
     return this.prisma.userStory.update({
       where: { id: userStoryId },
       data: updateUserStoryDto,
-    });
+    })
   }
 
   async deleteUserStory(userStoryId: string) {
-    await this.getUserStoryById(userStoryId);
+    await this.getUserStoryById(userStoryId)
     return this.prisma.userStory.delete({
       where: { id: userStoryId },
-    });
+    })
   }
 
   // ============================================
   // 3. 验收标准 (Acceptance Criteria) 相关方法
   // ============================================
 
-  async createAcceptanceCriteria(requirementId: string, createAcceptanceCriteriaDto: CreateAcceptanceCriteriaDto) {
-    await this.findOne(requirementId);
+  async createAcceptanceCriteria(
+    requirementId: string,
+    createAcceptanceCriteriaDto: CreateAcceptanceCriteriaDto,
+  ) {
+    await this.findOne(requirementId)
     return this.prisma.acceptanceCriteria.create({
       data: {
         ...createAcceptanceCriteriaDto,
         requirementId,
       },
-    });
+    })
   }
 
   async getAcceptanceCriteria(requirementId: string) {
-    await this.findOne(requirementId);
+    await this.findOne(requirementId)
     return this.prisma.acceptanceCriteria.findMany({
       where: { requirementId },
       orderBy: { createdAt: 'desc' },
       include: {
         testCases: true,
       },
-    });
+    })
   }
 
   async getAcceptanceCriterionById(criteriaId: string) {
     const criteria = await this.prisma.acceptanceCriteria.findUnique({
       where: { id: criteriaId },
-    });
+    })
 
     if (!criteria) {
-      throw new NotFoundException(`Acceptance criterion with ID ${criteriaId} not found`);
+      throw new NotFoundException(`Acceptance criterion with ID ${criteriaId} not found`)
     }
 
-    return criteria;
+    return criteria
   }
 
-  async updateAcceptanceCriteria(criteriaId: string, updateAcceptanceCriteriaDto: UpdateAcceptanceCriteriaDto) {
-    await this.getAcceptanceCriterionById(criteriaId);
+  async updateAcceptanceCriteria(
+    criteriaId: string,
+    updateAcceptanceCriteriaDto: UpdateAcceptanceCriteriaDto,
+  ) {
+    await this.getAcceptanceCriterionById(criteriaId)
     return this.prisma.acceptanceCriteria.update({
       where: { id: criteriaId },
       data: updateAcceptanceCriteriaDto,
-    });
+    })
   }
 
   async deleteAcceptanceCriteria(criteriaId: string) {
-    await this.getAcceptanceCriterionById(criteriaId);
+    await this.getAcceptanceCriterionById(criteriaId)
     return this.prisma.acceptanceCriteria.delete({
       where: { id: criteriaId },
-    });
+    })
   }
 
   // ============================================
@@ -578,17 +592,17 @@ export class RequirementsService {
   // ============================================
 
   async createTestCase(requirementId: string, createTestCaseDto: CreateTestCaseDto) {
-    await this.findOne(requirementId);
+    await this.findOne(requirementId)
     return this.prisma.testCase.create({
       data: {
         ...createTestCaseDto,
         requirementId,
       },
-    });
+    })
   }
 
   async getTestCases(requirementId: string) {
-    await this.findOne(requirementId);
+    await this.findOne(requirementId)
     return this.prisma.testCase.findMany({
       where: { requirementId },
       orderBy: { createdAt: 'desc' },
@@ -596,34 +610,34 @@ export class RequirementsService {
         acceptanceCriteria: true,
         testExecutions: true,
       },
-    });
+    })
   }
 
   async getTestCaseById(testCaseId: string) {
     const testCase = await this.prisma.testCase.findUnique({
       where: { id: testCaseId },
-    });
+    })
 
     if (!testCase) {
-      throw new NotFoundException(`Test case with ID ${testCaseId} not found`);
+      throw new NotFoundException(`Test case with ID ${testCaseId} not found`)
     }
 
-    return testCase;
+    return testCase
   }
 
   async updateTestCase(testCaseId: string, updateTestCaseDto: UpdateTestCaseDto) {
-    await this.getTestCaseById(testCaseId);
+    await this.getTestCaseById(testCaseId)
     return this.prisma.testCase.update({
       where: { id: testCaseId },
       data: updateTestCaseDto,
-    });
+    })
   }
 
   async deleteTestCase(testCaseId: string) {
-    await this.getTestCaseById(testCaseId);
+    await this.getTestCaseById(testCaseId)
     return this.prisma.testCase.delete({
       where: { id: testCaseId },
-    });
+    })
   }
 
   // ============================================
@@ -631,106 +645,112 @@ export class RequirementsService {
   // ============================================
 
   async createBusinessRule(requirementId: string, createBusinessRuleDto: CreateBusinessRuleDto) {
-    await this.findOne(requirementId);
+    await this.findOne(requirementId)
     return this.prisma.businessRule.create({
       data: {
         ...createBusinessRuleDto,
         requirementId,
       },
-    });
+    })
   }
 
   async getBusinessRules(requirementId: string) {
-    await this.findOne(requirementId);
+    await this.findOne(requirementId)
     return this.prisma.businessRule.findMany({
       where: { requirementId },
       orderBy: { priority: 'asc' },
-    });
+    })
   }
 
   async getBusinessRuleById(ruleId: string) {
     const businessRule = await this.prisma.businessRule.findUnique({
       where: { id: ruleId },
-    });
+    })
 
     if (!businessRule) {
-      throw new NotFoundException(`Business rule with ID ${ruleId} not found`);
+      throw new NotFoundException(`Business rule with ID ${ruleId} not found`)
     }
 
-    return businessRule;
+    return businessRule
   }
 
   async updateBusinessRule(ruleId: string, updateBusinessRuleDto: UpdateBusinessRuleDto) {
-    await this.getBusinessRuleById(ruleId);
+    await this.getBusinessRuleById(ruleId)
     return this.prisma.businessRule.update({
       where: { id: ruleId },
       data: updateBusinessRuleDto,
-    });
+    })
   }
 
   async deleteBusinessRule(ruleId: string) {
-    await this.getBusinessRuleById(ruleId);
+    await this.getBusinessRuleById(ruleId)
     return this.prisma.businessRule.delete({
       where: { id: ruleId },
-    });
+    })
   }
 
   // ============================================
   // 6. 非功能需求 (Non-functional Requirements) 相关方法
   // ============================================
 
-  async createNFRRequirement(requirementId: string, createNFRRequirementDto: CreateNFRRequirementDto) {
-    await this.findOne(requirementId);
+  async createNFRRequirement(
+    requirementId: string,
+    createNFRRequirementDto: CreateNFRRequirementDto,
+  ) {
+    await this.findOne(requirementId)
     return this.prisma.nFRRequirement.create({
       data: {
         ...createNFRRequirementDto,
         requirementId,
       },
-    });
+    })
   }
 
   async getNFRRequirements(requirementId: string) {
-    await this.findOne(requirementId);
+    await this.findOne(requirementId)
     return this.prisma.nFRRequirement.findMany({
       where: { requirementId },
       orderBy: { nfrType: 'asc' },
-    });
+    })
   }
 
   async getNFRRequirementById(nfrId: string) {
     const nfrRequirement = await this.prisma.nFRRequirement.findUnique({
       where: { id: nfrId },
-    });
+    })
 
     if (!nfrRequirement) {
-      throw new NotFoundException(`NFR requirement with ID ${nfrId} not found`);
+      throw new NotFoundException(`NFR requirement with ID ${nfrId} not found`)
     }
 
-    return nfrRequirement;
+    return nfrRequirement
   }
 
   async updateNFRRequirement(nfrId: string, updateNFRRequirementDto: UpdateNFRRequirementDto) {
-    await this.getNFRRequirementById(nfrId);
+    await this.getNFRRequirementById(nfrId)
     return this.prisma.nFRRequirement.update({
       where: { id: nfrId },
       data: updateNFRRequirementDto,
-    });
+    })
   }
 
   async deleteNFRRequirement(nfrId: string) {
-    await this.getNFRRequirementById(nfrId);
+    await this.getNFRRequirementById(nfrId)
     return this.prisma.nFRRequirement.delete({
       where: { id: nfrId },
-    });
+    })
   }
 
   // ============================================
   // 7. 依赖关系 (Dependencies) 相关方法
   // ============================================
 
-  async createDependency(requirementId: string, createDependencyDto: CreateRequirementDependencyDto) {
-    await this.findOne(requirementId);
-    await this.findOne(createDependencyDto.dependsOnId);
+  async createDependency(
+    requirementId: string,
+    createDependencyDto: CreateRequirementDependencyDto,
+  ) {
+    await this.findOne(requirementId)
+    await this.findOne(createDependencyDto.dependsOnId)
     return this.prisma.requirementDependency.create({
       data: {
         requirementId,
@@ -739,52 +759,59 @@ export class RequirementsService {
         description: createDependencyDto.description,
         strength: createDependencyDto.strength,
       },
-    });
+    })
   }
 
   async getDependencies(requirementId: string) {
-    await this.findOne(requirementId);
+    await this.findOne(requirementId)
     return this.prisma.requirementDependency.findMany({
       where: { requirementId },
       include: {
         dependsOn: true,
       },
-    });
+    })
   }
 
   async getDependencyById(dependencyId: string) {
     const dependency = await this.prisma.requirementDependency.findUnique({
       where: { id: dependencyId },
-    });
+    })
 
     if (!dependency) {
-      throw new NotFoundException(`Dependency with ID ${dependencyId} not found`);
+      throw new NotFoundException(`Dependency with ID ${dependencyId} not found`)
     }
 
-    return dependency;
+    return dependency
   }
 
-  async updateDependency(dependencyId: string, updateDependencyDto: UpdateRequirementDependencyDto) {
-    await this.getDependencyById(dependencyId);
+  async updateDependency(
+    dependencyId: string,
+    updateDependencyDto: UpdateRequirementDependencyDto,
+  ) {
+    await this.getDependencyById(dependencyId)
     return this.prisma.requirementDependency.update({
       where: { id: dependencyId },
       data: updateDependencyDto,
-    });
+    })
   }
 
   async deleteDependency(dependencyId: string) {
-    await this.getDependencyById(dependencyId);
+    await this.getDependencyById(dependencyId)
     return this.prisma.requirementDependency.delete({
       where: { id: dependencyId },
-    });
+    })
   }
 
   // ============================================
   // 8. 验收签名 (Acceptance Sign-off) 相关方法
   // ============================================
 
-  async createAcceptanceSignoff(requirementId: string, userId: string, createAcceptanceSignoffDto: CreateAcceptanceSignoffDto) {
-    await this.findOne(requirementId);
+  async createAcceptanceSignoff(
+    requirementId: string,
+    userId: string,
+    createAcceptanceSignoffDto: CreateAcceptanceSignoffDto,
+  ) {
+    await this.findOne(requirementId)
     return this.prisma.acceptanceSignoff.create({
       data: {
         ...createAcceptanceSignoffDto,
@@ -793,33 +820,37 @@ export class RequirementsService {
         signedAt: new Date(),
         signoffStatus: 'approved',
       },
-    });
+    })
   }
 
   async getAcceptanceSignoffs(requirementId: string) {
-    await this.findOne(requirementId);
+    await this.findOne(requirementId)
     return this.prisma.acceptanceSignoff.findMany({
       where: { requirementId },
       include: {
         signedBy: true,
       },
-    });
+    })
   }
 
   async getAcceptanceSignoffById(signoffId: string) {
     const signoff = await this.prisma.acceptanceSignoff.findUnique({
       where: { id: signoffId },
-    });
+    })
 
     if (!signoff) {
-      throw new NotFoundException(`Acceptance signoff with ID ${signoffId} not found`);
+      throw new NotFoundException(`Acceptance signoff with ID ${signoffId} not found`)
     }
 
-    return signoff;
+    return signoff
   }
 
-  async updateAcceptanceSignoff(signoffId: string, userId: string, updateAcceptanceSignoffDto: UpdateAcceptanceSignoffDto) {
-    await this.getAcceptanceSignoffById(signoffId);
+  async updateAcceptanceSignoff(
+    signoffId: string,
+    userId: string,
+    updateAcceptanceSignoffDto: UpdateAcceptanceSignoffDto,
+  ) {
+    await this.getAcceptanceSignoffById(signoffId)
     return this.prisma.acceptanceSignoff.update({
       where: { id: signoffId },
       data: {
@@ -827,14 +858,14 @@ export class RequirementsService {
         signedById: userId,
         signedAt: new Date(),
       },
-    });
+    })
   }
 
   async deleteAcceptanceSignoff(signoffId: string) {
-    await this.getAcceptanceSignoffById(signoffId);
+    await this.getAcceptanceSignoffById(signoffId)
     return this.prisma.acceptanceSignoff.delete({
       where: { id: signoffId },
-    });
+    })
   }
 
   // ============================================
@@ -869,12 +900,12 @@ export class RequirementsService {
         assignee: true,
         reporter: true,
       },
-    });
+    })
 
     if (!requirement) {
-      throw new NotFoundException(`Requirement with ID ${requirementId} not found`);
+      throw new NotFoundException(`Requirement with ID ${requirementId} not found`)
     }
 
-    return requirement;
+    return requirement
   }
 }
