@@ -127,4 +127,27 @@ export class UsersService {
     // Delete user
     await this.prisma.user.delete({ where: { id } })
   }
+
+  async getProjects(id: string) {
+    // Check if user exists
+    const existingUser = await this.prisma.user.findUnique({ where: { id } })
+    if (!existingUser) {
+      throw new NotFoundException('User not found')
+    }
+
+    // Get projects where user is a member
+    return this.prisma.project.findMany({
+      where: {
+        members: {
+          some: {
+            userId: id,
+          },
+        },
+      },
+      include: {
+        projectSettings: true,
+        members: true,
+      },
+    })
+  }
 }

@@ -63,11 +63,7 @@ export class ProjectsService {
   async getProjects(userId: string) {
     return this.prisma.project.findMany({
       where: {
-        members: {
-          some: {
-            userId,
-          },
-        },
+        createdBy: userId, // 只返回当前用户创建的项目
       },
       include: {
         projectSettings: true,

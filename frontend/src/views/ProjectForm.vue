@@ -121,11 +121,19 @@ const handleSubmit = async () => {
     if (valid) {
       submitting.value = true
       try {
+        // 获取当前用户信息
+        const userStr = localStorage.getItem('user')
+        const currentUser = userStr ? JSON.parse(userStr) : null
+        
         if (isEditing.value) {
           await axios.put(`/projects/${route.params.id}`, form.value)
           ElMessage.success('项目更新成功')
         } else {
-          await axios.post('/projects', form.value)
+          // 创建项目时添加当前用户信息作为负责人
+          await axios.post('/projects', {
+            ...form.value,
+            creatorId: currentUser?.id
+          })
           ElMessage.success('项目创建成功')
         }
         router.push('/projects')

@@ -80,7 +80,7 @@
             <div class="flex items-center space-x-4">
               <!-- 通知图标 -->
               <el-button
-                type="text"
+                link
                 :icon="Bell"
                 circle
                 class="text-gray-600 dark:text-gray-300"
@@ -227,7 +227,7 @@
         </div>
         <el-button
           v-if="actionFeedback.undoable"
-          type="text"
+          link
           @click="handleUndo"
           class="text-primary-600 dark:text-primary-400"
         >

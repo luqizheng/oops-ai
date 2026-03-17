@@ -110,7 +110,7 @@
         </div>
         <el-button
           v-if="actionFeedback.undoable"
-          type="text"
+          link
           @click="handleUndo"
           class="text-primary-600 dark:text-primary-400"
         >

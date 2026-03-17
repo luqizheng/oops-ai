@@ -1,14 +1,4 @@
-import {
-  Controller,
-  Post,
-  Body,
-  Get,
-  Param,
-  Put,
-  Delete,
-  UseGuards,
-  Req,
-} from '@nestjs/common'
+import { Controller, Post, Body, Get, Param, Put, Delete, UseGuards, Req } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { RequirementsService } from './requirements.service'
 import {
@@ -65,10 +55,7 @@ export class RequirementsController {
 
   @Put(':id')
   @ApiOperation({ summary: '更新需求' })
-  update(
-    @Param('id') id: string,
-    @Body() updateRequirementDto: UpdateRequirementDto,
-  ) {
+  update(@Param('id') id: string, @Body() updateRequirementDto: UpdateRequirementDto) {
     return this.requirementsService.update(id, updateRequirementDto)
   }
 
@@ -98,12 +85,8 @@ export class RequirementsController {
 
   @Post('acceptance-criteria')
   @ApiOperation({ summary: '生成验收条件' })
-  generateAcceptanceCriteria(
-    @Body() generateAcceptanceCriteriaDto: GenerateAcceptanceCriteriaDto,
-  ) {
-    return this.requirementsService.generateAcceptanceCriteria(
-      generateAcceptanceCriteriaDto,
-    )
+  generateAcceptanceCriteria(@Body() generateAcceptanceCriteriaDto: GenerateAcceptanceCriteriaDto) {
+    return this.requirementsService.generateAcceptanceCriteria(generateAcceptanceCriteriaDto)
   }
 
   @Post('quality-score')
@@ -118,7 +101,10 @@ export class RequirementsController {
 
   @Post(':id/raw-requirements')
   @ApiOperation({ summary: '为需求添加原始需求' })
-  createRawRequirement(@Param('id') id: string, @Body() createRawRequirementDto: CreateRawRequirementDto) {
+  createRawRequirement(
+    @Param('id') id: string,
+    @Body() createRawRequirementDto: CreateRawRequirementDto,
+  ) {
     return this.requirementsService.createRawRequirement(id, createRawRequirementDto)
   }
 
@@ -136,7 +122,10 @@ export class RequirementsController {
 
   @Put('raw-requirements/:rawId')
   @ApiOperation({ summary: '更新原始需求' })
-  updateRawRequirement(@Param('rawId') rawId: string, @Body() updateRawRequirementDto: UpdateRawRequirementDto) {
+  updateRawRequirement(
+    @Param('rawId') rawId: string,
+    @Body() updateRawRequirementDto: UpdateRawRequirementDto,
+  ) {
     return this.requirementsService.updateRawRequirement(rawId, updateRawRequirementDto)
   }
 
@@ -170,7 +159,10 @@ export class RequirementsController {
 
   @Put('user-stories/:storyId')
   @ApiOperation({ summary: '更新用户故事' })
-  updateUserStory(@Param('storyId') storyId: string, @Body() updateUserStoryDto: UpdateUserStoryDto) {
+  updateUserStory(
+    @Param('storyId') storyId: string,
+    @Body() updateUserStoryDto: UpdateUserStoryDto,
+  ) {
     return this.requirementsService.updateUserStory(storyId, updateUserStoryDto)
   }
 
@@ -186,7 +178,10 @@ export class RequirementsController {
 
   @Post(':id/acceptance-criteria')
   @ApiOperation({ summary: '为需求添加验收标准' })
-  createAcceptanceCriteria(@Param('id') id: string, @Body() createAcceptanceCriteriaDto: CreateAcceptanceCriteriaDto) {
+  createAcceptanceCriteria(
+    @Param('id') id: string,
+    @Body() createAcceptanceCriteriaDto: CreateAcceptanceCriteriaDto,
+  ) {
     return this.requirementsService.createAcceptanceCriteria(id, createAcceptanceCriteriaDto)
   }
 
@@ -204,8 +199,14 @@ export class RequirementsController {
 
   @Put('acceptance-criteria/:criteriaId')
   @ApiOperation({ summary: '更新验收标准' })
-  updateAcceptanceCriteria(@Param('criteriaId') criteriaId: string, @Body() updateAcceptanceCriteriaDto: UpdateAcceptanceCriteriaDto) {
-    return this.requirementsService.updateAcceptanceCriteria(criteriaId, updateAcceptanceCriteriaDto)
+  updateAcceptanceCriteria(
+    @Param('criteriaId') criteriaId: string,
+    @Body() updateAcceptanceCriteriaDto: UpdateAcceptanceCriteriaDto,
+  ) {
+    return this.requirementsService.updateAcceptanceCriteria(
+      criteriaId,
+      updateAcceptanceCriteriaDto,
+    )
   }
 
   @Delete('acceptance-criteria/:criteriaId')
@@ -238,7 +239,10 @@ export class RequirementsController {
 
   @Put('test-cases/:testCaseId')
   @ApiOperation({ summary: '更新测试用例' })
-  updateTestCase(@Param('testCaseId') testCaseId: string, @Body() updateTestCaseDto: UpdateTestCaseDto) {
+  updateTestCase(
+    @Param('testCaseId') testCaseId: string,
+    @Body() updateTestCaseDto: UpdateTestCaseDto,
+  ) {
     return this.requirementsService.updateTestCase(testCaseId, updateTestCaseDto)
   }
 
@@ -254,7 +258,10 @@ export class RequirementsController {
 
   @Post(':id/business-rules')
   @ApiOperation({ summary: '为需求添加业务规则' })
-  createBusinessRule(@Param('id') id: string, @Body() createBusinessRuleDto: CreateBusinessRuleDto) {
+  createBusinessRule(
+    @Param('id') id: string,
+    @Body() createBusinessRuleDto: CreateBusinessRuleDto,
+  ) {
     return this.requirementsService.createBusinessRule(id, createBusinessRuleDto)
   }
 
@@ -272,7 +279,10 @@ export class RequirementsController {
 
   @Put('business-rules/:ruleId')
   @ApiOperation({ summary: '更新业务规则' })
-  updateBusinessRule(@Param('ruleId') ruleId: string, @Body() updateBusinessRuleDto: UpdateBusinessRuleDto) {
+  updateBusinessRule(
+    @Param('ruleId') ruleId: string,
+    @Body() updateBusinessRuleDto: UpdateBusinessRuleDto,
+  ) {
     return this.requirementsService.updateBusinessRule(ruleId, updateBusinessRuleDto)
   }
 
@@ -288,7 +298,10 @@ export class RequirementsController {
 
   @Post(':id/nfr-requirements')
   @ApiOperation({ summary: '为需求添加非功能需求' })
-  createNFRRequirement(@Param('id') id: string, @Body() createNFRRequirementDto: CreateNFRRequirementDto) {
+  createNFRRequirement(
+    @Param('id') id: string,
+    @Body() createNFRRequirementDto: CreateNFRRequirementDto,
+  ) {
     return this.requirementsService.createNFRRequirement(id, createNFRRequirementDto)
   }
 
@@ -306,7 +319,10 @@ export class RequirementsController {
 
   @Put('nfr-requirements/:nfrId')
   @ApiOperation({ summary: '更新非功能需求' })
-  updateNFRRequirement(@Param('nfrId') nfrId: string, @Body() updateNFRRequirementDto: UpdateNFRRequirementDto) {
+  updateNFRRequirement(
+    @Param('nfrId') nfrId: string,
+    @Body() updateNFRRequirementDto: UpdateNFRRequirementDto,
+  ) {
     return this.requirementsService.updateNFRRequirement(nfrId, updateNFRRequirementDto)
   }
 
@@ -322,7 +338,10 @@ export class RequirementsController {
 
   @Post(':id/dependencies')
   @ApiOperation({ summary: '为需求添加依赖关系' })
-  createDependency(@Param('id') id: string, @Body() createDependencyDto: CreateRequirementDependencyDto) {
+  createDependency(
+    @Param('id') id: string,
+    @Body() createDependencyDto: CreateRequirementDependencyDto,
+  ) {
     return this.requirementsService.createDependency(id, createDependencyDto)
   }
 
@@ -340,7 +359,10 @@ export class RequirementsController {
 
   @Put('dependencies/:dependencyId')
   @ApiOperation({ summary: '更新依赖关系' })
-  updateDependency(@Param('dependencyId') dependencyId: string, @Body() updateDependencyDto: UpdateRequirementDependencyDto) {
+  updateDependency(
+    @Param('dependencyId') dependencyId: string,
+    @Body() updateDependencyDto: UpdateRequirementDependencyDto,
+  ) {
     return this.requirementsService.updateDependency(dependencyId, updateDependencyDto)
   }
 
@@ -356,8 +378,16 @@ export class RequirementsController {
 
   @Post(':id/acceptance-signoffs')
   @ApiOperation({ summary: '为需求添加验收签名' })
-  createAcceptanceSignoff(@Req() req, @Param('id') id: string, @Body() createAcceptanceSignoffDto: CreateAcceptanceSignoffDto) {
-    return this.requirementsService.createAcceptanceSignoff(id, req.user.id, createAcceptanceSignoffDto)
+  createAcceptanceSignoff(
+    @Req() req,
+    @Param('id') id: string,
+    @Body() createAcceptanceSignoffDto: CreateAcceptanceSignoffDto,
+  ) {
+    return this.requirementsService.createAcceptanceSignoff(
+      id,
+      req.user.id,
+      createAcceptanceSignoffDto,
+    )
   }
 
   @Get(':id/acceptance-signoffs')
@@ -374,8 +404,16 @@ export class RequirementsController {
 
   @Put('acceptance-signoffs/:signoffId')
   @ApiOperation({ summary: '更新验收签名' })
-  updateAcceptanceSignoff(@Req() req, @Param('signoffId') signoffId: string, @Body() updateAcceptanceSignoffDto: UpdateAcceptanceSignoffDto) {
-    return this.requirementsService.updateAcceptanceSignoff(signoffId, req.user.id, updateAcceptanceSignoffDto)
+  updateAcceptanceSignoff(
+    @Req() req,
+    @Param('signoffId') signoffId: string,
+    @Body() updateAcceptanceSignoffDto: UpdateAcceptanceSignoffDto,
+  ) {
+    return this.requirementsService.updateAcceptanceSignoff(
+      signoffId,
+      req.user.id,
+      updateAcceptanceSignoffDto,
+    )
   }
 
   @Delete('acceptance-signoffs/:signoffId')

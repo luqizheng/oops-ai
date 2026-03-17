@@ -42,6 +42,7 @@
               placeholder="请选择关联项目"
               size="large"
               class="w-full modern-input"
+              :disabled="!!route.query.projectId"
             >
               <el-option
                 v-for="project in projects"
@@ -70,12 +71,132 @@
         <el-form-item label="需求描述" prop="requirementContent">
           <el-input
             v-model="form.requirementContent"
+            @input="analyzeFuzzyWords"
             type="textarea"
             :rows="6"
             placeholder="请详细描述具体的业务逻辑、交互细节和期望结果..."
             class="modern-input"
           />
         </el-form-item>
+
+        <!-- 模糊词警告面板 -->
+        <transition name="el-fade-in-linear">
+          <div v-if="fuzzyWordsAnalysis.fuzzyWords.length > 0" class="p-5 bg-amber-50/50 border border-amber-100 rounded-xl flex gap-4">
+            <el-icon class="text-amber-500 mt-1" size="20"><Warning /></el-icon>
+            <div>
+              <h3 class="text-sm font-bold text-amber-900 mb-2">模糊词检测建议</h3>
+              <div class="text-sm text-amber-800/80 leading-relaxed mb-3" v-html="highlightedText"></div>
+              <p class="text-xs font-medium text-amber-600/80">{{ fuzzyWordsAnalysis.suggestion }}</p>
+            </div>
+          </div>
+        </transition>
+
+        <!-- AI 辅助工具 -->
+        <div class="flex flex-wrap gap-4 pt-4 border-t border-gray-50">
+          <el-button
+            @click="generateQuestions"
+            :disabled="!form.requirementContent"
+            type="primary"
+            class="!rounded-xl !h-10 !font-medium"
+          >
+            <el-icon class="mr-1.5"><Help /></el-icon>
+            生成追问
+          </el-button>
+          <el-button
+            @click="generateUserStories"
+            :disabled="!form.requirementContent"
+            type="success"
+            class="!rounded-xl !h-10 !font-medium"
+          >
+            <el-icon class="mr-1.5"><User /></el-icon>
+            生成用户故事
+          </el-button>
+          <el-button
+            @click="generateAcceptanceCriteria"
+            :disabled="!form.requirementContent"
+            type="warning"
+            class="!rounded-xl !h-10 !font-medium"
+          >
+            <el-icon class="mr-1.5"><CircleCheck /></el-icon>
+            生成验收条件
+          </el-button>
+          <el-button
+            @click="getQualityScore"
+            :disabled="!form.requirementContent"
+            type="danger"
+            class="!rounded-xl !h-10 !font-medium"
+          >
+            <el-icon class="mr-1.5"><Trophy /></el-icon>
+            质量评分
+          </el-button>
+        </div>
+
+        <!-- 智能追问结果 -->
+        <transition name="el-zoom-in-top">
+          <div v-if="questions.length > 0" class="p-6 bg-indigo-50 rounded-xl mt-6">
+            <h3 class="text-lg font-bold mb-4 text-indigo-900">智能追问</h3>
+            <div class="space-y-3">
+              <div v-for="(question, index) in questions" :key="index" class="p-4 bg-white rounded-lg border border-indigo-100">
+                <p class="font-medium text-gray-800">{{ question.question }}</p>
+                <span class="inline-block mt-2 px-2 py-0.5 text-xs font-bold bg-indigo-100 text-indigo-600 rounded">
+                  {{ question.type }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </transition>
+
+        <!-- 质量评分结果 -->
+        <transition name="el-zoom-in-top">
+          <div v-if="qualityScore" class="p-6 bg-rose-50 rounded-xl mt-6">
+            <h3 class="text-lg font-bold mb-4 text-rose-900">质量分析报告</h3>
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <p class="text-sm font-bold text-rose-600">综合质量评分</p>
+                <div class="text-3xl font-black text-rose-700">{{ qualityScore.totalScore }}<span class="text-xl text-rose-400 ml-1">/10</span></div>
+              </div>
+              <el-progress 
+                type="circle" 
+                :percentage="qualityScore.totalScore * 10" 
+                :width="80" 
+                :stroke-width="10"
+                color="#e11d48"
+              />
+            </div>
+            <div class="space-y-4">
+              <div>
+                <div class="flex justify-between text-sm font-bold mb-2">
+                  <span>清晰度</span>
+                  <span class="text-indigo-600">{{ qualityScore.clarity * 10 }}%</span>
+                </div>
+                <el-progress :percentage="qualityScore.clarity * 10" :show-text="false" color="#6366f1" />
+              </div>
+              <div>
+                <div class="flex justify-between text-sm font-bold mb-2">
+                  <span>可测试性</span>
+                  <span class="text-emerald-600">{{ qualityScore.testability * 10 }}%</span>
+                </div>
+                <el-progress :percentage="qualityScore.testability * 10" :show-text="false" color="#10b981" />
+              </div>
+              <div>
+                <div class="flex justify-between text-sm font-bold mb-2">
+                  <span>完整性</span>
+                  <span class="text-purple-600">{{ qualityScore.completeness * 10 }}%</span>
+                </div>
+                <el-progress :percentage="qualityScore.completeness * 10" :show-text="false" color="#a855f7" />
+              </div>
+            </div>
+            <div class="mt-6">
+              <h4 class="text-sm font-bold text-rose-600 mb-3">优化建议</h4>
+              <ul class="space-y-2">
+                <li v-for="(suggestion, index) in qualityScore.suggestions" :key="index" class="flex items-start gap-2">
+                  <el-icon class="text-rose-500 mt-1"><Right /></el-icon>
+                  <span class="text-sm text-gray-700">{{ suggestion }}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </transition>
 
         <!-- 需求管理核心点 -->
         <el-tabs v-model="activeTab" class="mt-10">
@@ -383,7 +504,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowRight, DocumentAdd } from '@element-plus/icons-vue'
+import { ArrowRight, DocumentAdd, Warning, Help, User, CircleCheck, Trophy, Right } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import axios from '../utils/api'
 
@@ -395,7 +516,57 @@ const projects = ref<any[]>([])
 const allRequirements = ref<any[]>([])
 const activeTab = ref('rawRequirements')
 
+// AI 功能相关接口定义
+interface FuzzyWordAnalysis {
+  text: string
+  fuzzyWords: Array<{
+    word: string
+    positions: Array<{
+      start: number
+      end: number
+    }>
+  }>
+  suggestion: string
+}
+
+interface QuestionItem {
+  question: string
+  type: string
+}
+
+interface QualityScore {
+  clarity: number
+  testability: number
+  completeness: number
+  totalScore: number
+  suggestions: string[]
+}
+
 const isEditing = computed(() => !!route.params.id)
+
+// AI 功能相关响应式变量
+const fuzzyWordsAnalysis = ref<FuzzyWordAnalysis>({
+  text: '',
+  fuzzyWords: [],
+  suggestion: ''
+})
+const questions = ref<QuestionItem[]>([])
+const qualityScore = ref<QualityScore | null>(null)
+
+// 计算属性：高亮模糊词
+const highlightedText = computed(() => {
+  if (!fuzzyWordsAnalysis.value.text || !form.value.requirementContent) return form.value.requirementContent
+  
+  let text = form.value.requirementContent
+  const fuzzyWords = fuzzyWordsAnalysis.value.fuzzyWords
+  
+  fuzzyWords.forEach(fuzzyWord => {
+    const regex = new RegExp(fuzzyWord.word, 'gi')
+    text = text.replace(regex, match => `<span class="fuzzy-word">${match}</span>`)
+  })
+  
+  return text
+})
 
 const form = ref({
   title: '',
@@ -460,6 +631,105 @@ const rules = {
   title: [{ required: true, message: '请输入需求标题', trigger: 'blur' }],
   projectId: [{ required: true, message: '请选择所属项目', trigger: 'change' }],
   requirementContent: [{ required: true, message: '请输入需求内容', trigger: 'blur' }]
+}
+
+// AI 功能相关方法
+const analyzeFuzzyWords = async () => {
+  if (!form.value.requirementContent.trim()) {
+    fuzzyWordsAnalysis.value = { text: '', fuzzyWords: [], suggestion: '' }
+    return
+  }
+
+  try {
+    const response = await axios.post('/requirements/analyze/fuzzy-words', {
+      text: form.value.requirementContent
+    })
+    fuzzyWordsAnalysis.value = response.data
+  } catch (error) {
+    console.error('Error analyzing fuzzy words:', error)
+  }
+}
+
+const generateQuestions = async () => {
+  if (!form.value.requirementContent.trim()) return
+
+  try {
+    const response = await axios.post('/requirements/questions', {
+      requirementType: form.value.requirementType,
+      requirementContent: form.value.requirementContent
+    })
+    questions.value = response.data.questions || []
+  } catch (error) {
+    console.error('Error generating questions:', error)
+    questions.value = []
+  }
+}
+
+const generateUserStories = async () => {
+  if (!form.value.requirementContent.trim()) return
+
+  try {
+    const response = await axios.post('/requirements/user-stories', {
+      userInput: form.value.requirementContent
+    })
+    const userStories = response.data.userStories || []
+    // 将生成的用户故事添加到表单中
+    form.value.userStories = form.value.userStories.concat(
+      userStories.map((story: any) => ({
+        role: story.role,
+        want: story.feature,
+        soThat: story.value,
+        storyPoints: story.storyPoints || 0,
+        acceptanceNotes: ''
+      }))
+    )
+    // 切换到用户故事标签页
+    activeTab.value = 'userStories'
+    ElMessage.success('用户故事生成成功')
+  } catch (error) {
+    console.error('Error generating user stories:', error)
+    ElMessage.error('用户故事生成失败')
+  }
+}
+
+const generateAcceptanceCriteria = async () => {
+  if (!form.value.requirementContent.trim()) return
+
+  try {
+    const response = await axios.post('/requirements/acceptance-criteria', {
+      requirementContent: form.value.requirementContent
+    })
+    const acceptanceCriteria = response.data.acceptanceCriteria || []
+    // 将生成的验收条件添加到表单中
+    form.value.acceptanceCriteria = form.value.acceptanceCriteria.concat(
+      acceptanceCriteria.map((criterion: any) => ({
+        criterion: `${criterion.given} ${criterion.when} ${criterion.then}`,
+        precondition: criterion.given,
+        expectedResult: criterion.then,
+        priority: 'medium'
+      }))
+    )
+    // 切换到验收标准标签页
+    activeTab.value = 'acceptanceCriteria'
+    ElMessage.success('验收条件生成成功')
+  } catch (error) {
+    console.error('Error generating acceptance criteria:', error)
+    ElMessage.error('验收条件生成失败')
+  }
+}
+
+const getQualityScore = async () => {
+  if (!form.value.requirementContent.trim()) return
+
+  try {
+    const response = await axios.post('/requirements/quality-score', {
+      text: form.value.requirementContent
+    })
+    qualityScore.value = response.data
+  } catch (error) {
+    console.error('Error getting quality score:', error)
+    qualityScore.value = null
+  }
 }
 
 const fetchProjects = async () => {
@@ -738,6 +1008,10 @@ const updateRelatedItems = async (requirementId: string) => {
 onMounted(() => {
   fetchProjects()
   fetchAllRequirements()
+  // 如果有项目ID参数，自动填充并禁用选择
+  if (route.query.projectId) {
+    form.value.projectId = route.query.projectId as string
+  }
   if (isEditing.value) {
     fetchRequirement(route.params.id as string)
   }
@@ -753,5 +1027,9 @@ onMounted(() => {
 
 :deep(.el-form-item__label) {
   @apply !text-gray-700 !font-bold !pb-2;
+}
+
+:deep(.fuzzy-word) {
+  @apply bg-amber-200 border-b-2 border-amber-500 font-bold px-1 rounded-sm;
 }
 </style>

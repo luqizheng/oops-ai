@@ -35,7 +35,7 @@
             <div class="flex space-x-2">
               <el-button
                 @click="editConfig(config)"
-                type="text"
+                link
                 size="small"
                 class="text-primary-600 hover:text-primary-700"
                 title="编辑"
@@ -44,7 +44,7 @@
               </el-button>
               <el-button
                 @click="deleteConfig(config.id)"
-                type="text"
+                link
                 size="small"
                 class="text-red-600 hover:text-red-700"
                 title="删除"
@@ -242,7 +242,7 @@
         </div>
         <el-button
           v-if="actionFeedback.undoable"
-          type="text"
+          link
           @click="handleUndo"
           class="text-primary-600 dark:text-primary-400"
         >

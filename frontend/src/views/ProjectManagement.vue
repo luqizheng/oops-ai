@@ -28,77 +28,104 @@
         </div>
       </div>
 
-      <!-- 项目卡片网格 -->
-      <div v-if="projects.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <div v-for="project in projects" :key="project.id"
-          class="group bg-white rounded-3xl shadow-sm border border-slate-100 p-7 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 hover:-translate-y-2 relative overflow-hidden">
-          <!-- 装饰元素 -->
-          <div
-            class="absolute -top-10 -right-10 w-32 h-32 bg-indigo-50/50 rounded-full blur-3xl group-hover:bg-indigo-100/50 transition-colors">
-          </div>
+      <!-- 项目类型切换选项卡 -->
+      <div class="mb-8">
+        <el-tabs v-model="activeTab" @tab-change="handleTabChange" type="border-card" class="project-tabs">
+          <el-tab-pane label="我创建的项目" name="created" />
+          <el-tab-pane label="我加入的项目" name="joined" />
+        </el-tabs>
+      </div>
 
-          <div class="flex justify-between items-start mb-6 shrink-0 relative z-10">
-            <div>
-              <el-tag effect="plain"
-                class="!rounded-lg !border-indigo-100 !text-indigo-500 px-3 font-black text-[10px] uppercase tracking-wider mb-3">
-                {{ project.key }}
+      <!-- 项目表格 -->
+      <div v-if="(activeTab === 'created' && projects.length > 0) || (activeTab === 'joined' && joinedProjects.length > 0)" class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <el-table
+          :data="activeTab === 'created' ? projects : joinedProjects"
+          :row-height="60"
+          border
+          size="small"
+          class="compact-table"
+        >
+          <el-table-column prop="key" label="项目标识" width="100">
+            <template #default="{ row }">
+              <el-tag effect="plain" class="!rounded-lg !border-indigo-100 !text-indigo-500 px-3 font-black text-xs uppercase tracking-wider">
+                {{ row.key }}
               </el-tag>
-              <h3
-                class="font-black text-xl text-slate-900 leading-tight group-hover:text-indigo-600 transition-colors capitalize">
-                {{ project.name }}</h3>
-            </div>
-          </div>
-
-          <div class="relative z-10">
-            <p class="text-[14px] text-slate-500 mb-8 line-clamp-2 h-10 leading-relaxed font-medium">
-              {{ project.description || '该项目暂无详细描述信息。可通过编辑按钮完善项目背景及目标。' }}
-            </p>
-
-            <div class="flex items-center gap-4 mb-8">
-              <div class="flex -space-x-3 overflow-hidden">
-                <div v-for="(member, idx) in project.members ? project.members.slice(0, 3) : []" :key="idx"
-                  class="inline-flex items-center justify-center w-9 h-9 border-2 border-white rounded-full bg-slate-100 text-slate-400 text-[10px] font-bold ring-1 ring-slate-100">
+            </template>
+          </el-table-column>
+          <el-table-column prop="name" label="项目名称" min-width="180">
+            <template #default="{ row }">
+              <div class="font-semibold text-slate-900 hover:text-indigo-600 cursor-pointer transition-colors" @click="router.push(`/projects/${row.id}`)">
+                {{ row.name }}
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="description" label="项目描述" min-width="220">
+            <template #default="{ row }">
+              <p class="text-sm text-slate-500 line-clamp-2 h-10 leading-relaxed">
+                {{ row.description || '该项目暂无详细描述信息' }}
+              </p>
+            </template>
+          </el-table-column>
+          <el-table-column label="创建时间" width="160">
+            <template #default="{ row }">
+              <span class="text-xs text-slate-500 whitespace-nowrap">{{ formatDate(row.createdAt) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="成员" width="140">
+            <template #default="{ row }">
+              <div class="flex -space-x-2 overflow-hidden">
+                <div v-for="(member, idx) in row.members ? row.members.slice(0, 3) : []" :key="idx"
+                  class="inline-flex items-center justify-center w-7 h-7 border-2 border-white rounded-full bg-slate-100 text-slate-400 text-[10px] font-bold ring-1 ring-slate-100">
                   {{ member.user?.name?.charAt(0) || 'U' }}
                 </div>
-                <div v-if="project.members && project.members.length > 3"
-                  class="inline-flex items-center justify-center w-9 h-9 border-2 border-white rounded-full bg-indigo-600 text-white text-[10px] font-bold">
-                  +{{ project.members.length - 3 }}
+                <div v-if="row.members && row.members.length > 3"
+                  class="inline-flex items-center justify-center w-7 h-7 border-2 border-white rounded-full bg-indigo-600 text-white text-[10px] font-bold">
+                  +{{ row.members.length - 3 }}
                 </div>
-                <div v-if="!project.members || project.members.length === 0"
-                  class="inline-flex items-center justify-center w-9 h-9 border-2 border-dashed border-slate-200 rounded-full text-slate-300">
-                  <el-icon>
+                <div v-if="!row.members || row.members.length === 0"
+                  class="inline-flex items-center justify-center w-7 h-7 border-2 border-dashed border-slate-200 rounded-full text-slate-300">
+                  <el-icon size="14">
                     <User />
                   </el-icon>
                 </div>
               </div>
-              <span class="text-xs font-bold text-slate-400 tracking-tight italic">{{ formatDate(project.createdAt)
-              }}</span>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <el-button @click="manageMembers(project)"
-                class="!rounded-xl !h-10 !text-xs !font-bold !bg-slate-50 !border-slate-100 !text-slate-600 hover:!bg-indigo-50 hover:!text-indigo-600 transition-all">
-                管理成员
-              </el-button>
-              <div class="flex gap-2">
-                <el-button @click="router.push(`/projects/${project.id}/edit`)" plain
-                  class="!rounded-xl !h-10 px-0 flex-1 !text-xs !font-bold hover:!shadow-inner transition-all">
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="240" fixed="right">
+            <template #default="{ row }">
+              <div class="flex items-center gap-2">
+                <el-button @click="router.push(`/projects/${row.id}`)" size="small" type="primary" plain
+                  class="!rounded-lg !h-8 !text-xs !font-medium">
+                  查看
+                </el-button>
+                <el-button @click="manageMembers(row)" size="small"
+                  class="!rounded-lg !h-8 !text-xs !font-medium !bg-slate-50 !border-slate-100 !text-slate-600 hover:!bg-indigo-50 hover:!text-indigo-600 transition-all">
+                  成员
+                </el-button>
+                <el-button @click="router.push(`/projects/${row.id}/edit`)" size="small" plain
+                  class="!rounded-lg !h-8 !text-xs !font-medium">
                   编辑
                 </el-button>
-                <el-button @click="deleteProject(project.id)" type="danger" plain
-                  class="!rounded-xl !h-10 px-0 flex-1 !text-xs !font-bold hover:!bg-red-500 hover:!text-white transition-all">
+                <el-button @click="deleteProject(row.id)" size="small" type="danger" plain
+                  class="!rounded-lg !h-8 !text-xs !font-medium">
                   删除
                 </el-button>
               </div>
-            </div>
-          </div>
-        </div>
+            </template>
+          </el-table-column>
+        </el-table>
       </div>
 
       <div v-else class="text-center py-24">
-        <el-empty description="暂无活跃项目" :image-size="220">
+        <el-empty 
+          :description="activeTab === 'created' ? '暂无创建的项目' : '暂无加入的项目'" 
+          :image-size="220">
           <template #extra>
-            <el-button type="primary" @click="router.push('/projects/new')" plain
+            <el-button 
+              v-if="activeTab === 'created'" 
+              type="primary" 
+              @click="router.push('/projects/new')" 
+              plain
               class="!rounded-2xl px-10 !h-12 !font-bold">
               立即启动项目
             </el-button>
@@ -190,7 +217,7 @@
           </el-icon>
           <span class="text-gray-700 dark:text-gray-300">{{ actionFeedback.message }}</span>
         </div>
-        <el-button v-if="actionFeedback.undoable" type="text" @click="handleUndo"
+        <el-button v-if="actionFeedback.undoable" link @click="handleUndo"
           class="text-primary-600 dark:text-primary-400">
           撤销
         </el-button>
@@ -259,7 +286,9 @@ interface ActionFeedback {
   undoAction: (() => void) | null
 }
 
+const activeTab = ref('created')
 const projects = ref<Project[]>([])
+const joinedProjects = ref<Project[]>([])
 const users = ref<User[]>([])
 const showMembersDrawer = ref(false)
 const selectedProject = ref<Project | null>(null)
@@ -287,6 +316,34 @@ const fetchProjects = async () => {
     console.error('Error fetching projects:', err)
     projects.value = []
     showFeedback('获取项目列表失败', 'error')
+  }
+}
+
+const fetchJoinedProjects = async () => {
+  try {
+    // 获取当前用户信息
+    const userStr = localStorage.getItem('user')
+    const currentUser = userStr ? JSON.parse(userStr) : null
+    
+    if (!currentUser) {
+      showFeedback('请先登录', 'error')
+      return
+    }
+    
+    const response = await axios.get(`/users/${currentUser.id}/projects`)
+    joinedProjects.value = response.data
+  } catch (err: any) {
+    console.error('Error fetching joined projects:', err)
+    joinedProjects.value = []
+    showFeedback('获取已加入项目列表失败', 'error')
+  }
+}
+
+const handleTabChange = () => {
+  if (activeTab.value === 'joined') {
+    fetchJoinedProjects()
+  } else {
+    fetchProjects()
   }
 }
 
@@ -508,7 +565,46 @@ const removeProjectMember = async (userId: string) => {
 }
 
 onMounted(async () => {
-  await fetchProjects()
+  if (activeTab.value === 'created') {
+    await fetchProjects()
+  } else {
+    await fetchJoinedProjects()
+  }
 })
 
 </script>
+
+<style scoped>
+.compact-table {
+  --el-table-header-bg-color: #fafafa;
+  --el-table-border-color: #e5e7eb;
+}
+
+/* 响应式设计：在小屏幕上隐藏部分列 */
+@media (max-width: 768px) {
+  .compact-table .el-table__body-wrapper {
+    overflow-x: auto;
+  }
+  
+  /* 在移动端固定表格最小宽度，确保内容不会被过度压缩 */
+  .compact-table .el-table__inner-wrapper {
+    min-width: 700px;
+  }
+}
+
+/* 优化表格行悬停效果 */
+.compact-table .el-table__row:hover {
+  background-color: rgba(59, 130, 246, 0.03) !important;
+}
+
+/* 优化表格单元格内边距 */
+.compact-table .el-table__cell {
+  padding: 8px 12px !important;
+}
+
+/* 确保表格标题行字体加粗 */
+.compact-table .el-table__header-wrapper .el-table__header-cell {
+  font-weight: 600 !important;
+  font-size: 13px !important;
+}
+</style>
