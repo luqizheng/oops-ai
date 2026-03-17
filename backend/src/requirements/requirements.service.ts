@@ -237,16 +237,16 @@ export class RequirementsService {
         'requirement-to-story',
         { requirement: generateUserStoriesDto.userInput },
       )
-      
+
       console.log('调用 llm之后，返回的:', response)
-      
+
       // 去除响应开头的 ```json 和结尾的 ``` 标记
       const cleanedResponse = response.replace(/^```json\s*/, '').replace(/\s*```$/, '')
       const parsed = JSON.parse(cleanedResponse)
       return { userStories: parsed.userStories || [] }
     } catch (error) {
       console.error('生成用户故事失败:', error)
-      
+
       // 回退到直接调用
       const prompt = `请将以下一句话需求转换为标准用户故事格式："作为[角色]，我想要[功能]，以便[价值]"
 
@@ -255,7 +255,7 @@ export class RequirementsService {
 请输出JSON格式，包含userStories数组，每个故事包含role、feature、value字段。`
 
       const response = await this.llmService.generateCompletion(prompt)
-      
+
       try {
         const cleanedResponse = response.replace(/^```json\s*/, '').replace(/\s*```$/, '')
         const parsed = JSON.parse(cleanedResponse)
@@ -286,10 +286,9 @@ export class RequirementsService {
     generateAcceptanceCriteriaDto: GenerateAcceptanceCriteriaDto,
   ): Promise<{ acceptanceCriteria: AcceptanceCriterion[] }> {
     try {
-      const response = await this.llmService.generateCompletionWithTemplate(
-        'generate-acceptance',
-        { requirementContent: generateAcceptanceCriteriaDto.requirementContent },
-      )
+      const response = await this.llmService.generateCompletionWithTemplate('generate-acceptance', {
+        requirementContent: generateAcceptanceCriteriaDto.requirementContent,
+      })
 
       try {
         const parsed = JSON.parse(response)
@@ -322,7 +321,7 @@ export class RequirementsService {
       }
     } catch (error) {
       console.error('生成验收标准失败:', error)
-      
+
       // 回退到直接调用
       const prompt = `请为以下需求生成3-5个Given-When-Then格式的验收条件，覆盖正常流程、异常流程和边界条件：
 
@@ -964,7 +963,9 @@ export class RequirementsService {
   // AI需求分析方法
   // ============================================
 
-  async analyzeRequirement(analyzeRequirementDto: AnalyzeRequirementDto): Promise<RequirementAnalysisResponse> {
+  async analyzeRequirement(
+    analyzeRequirementDto: AnalyzeRequirementDto,
+  ): Promise<RequirementAnalysisResponse> {
     const prompt = `你是一个资深产品经理，请分析以下原始需求，将其拆解为具体的功能点，并生成需要追问的问题：
 
 原始需求：${analyzeRequirementDto.requirementText}
@@ -992,64 +993,84 @@ export class RequirementsService {
 
     try {
       const response = await this.llmService.generateCompletion(prompt)
-      
+
       // 尝试解析JSON响应
       try {
         const parsed = JSON.parse(response)
         return {
           analysisResults: parsed.analysisResults || [],
-          questions: parsed.questions || []
+          questions: parsed.questions || [],
         }
       } catch (jsonError) {
         // 如果JSON解析失败，尝试从文本中提取
         console.warn('Failed to parse JSON response, trying to extract from text:', response)
-        
+
         // 简单的文本提取逻辑
         const analysisResults: string[] = []
         const questions: string[] = []
-        
+
         const lines = response.split('\n')
         let inAnalysisResults = false
         let inQuestions = false
-        
+
         for (const line of lines) {
           const trimmedLine = line.trim()
-          
+
           if (trimmedLine.includes('analysisResults') || trimmedLine.includes('需求点')) {
             inAnalysisResults = true
             inQuestions = false
             continue
           }
-          
+
           if (trimmedLine.includes('questions') || trimmedLine.includes('追问')) {
             inAnalysisResults = false
             inQuestions = true
             continue
           }
-          
-          if (inAnalysisResults && trimmedLine && !trimmedLine.includes('{') && !trimmedLine.includes('}') && !trimmedLine.includes('[') && !trimmedLine.includes(']')) {
-            const cleanLine = trimmedLine.replace(/^[-\*•]\s*/, '').replace(/["',]/g, '').trim()
+
+          if (
+            inAnalysisResults &&
+            trimmedLine &&
+            !trimmedLine.includes('{') &&
+            !trimmedLine.includes('}') &&
+            !trimmedLine.includes('[') &&
+            !trimmedLine.includes(']')
+          ) {
+            const cleanLine = trimmedLine
+              .replace(/^[-\*•]\s*/, '')
+              .replace(/["',]/g, '')
+              .trim()
             if (cleanLine) {
               analysisResults.push(cleanLine)
             }
           }
-          
-          if (inQuestions && trimmedLine && !trimmedLine.includes('{') && !trimmedLine.includes('}') && !trimmedLine.includes('[') && !trimmedLine.includes(']')) {
-            const cleanLine = trimmedLine.replace(/^[-\*•]\s*/, '').replace(/["',]/g, '').trim()
+
+          if (
+            inQuestions &&
+            trimmedLine &&
+            !trimmedLine.includes('{') &&
+            !trimmedLine.includes('}') &&
+            !trimmedLine.includes('[') &&
+            !trimmedLine.includes(']')
+          ) {
+            const cleanLine = trimmedLine
+              .replace(/^[-\*•]\s*/, '')
+              .replace(/["',]/g, '')
+              .trim()
             if (cleanLine) {
               questions.push(cleanLine)
             }
           }
         }
-        
+
         // 如果没有提取到结果，使用默认值
         if (analysisResults.length === 0) {
           analysisResults.push('需求分析失败，请重试')
         }
-        
+
         return {
           analysisResults,
-          questions
+          questions,
         }
       }
     } catch (error) {

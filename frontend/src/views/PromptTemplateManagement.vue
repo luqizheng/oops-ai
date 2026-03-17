@@ -4,7 +4,7 @@
       <div class="header-content">
         <h2>提示词模板管理</h2>
         <div class="header-actions">
-          <el-button type="primary" @click="showCreateDialog = true">
+          <el-button type="primary" @click="handleCreate">
             <el-icon><Plus /></el-icon>
             新建模板
           </el-button>
@@ -94,10 +94,13 @@
             {{ formatDate(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="250" fixed="right">
           <template #default="{ row }">
             <el-button size="small" @click="handleEdit(row)">编辑</el-button>
             <el-button size="small" @click="handlePreview(row)">预览</el-button>
+            <el-button v-if="!row.isDefault" size="small" type="primary" @click="handleSetDefault(row)">
+              设默认
+            </el-button>
             <el-button size="small" type="danger" @click="handleDelete(row)">
               删除
             </el-button>
@@ -170,6 +173,7 @@
             type="textarea"
             :rows="8"
             placeholder="请输入模板内容，使用 {{变量名}} 格式定义变量"
+            @input="extractVariables"
           />
         </el-form-item>
         <el-form-item label="变量列表" prop="variables">
@@ -181,6 +185,12 @@
             placeholder="请输入变量名称，按回车添加"
             style="width: 100%"
           />
+          <div class="variable-tips">
+            <span>已检测到变量: {{ detectedVariables.join(', ') || '无' }}</span>
+            <el-button v-if="detectedVariables.length > 0" size="small" type="text" @click="applyDetectedVariables">
+              应用检测到的变量
+            </el-button>
+          </div>
         </el-form-item>
         <el-form-item label="默认模板" prop="isDefault">
           <el-switch v-model="editForm.isDefault" />
@@ -264,7 +274,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { Plus, Refresh } from '@element-plus/icons-vue'
-import { api } from '@/utils/api'
+import api from '@/utils/api'
 
 interface PromptTemplate {
   id: string
@@ -338,6 +348,7 @@ const editForm = ref<EditForm>({
 const previewTemplate = ref<PromptTemplate | null>(null)
 const testForm = ref<TestForm>({})
 const testResult = ref('')
+const detectedVariables = ref<string[]>([])
 
 // 表单验证规则
 const editRules: FormRules = {
@@ -445,7 +456,7 @@ const formatDate = (dateString: string) => {
 const fetchTemplates = async () => {
   loading.value = true
   try {
-    const response = await api.get('/llm/prompt-templates')
+    const response = await api.get('/prompt-templates')
     templates.value = response.data
   } catch (error) {
     console.error('获取模板失败:', error)
@@ -520,6 +531,29 @@ const handlePreview = (template: PromptTemplate) => {
   showPreviewDialog.value = true
 }
 
+const handleSetDefault = async (template: PromptTemplate) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要将模板 "${template.name}" 设置为默认模板吗？`,
+      '确认设置默认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'info',
+      }
+    )
+
+    await api.put(`/prompt-templates/${template.id}/default`)
+    ElMessage.success('设置默认模板成功')
+    refreshTemplates()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('设置默认模板失败:', error)
+      ElMessage.error('设置默认模板失败')
+    }
+  }
+}
+
 const handleDelete = async (template: PromptTemplate) => {
   try {
     await ElMessageBox.confirm(
@@ -532,7 +566,7 @@ const handleDelete = async (template: PromptTemplate) => {
       }
     )
 
-    await api.delete(`/llm/prompt-templates/${template.id}`)
+    await api.delete(`/prompt-templates/${template.id}`)
     ElMessage.success('删除成功')
     refreshTemplates()
   } catch (error) {
@@ -557,11 +591,11 @@ const handleSubmit = async () => {
   try {
     if (editForm.value.id) {
       // 更新
-      await api.put(`/llm/prompt-templates/${editForm.value.id}`, editForm.value)
+      await api.put(`/prompt-templates/${editForm.value.id}`, editForm.value)
       ElMessage.success('更新成功')
     } else {
       // 创建
-      await api.post('/llm/prompt-templates', editForm.value)
+      await api.post('/prompt-templates', editForm.value)
       ElMessage.success('创建成功')
     }
     showEditDialog.value = false
@@ -574,12 +608,40 @@ const handleSubmit = async () => {
   }
 }
 
+// 提取模板中的变量
+const extractVariables = () => {
+  const template = editForm.value.template
+  if (!template) {
+    detectedVariables.value = []
+    return
+  }
+  
+  // 使用正则表达式匹配 {{变量名}} 格式的变量
+  const variableRegex = /\{\{([^}]+)\}\}/g
+  const matches = template.match(variableRegex)
+  
+  if (matches) {
+    // 提取变量名，去除 {{ 和 }}
+    const variables = matches.map(match => match.replace(/\{\{|\}\}/g, '').trim())
+    // 去重
+    detectedVariables.value = [...new Set(variables)]
+  } else {
+    detectedVariables.value = []
+  }
+}
+
+// 应用检测到的变量
+const applyDetectedVariables = () => {
+  editForm.value.variables = [...detectedVariables.value]
+  ElMessage.success('已应用检测到的变量')
+}
+
 const handleTestRender = async () => {
   if (!previewTemplate.value) return
 
   testing.value = true
   try {
-    const response = await api.post(`/llm/prompt-templates/${previewTemplate.value.id}/render`, testForm.value)
+    const response = await api.post(`/prompt-templates/${previewTemplate.value.id}/render`, testForm.value)
     testResult.value = response.data
   } catch (error) {
     console.error('渲染测试失败:', error)
@@ -639,6 +701,19 @@ onMounted(() => {
   margin-left: 10px;
   color: #999;
   font-size: 12px;
+}
+
+.variable-tips {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.variable-tips span {
+  flex: 1;
 }
 
 .preview-header {
