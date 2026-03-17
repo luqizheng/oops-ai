@@ -98,6 +98,29 @@ services:
       - oops-ai-network
     restart: unless-stopped
 
+  # RustFS 对象存储
+  rustfs:
+    image: zhcoder-docker-registry.com:8000/official/rustfs/rustfs:latest
+    container_name: oops-ai-rustfs
+    restart: unless-stopped
+    ports:
+      - "9000:9000"    # S3 API端口
+      - "9001:9001"    # Web控制台端口
+    environment:
+      RUSTFS_ACCESS_KEY: "oopsaiadmin"                 # 管理员用户名
+      RUSTFS_SECRET_KEY: "oopsaiadminpassword"  # 管理员密码
+      RUSTFS_DEFAULT_REGION: "us-east-1"         # 默认区域
+    volumes:
+      - rustfs_data:/data    # 数据持久化
+      - rustfs_logs:/logs    # 日志持久化
+    networks:
+      - oops-ai-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 networks:
   oops-ai-network:
     driver: bridge
@@ -106,4 +129,8 @@ volumes:
   postgres_data:
     driver: local
   chromadb_data:
+    driver: local
+  rustfs_data:
+    driver: local
+  rustfs_logs:
     driver: local
