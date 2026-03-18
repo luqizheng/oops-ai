@@ -1,10 +1,6 @@
-## 命令行执行规则
-1. 默认执行 powershell 命令
-2. 不要启动前端或后端。又开发人员手工启动，你只提示就可以。
-
-```sh
-pnpm dev
-```
-
 ## 开发准则
 1. 所有的数据模型都必须在 `@oops-ai/shared` 中定义。
+
+## 前端
+1. 共有组件必须在 `@oops-ai/frontend/src/components` 中定义。
+2. 每个页面的组件必须在 `@oops-ai/frontend/src/views/[page-name]/components` 中定义。

@@ -1,3 +1,33 @@
+// 需求状态枚举
+export enum RequirementStatus {
+  DRAFT = 'DRAFT',
+  SUBMITTED = 'SUBMITTED',
+  REVIEWING = 'REVIEWING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  IMPLEMENTING = 'IMPLEMENTING',
+  TESTING = 'TESTING',
+  COMPLETED = 'COMPLETED',
+  CANCELED = 'CANCELED'
+}
+
+// 需求优先级枚举
+export enum RequirementPriority {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  URGENT = 'URGENT'
+}
+
+// 需求类型枚举
+export enum RequirementType {
+  FEATURE = 'FEATURE',
+  BUGFIX = 'BUGFIX',
+  ENHANCEMENT = 'ENHANCEMENT',
+  TASK = 'TASK',
+  NON_FUNCTIONAL = 'NON_FUNCTIONAL'
+}
+
 // 核心需求实体
 export interface Requirement {
   id: string;
@@ -5,8 +35,9 @@ export interface Requirement {
   rawRequirementId?: string;
   title: string;
   description?: string;
-  status: string;
-  priority: string;
+  status: RequirementStatus;
+  priority: RequirementPriority;
+  type: RequirementType;
   storyPoints?: number;
   rawInput?: string;
   structuredData?: any;
@@ -45,6 +76,15 @@ export interface UserStory {
   updatedAt: Date;
 }
 
+// 验收标准状态枚举
+export enum AcceptanceCriteriaStatus {
+  NOT_TESTED = 'NOT_TESTED',
+  PASS = 'PASS',
+  FAIL = 'FAIL',
+  BLOCKED = 'BLOCKED',
+  IN_PROGRESS = 'IN_PROGRESS'
+}
+
 // 验收标准
 export interface AcceptanceCriteria {
   id: string;
@@ -55,12 +95,29 @@ export interface AcceptanceCriteria {
   then: string[];
   and?: string[];
   scenarioType: string;
-  status: string;
+  status: AcceptanceCriteriaStatus;
   testedById?: string;
   testedAt?: Date;
   testEvidence?: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+// 测试用例自动化状态枚举
+export enum TestCaseAutomationStatus {
+  MANUAL = 'MANUAL',
+  AUTOMATED = 'AUTOMATED',
+  PARTIALLY_AUTOMATED = 'PARTIALLY_AUTOMATED',
+  NOT_AUTOMATABLE = 'NOT_AUTOMATABLE'
+}
+
+// 测试用例运行状态枚举
+export enum TestCaseRunStatus {
+  PASS = 'PASS',
+  FAIL = 'FAIL',
+  BLOCKED = 'BLOCKED',
+  SKIPPED = 'SKIPPED',
+  IN_PROGRESS = 'IN_PROGRESS'
 }
 
 // 测试用例
@@ -73,10 +130,10 @@ export interface TestCase {
   preconditions: string[];
   testSteps: Array<{ step: string; data?: string; expected: string }>;
   testData?: any;
-  automationStatus: string;
+  automationStatus: TestCaseAutomationStatus;
   automationScript?: string;
   automationFramework?: string;
-  lastRunStatus?: string;
+  lastRunStatus?: TestCaseRunStatus;
   lastRunAt?: Date;
   lastRunById?: string;
   createdAt: Date;
@@ -103,6 +160,15 @@ export interface BusinessRule {
   updatedAt: Date;
 }
 
+// NFR验证状态枚举
+export enum NFRVerificationStatus {
+  NOT_VERIFIED = 'NOT_VERIFIED',
+  PASSED = 'PASSED',
+  WARNING = 'WARNING',
+  FAILED = 'FAILED',
+  IN_PROGRESS = 'IN_PROGRESS'
+}
+
 // 非功能需求
 export interface NFRRequirement {
   id: string;
@@ -116,7 +182,7 @@ export interface NFRRequirement {
   criticalThreshold?: number;
   measurementMethod?: string;
   measurementTool?: string;
-  verificationStatus: string;
+  verificationStatus: NFRVerificationStatus;
   lastVerifiedAt?: Date;
   lastVerifiedValue?: number;
   createdAt: Date;
@@ -135,12 +201,20 @@ export interface RequirementDependency {
   updatedAt: Date;
 }
 
+// 验收签名状态枚举
+export enum AcceptanceSignoffStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  CONDITIONAL = 'CONDITIONAL'
+}
+
 // 验收签名
 export interface AcceptanceSignoff {
   id: string;
   requirementId: string;
   signoffType: string;
-  signoffStatus: string;
+  signoffStatus: AcceptanceSignoffStatus;
   signedById?: string;
   signedAt?: Date;
   signoffEvidence?: string;
