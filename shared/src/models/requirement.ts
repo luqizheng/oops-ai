@@ -50,6 +50,17 @@ export interface Requirement {
   updatedAt: Date;
 }
 
+// 附件类型
+export interface Attachment {
+  id: string;
+  fileName: string;
+  filePath: string;
+  fileType: string;
+  fileSize: number;
+  uploadedBy?: string;
+  uploadedAt: Date;
+}
+
 // 原始需求
 export interface RawRequirement {
   id: string;
@@ -60,6 +71,9 @@ export interface RawRequirement {
   proposedAt: Date;
   scenario?: string;
   projectId: string;
+  contactPerson?: string;
+  contactInfo?: string;
+  attachments: Attachment[];
   createdAt: Date;
 }
 
