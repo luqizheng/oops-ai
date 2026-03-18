@@ -2,8 +2,12 @@
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <div>
-        <h3 class="text-lg font-bold text-gray-900 dark:text-white">原始需求输入区</h3>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">（客户原话）</p>
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white">
+          原始需求输入区
+        </h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          （客户原话）
+        </p>
       </div>
     </div>
 
@@ -14,11 +18,14 @@
         :rows="8"
         placeholder="请输入客户原始需求描述，例如：'我希望系统登录体验更好，要快一点，还要安全，最好能支持微信登录，忘记密码也要能方便找回'"
         class="modern-input"
-        @input="handleInput"
+        @keyup.enter="handleInput"
       />
     </div>
 
     <div class="flex items-center gap-4">
+      <el-button type="primary" plain class="rounded-xl px-6" @click="handleInput">
+        分析需求
+      </el-button>
       <el-button
         type="primary"
         plain

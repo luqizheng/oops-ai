@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
+    "@oops-ai/shared": "workspace:*",
     "@pinia/nuxt": "^0.5.1",
     "axios": "^1.6.7",
     "echarts": "^5.5.0",

@@ -277,8 +277,16 @@ export class PromptTemplateService {
     if (!template) {
       throw new NotFoundException(`No prompt template found for: ${categoryOrId}`)
     }
-
-    return this.render(template.template, variables)
+    console.info('调用 llm template:', template.category)
+    const contents = this.render(template.template, variables)
+    console.info(
+      '--------------------------------调用',
+      template.category,
+      '渲染后 --------------------------------',
+    )
+    console.info(contents)
+    console.info('-------------------------------- end --------------------------------')
+    return contents
   }
 
   private render(template: string, variables: Record<string, any>): string {

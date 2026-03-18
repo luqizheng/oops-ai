@@ -1,0 +1,19 @@
+{
+  "name": "@oops-ai/shared",
+  "version": "1.0.0",
+  "description": "Shared models and types for oops-ai",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "generate": "npx prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.10.0",
+    "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "prisma": "^5.10.0"
+  }
+}

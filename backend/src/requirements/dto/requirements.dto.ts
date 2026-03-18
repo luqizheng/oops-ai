@@ -1,7 +1,8 @@
 import { IsString, IsOptional, IsNumber, IsArray } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
+import type { CreateRequirementDto as SharedCreateRequirementDto } from '@oops-ai/shared'
 
-export class CreateRequirementDto {
+export class CreateRequirementDto implements SharedCreateRequirementDto {
   @ApiProperty({ description: '需求标题' })
   @IsString()
   title: string

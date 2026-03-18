@@ -83,16 +83,24 @@ export class AIRequirementsService {
     analyzeRequirementDto: AnalyzeRequirementDto,
   ): Promise<RequirementAnalysisResponse> {
     try {
+      console.info('调用-analyzeRequirement')
       // 1. 获取并渲染提示词模板
-      const prompt = await this.promptTemplateService.renderTemplate('raw-to-requirement', {
-        requirementText: analyzeRequirementDto.requirementText,
-      })
+      const prompt = await this.promptTemplateService.renderTemplate(
+        'raw-to-requirement',
+        {
+          requirementText: analyzeRequirementDto.requirementText,
+        },
+        this.llmService,
+      )
 
       // 2. 使用渲染后的提示词调用LLM
       const response = await this.llmService.generateCompletion(prompt)
 
       try {
-        const parsed = JSON.parse(response)
+        const content = response.replace(/^```json\s*/, '').replace(/\s*```$/, '')
+        console.info('analyzeRequirement 分析后 content:', content)
+        const parsed = JSON.parse(content)
+
         return {
           analysisResults: parsed.analysisResults || [],
           questions: parsed.questions || [],
@@ -176,10 +184,14 @@ export class AIRequirementsService {
     generateQuestionsDto: GenerateQuestionsDto,
   ): Promise<{ questions: QuestionItem[] }> {
     // 1. 获取并渲染提示词模板
-    const prompt = await this.promptTemplateService.renderTemplate('generate-questions', {
-      requirementType: generateQuestionsDto.requirementType,
-      requirementContent: generateQuestionsDto.requirementContent,
-    })
+    const prompt = await this.promptTemplateService.renderTemplate(
+      'generate-questions',
+      {
+        requirementType: generateQuestionsDto.requirementType,
+        requirementContent: generateQuestionsDto.requirementContent,
+      },
+      this.llmService,
+    )
 
     // 2. 使用渲染后的提示词调用LLM
     const response = await this.llmService.generateCompletion(prompt)
@@ -204,9 +216,13 @@ export class AIRequirementsService {
   ): Promise<{ userStories: UserStory[] }> {
     try {
       // 1. 获取并渲染提示词模板
-      const prompt = await this.promptTemplateService.renderTemplate('requirement-to-story', {
-        requirement: generateUserStoriesDto.userInput,
-      })
+      const prompt = await this.promptTemplateService.renderTemplate(
+        'requirement-to-story',
+        {
+          requirement: generateUserStoriesDto.userInput,
+        },
+        this.llmService,
+      )
 
       // 2. 使用渲染后的提示词调用LLM
       const response = await this.llmService.generateCompletion(prompt)
@@ -226,9 +242,13 @@ export class AIRequirementsService {
     generateAcceptanceCriteriaDto: GenerateAcceptanceCriteriaDto,
   ): Promise<{ acceptanceCriteria: AcceptanceCriterion[] }> {
     // 1. 获取并渲染提示词模板
-    const prompt = await this.promptTemplateService.renderTemplate('generate-acceptance', {
-      requirementContent: generateAcceptanceCriteriaDto.requirementContent,
-    })
+    const prompt = await this.promptTemplateService.renderTemplate(
+      'generate-acceptance',
+      {
+        requirementContent: generateAcceptanceCriteriaDto.requirementContent,
+      },
+      this.llmService,
+    )
 
     // 2. 使用渲染后的提示词调用LLM
     const response = await this.llmService.generateCompletion(prompt)
@@ -255,9 +275,13 @@ export class AIRequirementsService {
 
   async qualityScore(qualityScoreDto: QualityScoreDto): Promise<QualityScore> {
     // 1. 获取并渲染提示词模板
-    const prompt = await this.promptTemplateService.renderTemplate('quality-assessment', {
-      text: qualityScoreDto.text,
-    })
+    const prompt = await this.promptTemplateService.renderTemplate(
+      'quality-assessment',
+      {
+        text: qualityScoreDto.text,
+      },
+      this.llmService,
+    )
 
     // 2. 使用渲染后的提示词调用LLM
     const response = await this.llmService.generateCompletion(prompt)
@@ -287,9 +311,13 @@ export class AIRequirementsService {
   ): Promise<{ isValid: boolean; issues: string[]; suggestions: string[] }> {
     try {
       // 1. 获取并渲染提示词模板
-      const prompt = await this.promptTemplateService.renderTemplate('quality-assessment', {
-        requirementText: validateRequirementDto.requirementText,
-      })
+      const prompt = await this.promptTemplateService.renderTemplate(
+        'quality-assessment',
+        {
+          requirementText: validateRequirementDto.requirementText,
+        },
+        this.llmService,
+      )
 
       // 2. 使用渲染后的提示词调用LLM
       const response = await this.llmService.generateCompletion(prompt)
@@ -314,9 +342,13 @@ export class AIRequirementsService {
   ): Promise<{ improvements: string[]; rationale: string }> {
     try {
       // 1. 获取并渲染提示词模板
-      const prompt = await this.promptTemplateService.renderTemplate('quality-assessment', {
-        requirementText: suggestImprovementsDto.requirementText,
-      })
+      const prompt = await this.promptTemplateService.renderTemplate(
+        'quality-assessment',
+        {
+          requirementText: suggestImprovementsDto.requirementText,
+        },
+        this.llmService,
+      )
 
       // 2. 使用渲染后的提示词调用LLM
       const response = await this.llmService.generateCompletion(prompt)
