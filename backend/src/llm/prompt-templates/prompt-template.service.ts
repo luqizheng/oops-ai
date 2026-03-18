@@ -43,10 +43,7 @@ export interface PromptTemplateUpdateInput {
 
 @Injectable()
 export class PromptTemplateService {
-  constructor(
-    private prisma: PrismaService,
-    private llmService: LLMService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async findAll(params?: {
     category?: string
@@ -244,6 +241,7 @@ export class PromptTemplateService {
   async renderTemplate(
     categoryOrId: string,
     variables: Record<string, any>,
+    llmService?: LLMService,
     provider?: string,
     modelName?: string,
   ): Promise<string> {
@@ -252,7 +250,7 @@ export class PromptTemplateService {
     // 如果没有提供provider和modelName，尝试获取默认LLM配置
     if (!provider || !modelName) {
       try {
-        const defaultConfig = await this.llmService.getDefaultConfig()
+        const defaultConfig = await llmService.getDefaultConfig()
         if (defaultConfig) {
           provider = provider || defaultConfig.provider
           modelName = modelName || defaultConfig.modelName

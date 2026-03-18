@@ -82,6 +82,7 @@ export class LLMService implements ILLMService {
     const prompt = await this.promptTemplateService.renderTemplate(
       category,
       variables,
+      this,
       finalConfig.provider,
       finalConfig.modelName,
     )
@@ -104,6 +105,7 @@ export class LLMService implements ILLMService {
     const prompt = await this.promptTemplateService.renderTemplate(
       category,
       variables,
+      this,
       finalConfig.provider,
       finalConfig.modelName,
     )

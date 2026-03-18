@@ -1,13 +1,21 @@
 import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards, Query } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
-import { PromptTemplateCreateInput, PromptTemplateService, PromptTemplateUpdateInput } from './prompt-template.service'
+import {
+  PromptTemplateCreateInput,
+  PromptTemplateService,
+  PromptTemplateUpdateInput,
+} from './prompt-template.service'
 import { ApiTags, ApiOperation } from '@nestjs/swagger'
+import { LLMService } from '../llm.service'
 
 @ApiTags('prompt-templates')
 @Controller('prompt-templates')
 @UseGuards(AuthGuard())
 export class PromptTemplateController {
-  constructor(private readonly promptTemplateService: PromptTemplateService) {}
+  constructor(
+    private readonly promptTemplateService: PromptTemplateService,
+    private readonly llmService: LLMService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: '获取所有提示词模板' })
@@ -39,7 +47,13 @@ export class PromptTemplateController {
     @Query('modelName') modelName?: string,
     @Body() variables?: Record<string, any>,
   ) {
-    return this.promptTemplateService.renderTemplate(category, variables || {}, provider, modelName)
+    return this.promptTemplateService.renderTemplate(
+      category,
+      variables || {},
+      this.llmService,
+      provider,
+      modelName,
+    )
   }
 
   @Post(':id/render')

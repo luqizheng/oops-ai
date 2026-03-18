@@ -28,4 +28,4 @@ import { LocalProvider } from './providers/local.provider'
   ],
   exports: [LLMService, PromptTemplateService, LLMProviderFactory],
 })
-export class LLMModuleV2 {}
+export class LLMModule {}
