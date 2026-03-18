@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { LLMService } from './llm.service'
-import { CreateLLMConfigDto, UpdateLLMConfigDto, TestConnectionDto } from './dto/llm.dto'
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger'
+import { CreateLLMConfigDto, UpdateLLMConfigDto } from './dto/llm.dto'
+import { ApiTags, ApiOperation } from '@nestjs/swagger'
 
 @ApiTags('llm')
 @Controller('llm')
@@ -39,7 +39,7 @@ export class LLMController {
 
   @Post('configurations/:id/test')
   @ApiOperation({ summary: '测试LLM连接' })
-  async testConnection(@Param('id') id: string, @Body() testConnectionDto: TestConnectionDto) {
+  async testConnection(@Param('id') id: string) {
     const success = await this.llmService.testConfigurationById(id)
     return { success, message: success ? 'Connection test successful' : 'Connection test failed' }
   }

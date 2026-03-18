@@ -2,59 +2,69 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { ConfigService } from '@nestjs/config'
 import { PrismaService } from '../prisma/prisma.service'
 import { PromptTemplateService } from './prompt-templates/prompt-template.service'
-import OpenAI from 'openai'
-
-interface LLMConfig {
-  provider: 'openai' | 'ollama' | 'deepseek' | 'qwen' | 'local'
-  modelName: string
-  apiEndpoint?: string
-  apiKey?: string
-  temperature: number
-  maxTokens: number
-  isDefault: boolean
-}
+import { ILLMService } from './interfaces/llm.interface'
+import { LLMConfig, ChatMessage } from './types/llm.types'
+import { LLMProviderFactory } from './providers/provider.factory'
 
 @Injectable()
-export class LLMService {
-  private openai: OpenAI | null = null
-
+export class LLMService implements ILLMService {
   constructor(
     private configService: ConfigService,
     private prisma: PrismaService,
     private promptTemplateService: PromptTemplateService,
-  ) {
-    this.initializeOpenAI()
-  }
-
-  private initializeOpenAI() {
-    const apiKey = this.configService.get<string>('OPENAI_API_KEY')
-    if (apiKey) {
-      this.openai = new OpenAI({ apiKey })
-    }
-  }
+    private providerFactory: LLMProviderFactory,
+  ) {}
 
   async generateCompletion(prompt: string, config?: LLMConfig, options?: any): Promise<string> {
-    // Use provided config if available, otherwise get default
     const finalConfig = config || (await this.getDefaultConfig())
 
     if (!finalConfig) {
       throw new BadRequestException('No default LLM configuration found')
     }
 
-    switch (finalConfig.provider) {
-      case 'openai':
-        return this.generateOpenAICompletion(prompt, finalConfig, options)
-      case 'ollama':
-        return this.generateOllamaCompletion(prompt, finalConfig, options)
-      case 'deepseek':
-        return this.generateDeepSeekCompletion(prompt, finalConfig, options)
-      case 'qwen':
-        return this.generateQwenCompletion(prompt, finalConfig, options)
-      case 'local':
-        return this.generateLocalCompletion(prompt, finalConfig, options)
-      default:
-        throw new BadRequestException(`Unsupported LLM provider: ${finalConfig.provider}`)
+    try {
+      const provider = await this.providerFactory.createProvider(finalConfig)
+      return provider.generateCompletion(prompt, options)
+    } catch (error) {
+      throw new BadRequestException(`LLM generation error: ${error.message}`)
     }
+  }
+
+  async generateCompletionWithDefault(prompt: string, options?: any): Promise<string> {
+    const defaultConfig = await this.getDefaultConfig()
+    if (!defaultConfig) {
+      throw new BadRequestException('No default LLM configuration found')
+    }
+
+    return this.generateCompletion(prompt, defaultConfig, options)
+  }
+
+  async generateChatCompletion(
+    messages: ChatMessage[],
+    config?: LLMConfig,
+    options?: any,
+  ): Promise<string> {
+    const finalConfig = config || (await this.getDefaultConfig())
+
+    if (!finalConfig) {
+      throw new BadRequestException('No default LLM configuration found')
+    }
+
+    try {
+      const provider = await this.providerFactory.createProvider(finalConfig)
+      return provider.generateChatCompletion(messages, options)
+    } catch (error) {
+      throw new BadRequestException(`LLM chat generation error: ${error.message}`)
+    }
+  }
+
+  async generateChatCompletionWithDefault(messages: ChatMessage[], options?: any): Promise<string> {
+    const defaultConfig = await this.getDefaultConfig()
+    if (!defaultConfig) {
+      throw new BadRequestException('No default LLM configuration found')
+    }
+
+    return this.generateChatCompletion(messages, defaultConfig, options)
   }
 
   async generateCompletionWithTemplate(
@@ -63,14 +73,12 @@ export class LLMService {
     config?: LLMConfig,
     options?: any,
   ): Promise<string> {
-    // Use provided config if available, otherwise get default
     const finalConfig = config || (await this.getDefaultConfig())
 
     if (!finalConfig) {
       throw new BadRequestException('No default LLM configuration found')
     }
 
-    // 获取并渲染提示词模板
     const prompt = await this.promptTemplateService.renderTemplate(
       category,
       variables,
@@ -78,204 +86,38 @@ export class LLMService {
       finalConfig.modelName,
     )
 
-    // 使用渲染后的提示词调用LLM
     return this.generateCompletion(prompt, finalConfig, options)
   }
 
-  private async generateOpenAICompletion(
-    prompt: string,
-    config: LLMConfig,
+  async generateChatCompletionWithTemplate(
+    category: string,
+    variables: Record<string, any>,
+    config?: LLMConfig,
     options?: any,
   ): Promise<string> {
-    if (!this.openai) {
-      throw new BadRequestException('OpenAI API key not configured')
+    const finalConfig = config || (await this.getDefaultConfig())
+
+    if (!finalConfig) {
+      throw new BadRequestException('No default LLM configuration found')
     }
 
-    try {
-      const completion = await this.openai.chat.completions.create({
-        model: config.modelName,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: config.temperature,
-        max_tokens: config.maxTokens,
-        ...options,
-      })
+    const prompt = await this.promptTemplateService.renderTemplate(
+      category,
+      variables,
+      finalConfig.provider,
+      finalConfig.modelName,
+    )
 
-      return completion.choices[0]?.message?.content || ''
-    } catch (error) {
-      throw new BadRequestException(`OpenAI API error: ${error.message}`)
-    }
+    const messages: ChatMessage[] = [{ role: 'user', content: prompt }]
+    return this.generateChatCompletion(messages, finalConfig, options)
   }
 
-  private async generateOllamaCompletion(
-    prompt: string,
-    config: LLMConfig,
-    options?: any,
-  ): Promise<string> {
-    const endpoint = config.apiEndpoint || 'http://localhost:11434/api/generate'
-
+  async testConnection(config: LLMConfig): Promise<boolean> {
     try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: config.modelName,
-          prompt,
-          options: {
-            temperature: config.temperature,
-            num_predict: config.maxTokens,
-          },
-          ...options,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error(`Ollama API error: ${response.statusText}`)
-      }
-
-      const content = await response.text()
-
-      // Ollama返回的是SSE流格式，需要逐行解析JSON
-      const lines = content.split('\n').filter((line) => line.trim() !== '')
-      let fullResponse = ''
-
-      for (const line of lines) {
-        try {
-          // 处理标准SSE格式（如"data: {...}"）和普通JSON行
-          const jsonLine = line.startsWith('data: ') ? line.slice(6).trim() : line.trim()
-          if (!jsonLine) continue
-
-          const data = JSON.parse(jsonLine)
-
-          // 拼接响应内容
-          if (data.response) {
-            fullResponse += data.response
-          }
-
-          // 检查是否完成
-          if (data.done) {
-            break
-          }
-        } catch (parseError) {
-          // 忽略无法解析的行，继续处理其他行
-          console.debug('解析Ollama响应行失败，跳过该行:', line)
-        }
-      }
-
-      // 如果没有找到完整响应，返回已解析的部分
-      return fullResponse
-
-      // const data = await response.json()
-      // return data.response || ''
-    } catch (error) {
-      throw new BadRequestException(`Ollama API error: ${error.message}`)
-    }
-  }
-
-  private async generateDeepSeekCompletion(
-    prompt: string,
-    config: LLMConfig,
-    options?: any,
-  ): Promise<string> {
-    const apiKey = config.apiKey || this.configService.get<string>('DEEPSEEK_API_KEY')
-    if (!apiKey) {
-      throw new BadRequestException('DeepSeek API key not configured')
-    }
-    console.log('use deepseek  request content is:', prompt)
-    try {
-      const deepseek = new OpenAI({
-        baseURL: config.apiEndpoint || 'https://api.deepseek.com/v1',
-        apiKey: apiKey,
-      })
-
-      const completion = await deepseek.chat.completions.create({
-        model: config.modelName,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: config.temperature,
-        max_tokens: config.maxTokens,
-        ...options,
-      })
-      console.log(
-        'use deepseek response content is:',
-        completion.choices[0]?.message?.content || '',
-      )
-
-      return completion.choices[0]?.message?.content || ''
-    } catch (error) {
-      throw new BadRequestException(`DeepSeek API error: ${error.message}`)
-    }
-  }
-
-  private async generateQwenCompletion(
-    prompt: string,
-    config: LLMConfig,
-    options?: any,
-  ): Promise<string> {
-    const endpoint =
-      config.apiEndpoint || 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions'
-    const apiKey = config.apiKey || this.configService.get<string>('QIANWEN_API_KEY')
-
-    if (!apiKey) {
-      throw new BadRequestException('Qwen API key not configured')
-    }
-
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: config.modelName,
-          messages: [{ role: 'user', content: prompt }],
-          temperature: config.temperature,
-          max_tokens: config.maxTokens,
-          ...options,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error(`Qwen API error: ${response.statusText}`)
-      }
-
-      const data = await response.json()
-      return data.choices[0]?.message?.content || ''
-    } catch (error) {
-      throw new BadRequestException(`Qwen API error: ${error.message}`)
-    }
-  }
-
-  private async generateLocalCompletion(
-    prompt: string,
-    config: LLMConfig,
-    options?: any,
-  ): Promise<string> {
-    const endpoint = config.apiEndpoint || 'http://localhost:8080/v1/completions'
-
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt,
-          temperature: config.temperature,
-          max_tokens: config.maxTokens,
-          ...options,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error(`Local model API error: ${response.statusText}`)
-      }
-
-      const data = await response.json()
-      return data.choices?.[0]?.text || data.text || ''
-    } catch (error) {
-      throw new BadRequestException(`Local model API error: ${error.message}`)
+      const provider = await this.providerFactory.createProvider(config)
+      return provider.testConnection()
+    } catch {
+      return false
     }
   }
 
@@ -296,16 +138,7 @@ export class LLMService {
       temperature: config.temperature,
       maxTokens: config.maxTokens,
       isDefault: config.isDefault,
-    }
-  }
-
-  async testConnection(config: LLMConfig): Promise<boolean> {
-    try {
-      const testPrompt = 'Hello, please respond with "OK" if you can hear me.'
-      const response = await this.generateCompletion(testPrompt, config)
-      return response.includes('OK') || response.trim().length > 0
-    } catch {
-      return false
+      isActive: config.isActive,
     }
   }
 
@@ -316,7 +149,6 @@ export class LLMService {
   }
 
   async createConfiguration(data: any) {
-    // 如果设置为默认，先将其他配置的默认标志设为false
     if (data.isDefault) {
       await this.prisma.lLMConfiguration.updateMany({
         where: { isDefault: true },
@@ -324,13 +156,16 @@ export class LLMService {
       })
     }
 
-    return this.prisma.lLMConfiguration.create({
+    const config = await this.prisma.lLMConfiguration.create({
       data,
     })
+
+    this.providerFactory.clearProviderCache(data.provider)
+
+    return config
   }
 
   async updateConfiguration(id: string, data: any) {
-    // 检查配置是否存在
     const existingConfig = await this.prisma.lLMConfiguration.findUnique({
       where: { id },
     })
@@ -339,7 +174,6 @@ export class LLMService {
       throw new NotFoundException(`Configuration with ID ${id} not found`)
     }
 
-    // 如果设置为默认，先将其他配置的默认标志设为false
     if (data.isDefault) {
       await this.prisma.lLMConfiguration.updateMany({
         where: { isDefault: true, NOT: { id } },
@@ -347,14 +181,17 @@ export class LLMService {
       })
     }
 
-    return this.prisma.lLMConfiguration.update({
+    const updatedConfig = await this.prisma.lLMConfiguration.update({
       where: { id },
       data,
     })
+
+    this.providerFactory.clearProviderCache(existingConfig.provider)
+
+    return updatedConfig
   }
 
   async deleteConfiguration(id: string) {
-    // 检查配置是否存在
     const existingConfig = await this.prisma.lLMConfiguration.findUnique({
       where: { id },
     })
@@ -363,13 +200,16 @@ export class LLMService {
       throw new NotFoundException(`Configuration with ID ${id} not found`)
     }
 
-    return this.prisma.lLMConfiguration.delete({
+    const deletedConfig = await this.prisma.lLMConfiguration.delete({
       where: { id },
     })
+
+    this.providerFactory.clearProviderCache(existingConfig.provider)
+
+    return deletedConfig
   }
 
   async setDefaultConfiguration(id: string) {
-    // 检查配置是否存在
     const existingConfig = await this.prisma.lLMConfiguration.findUnique({
       where: { id },
     })
@@ -378,13 +218,11 @@ export class LLMService {
       throw new NotFoundException(`Configuration with ID ${id} not found`)
     }
 
-    // 将所有配置的默认标志设为false
     await this.prisma.lLMConfiguration.updateMany({
       where: { isDefault: true },
       data: { isDefault: false },
     })
 
-    // 设置当前配置为默认
     return this.prisma.lLMConfiguration.update({
       where: { id },
       data: { isDefault: true },
@@ -408,8 +246,17 @@ export class LLMService {
       temperature: config.temperature,
       maxTokens: config.maxTokens,
       isDefault: config.isDefault,
+      isActive: config.isActive,
     }
 
     return this.testConnection(llmConfig)
+  }
+
+  async getProviderConfigs() {
+    return this.providerFactory.getAllProviderConfigs()
+  }
+
+  async getAvailableProviders() {
+    return this.providerFactory.getAvailableProviders()
   }
 }

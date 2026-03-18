@@ -226,4 +226,136 @@ Output JSON format:
     isDefault: true,
     isActive: true,
   },
+  // AI需求分析专用模板
+  {
+    name: 'AI需求分析 - 需求拆解',
+    description: '将原始需求拆解为具体功能点并生成追问问题',
+    category: 'ai-requirement-analysis',
+    template: `你是一个资深产品经理，请分析以下原始需求，将其拆解为具体的功能点，并生成需要追问的问题：
+
+原始需求：{{requirementText}}
+
+请按照以下JSON格式输出：
+{
+  "analysisResults": ["需求点1", "需求点2", "需求点3", "需求点4"],
+  "questions": ["追问问题1", "追问问题2"]
+}
+
+分析要求：
+1. 识别需求中的核心功能点
+2. 识别性能、安全等非功能需求
+3. 识别模糊词汇，生成追问问题
+4. 每个需求点应该是具体可执行的任务
+5. 追问问题应该帮助澄清模糊点
+
+示例：
+原始需求："我希望系统登录体验更好，要快一点，还要安全，最好能支持微信登录，忘记密码也要能方便找回"
+输出：
+{
+  "analysisResults": ["登录速度优化", "微信登录支持", "忘记密码找回", "登录失败锁定"],
+  "questions": ["\"更快\"具体指多少秒？", "需要支持哪些登录方式？"]
+}`,
+    variables: ['requirementText'],
+    isDefault: true,
+    isActive: true,
+  },
+  {
+    name: 'AI需求分析 - 生成追问',
+    description: '根据需求类型和内容生成针对性追问',
+    category: 'ai-generate-questions',
+    template: `你是一个资深产品经理，请根据以下需求类型和内容，生成3-5个针对性追问，帮助完善需求：
+
+需求类型：{{requirementType}}
+需求内容：{{requirementContent}}
+
+请输出JSON格式，包含questions数组，每个问题包含question和type字段。`,
+    variables: ['requirementType', 'requirementContent'],
+    isDefault: true,
+    isActive: true,
+  },
+  {
+    name: 'AI需求分析 - 生成验收条件',
+    description: '生成Given-When-Then格式的验收条件',
+    category: 'ai-generate-acceptance-criteria',
+    template: `你是一个资深测试工程师，请根据以下需求内容，生成3-5个Given-When-Then格式的验收条件：
+
+需求内容：{{requirementContent}}
+
+请输出JSON格式，包含acceptanceCriteria数组，每个验收条件包含given、when、then和scenarioType字段。`,
+    variables: ['requirementContent'],
+    isDefault: true,
+    isActive: true,
+  },
+  {
+    name: 'AI需求分析 - 质量评分',
+    description: '评估需求质量并提供改进建议',
+    category: 'ai-quality-assessment',
+    template: `你是一个资深需求分析师，请评估以下需求的质量，给出清晰度、可测试性、完整性的评分（0-10分）：
+
+需求文本：{{text}}
+
+请输出JSON格式：
+{
+  "clarity": 8,
+  "testability": 7,
+  "completeness": 6,
+  "totalScore": 7,
+  "suggestions": ["改进建议1", "改进建议2"]
+}
+
+评分标准：
+1. 清晰度：需求描述是否明确无歧义
+2. 可测试性：需求是否可以被验证和测试
+3. 完整性：需求是否包含所有必要信息`,
+    variables: ['text'],
+    isDefault: true,
+    isActive: true,
+  },
+  {
+    name: 'AI需求分析 - 需求验证',
+    description: '验证需求是否完整、可测试、无歧义',
+    category: 'ai-validate-requirement',
+    template: `你是一个资深需求分析师，请验证以下需求是否完整、可测试、无歧义：
+
+需求：{{requirementText}}
+
+请输出JSON格式：
+{
+  "isValid": true,
+  "issues": ["问题1", "问题2"],
+  "suggestions": ["建议1", "建议2"]
+}
+
+验证标准：
+1. 需求是否包含明确的角色、功能、价值
+2. 需求是否可测试和验证
+3. 需求是否有模糊词汇
+4. 需求是否包含必要的约束条件`,
+    variables: ['requirementText'],
+    isDefault: true,
+    isActive: true,
+  },
+  {
+    name: 'AI需求分析 - 改进建议',
+    description: '为需求提供改进建议',
+    category: 'ai-suggest-improvements',
+    template: `你是一个资深产品经理，请为以下需求提供改进建议：
+
+需求：{{requirementText}}
+
+请输出JSON格式：
+{
+  "improvements": ["改进建议1", "改进建议2", "改进建议3"],
+  "rationale": "改进的理由和预期效果"
+}
+
+改进方向：
+1. 使需求更具体和可量化
+2. 提高需求的可测试性
+3. 消除模糊词汇
+4. 补充缺失的信息`,
+    variables: ['requirementText'],
+    isDefault: true,
+    isActive: true,
+  },
 ]

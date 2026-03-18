@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
+import { LLMService } from '../llm.service'
 
 export interface PromptTemplate {
   id: string
@@ -42,7 +43,10 @@ export interface PromptTemplateUpdateInput {
 
 @Injectable()
 export class PromptTemplateService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private llmService: LLMService,
+  ) {}
 
   async findAll(params?: {
     category?: string
@@ -244,6 +248,19 @@ export class PromptTemplateService {
     modelName?: string,
   ): Promise<string> {
     let template: PromptTemplate | null
+
+    // 如果没有提供provider和modelName，尝试获取默认LLM配置
+    if (!provider || !modelName) {
+      try {
+        const defaultConfig = await this.llmService.getDefaultConfig()
+        if (defaultConfig) {
+          provider = provider || defaultConfig.provider
+          modelName = modelName || defaultConfig.modelName
+        }
+      } catch (error) {
+        console.warn('Failed to get default LLM config:', error.message)
+      }
+    }
 
     // 判断是ID还是类别
     if (categoryOrId.includes('-') && !categoryOrId.includes('_')) {

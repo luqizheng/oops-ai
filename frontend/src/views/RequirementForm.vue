@@ -156,7 +156,7 @@ const analyzeRequirement = async () => {
   try {
     ElMessage.info('AI分析中，请稍候...')
     
-    const response = await axios.post('/requirements/analyze/requirement', {
+    const response = await axios.post('/requirements/ai/analyze/requirement', {
       requirementText: requirementText
     })
 

@@ -1,8 +1,7 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common'
+import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards, Query } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger'
-import { PromptTemplateService } from './prompt-template.service'
-import { PromptTemplateCreateInput, PromptTemplateUpdateInput } from './prompt-template.service'
+import { PromptTemplateCreateInput, PromptTemplateService, PromptTemplateUpdateInput } from './prompt-template.service'
+import { ApiTags, ApiOperation } from '@nestjs/swagger'
 
 @ApiTags('prompt-templates')
 @Controller('prompt-templates')

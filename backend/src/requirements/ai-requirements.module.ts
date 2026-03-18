@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common'
 import { AIRequirementsController } from './ai-requirements.controller'
 import { AIRequirementsService } from './ai-requirements.service'
-import { LLMModule } from '../llm/llm.module'
+import { LLMModule } from '../llm/llm.module.bak'
 import { AuthModule } from '../auth/auth.module'
 
 @Module({

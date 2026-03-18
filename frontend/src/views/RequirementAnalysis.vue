@@ -462,7 +462,7 @@ const analyzeFuzzyWords = async () => {
   }
 
   try {
-    const response = await axios.post("/requirements/analyze/fuzzy-words", {
+    const response = await axios.post("/requirements/ai/analyze/fuzzy-words", {
       text: requirementText.value,
     });
     fuzzyWordsAnalysis.value = response.data;
@@ -475,7 +475,7 @@ const generateQuestions = async () => {
   if (!requirementText.value.trim()) return;
 
   try {
-    const response = await axios.post("/requirements/questions", {
+    const response = await axios.post("/requirements/ai/questions", {
       requirementType: "functional",
       requirementContent: requirementText.value,
     });
@@ -490,7 +490,7 @@ const generateUserStories = async () => {
   if (!requirementText.value.trim()) return;
 
   try {
-    const response = await axios.post("/requirements/user-stories", {
+    const response = await axios.post("/requirements/ai/user-stories", {
       userInput: requirementText.value,
     });
     userStories.value = response.data.userStories || [];
@@ -504,7 +504,7 @@ const generateAcceptanceCriteria = async () => {
   if (!requirementText.value.trim()) return;
 
   try {
-    const response = await axios.post("/requirements/acceptance-criteria", {
+    const response = await axios.post("/requirements/ai/acceptance-criteria", {
       requirementContent: requirementText.value,
     });
     acceptanceCriteria.value = response.data.acceptanceCriteria || [];
@@ -518,7 +518,7 @@ const getQualityScore = async () => {
   if (!requirementText.value.trim()) return;
 
   try {
-    const response = await axios.post("/requirements/quality-score", {
+    const response = await axios.post("/requirements/ai/quality-score", {
       text: requirementText.value,
     });
     qualityScore.value = response.data;
