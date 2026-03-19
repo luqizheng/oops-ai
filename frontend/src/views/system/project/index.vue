@@ -308,7 +308,7 @@
           <div
             v-for="member in currentProjectMembers"
             v-else
-            :key="member.id"
+            :key="member.userId +'-'+ member.projectId"
             class="member-item"
           >
             <div class="member-info">
@@ -481,8 +481,8 @@ const loadData = async () => {
       pageSize: pageSize.value,
       search: searchQuery.value || undefined
     });
-    projects.value = projectsRes.data.data;
-    total.value = projectsRes.data.total;
+    projects.value = projectsRes.data;
+    total.value = projectsRes.total;
   } catch (error: any) {
     ElMessage.error(error.message || "加载数据失败");
   } finally {
@@ -626,7 +626,7 @@ const handleAddMember = async () => {
   }
 };
 
-const handleUpdateMemberRole = async (member: ProjectMemberResult) => {
+const handleUpdateMemberRole = async (member: ProjectMemberListItem) => {
   if (!currentProject.value) return;
 
   try {

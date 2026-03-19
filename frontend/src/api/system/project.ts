@@ -18,45 +18,27 @@ export const getProjects = (params: {
   pageSize: number;
   search?: string;
 }) => {
-  return http.request<{ success: boolean; data: ProjectPaginatedResult }>(
-    "get",
-    "/projects",
-    { params }
-  );
+  return http.request<ProjectPaginatedResult>("get", "/projects", { params });
 };
 
 export const getProject = (id: string) => {
-  return http.request<{ success: boolean; data: ProjectViewModel }>(
-    "get",
-    `/projects/${id}`
-  );
+  return http.request<ProjectViewModel>("get", `/projects/${id}`);
 };
 
 export const createProject = (data: CreateProjectSubmit) => {
-  return http.request<{ success: boolean; data: CreateProjectResult }>(
-    "post",
-    "/projects",
-    { data }
-  );
+  return http.request<CreateProjectResult>("post", "/projects", { data });
 };
 
 export const updateProject = (id: string, data: UpdateProjectSubmit) => {
-  return http.request<{ success: boolean; data: UpdateProjectResult }>(
-    "put",
-    `/projects/${id}`,
-    { data }
-  );
+  return http.request<UpdateProjectResult>("put", `/projects/${id}`, { data });
 };
 
 export const deleteProject = (id: string) => {
-  return http.request<{ success: boolean; data: DeleteProjectResult }>(
-    "delete",
-    `/projects/${id}`
-  );
+  return http.request<DeleteProjectResult>("delete", `/projects/${id}`);
 };
 
 export const getProjectMembers = (projectId: string) => {
-  return http.request<{ success: boolean; data: ProjectMemberListItem[] }>(
+  return http.request<ProjectMemberListItem[]>(
     "get",
     `/projects/${projectId}/members`
   );
@@ -66,7 +48,11 @@ export const addProjectMember = (
   projectId: string,
   data: AddProjectMemberSubmit
 ) => {
-  return http.request("post", `/projects/${projectId}/members`, { data });
+  return http.request<ProjectMemberListItem>(
+    "post",
+    `/projects/${projectId}/members`,
+    { data }
+  );
 };
 
 export const updateProjectMember = (
@@ -74,25 +60,27 @@ export const updateProjectMember = (
   userId: string,
   data: Partial<AddProjectMemberSubmit>
 ) => {
-  return http.request("put", `/projects/${projectId}/members/${userId}`, {
-    data
-  });
+  return http.request<ProjectMemberListItem>(
+    "put",
+    `/projects/${projectId}/members/${userId}`,
+    { data }
+  );
 };
 
 export const removeProjectMember = (projectId: string, userId: string) => {
-  return http.request("delete", `/projects/${projectId}/members/${userId}`);
+  return http.request<DeleteProjectResult>(
+    "delete",
+    `/projects/${projectId}/members/${userId}`
+  );
 };
 
 export const getProjectSettings = (projectId: string) => {
-  return http.request<{ success: boolean; data: ProjectSettingsViewModel }>(
+  return http.request<ProjectSettingsViewModel>(
     "get",
     `/projects/${projectId}/settings`
   );
 };
 
 export const getAllUsers = () => {
-  return http.request<{ success: boolean; data: UserListItem[] }>(
-    "get",
-    "/projects/users"
-  );
+  return http.request<UserListItem[]>("get", "/projects/users");
 };
