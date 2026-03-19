@@ -8,7 +8,7 @@
 {
   "name": "AI需求分析 - 需求拆解",
   "description": "将原始需求拆解为具体功能点并生成追问问题",
-  "category": "ai-requirement-analysis",
+  "category": "raw-to-requirement",
   "template": "你是一个资深产品经理，请分析以下原始需求，将其拆解为具体的功能点，并生成需要追问的问题：\n\n原始需求：{{requirementText}}\n\n请按照以下JSON格式输出：\n{\n  \"analysisResults\": [\"需求点1\", \"需求点2\", \"需求点3\", \"需求点4\"],\n  \"questions\": [\"追问问题1\", \"追问问题2\"]\n}\n\n分析要求：\n1. 识别需求中的核心功能点\n2. 识别性能、安全等非功能需求\n3. 识别模糊词汇，生成追问问题\n4. 每个需求点应该是具体可执行的任务\n5. 追问问题应该帮助澄清模糊点",
   "variables": ["requirementText"],
   "isDefault": true,
