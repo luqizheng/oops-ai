@@ -4,104 +4,121 @@ import {
   Post,
   Put,
   Delete,
-  Param,
   Body,
+  Param,
   Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common'
-import { AuthGuard } from '@nestjs/passport'
-import { ProjectsService } from './projects.service'
+  Request,
+} from '@nestjs/common';
+import { ProjectsService } from './projects.service';
 import {
   CreateProjectSubmit,
   UpdateProjectSubmit,
-  ProjectResult,
-  ProjectPaginatedResult,
   AddProjectMemberSubmit,
   UpdateProjectMemberSubmit,
-  ProjectSettingsResult,
-} from '@oops-ai/shared'
+  CreateProjectResult,
+  UpdateProjectResult,
+  DeleteProjectResult,
+  ProjectPaginatedResult,
+  ProjectViewModel,
+  ProjectMemberListItem,
+  ProjectSettingsViewModel,
+  UserListItem,
+} from '@oops-ai/shared';
+import { PaginationParams } from '../common/dto/pagination.dto';
 
 @Controller('projects')
-@UseGuards(AuthGuard('jwt'))
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  @Post()
-  createProject(@Req() req, @Body() submit: CreateProjectSubmit) {
-    return this.projectsService.createProject(req.user.id, submit)
-  }
-
   @Get()
-  getProjects(
-    @Req() req,
+  async findAll(
+    @Request() req,
     @Query('page') page: string = '1',
     @Query('pageSize') pageSize: string = '10',
     @Query('search') search?: string,
   ): Promise<ProjectPaginatedResult> {
-    return this.projectsService.getProjects(req.user.id, {
+    const userId = req.user?.id;
+    return this.projectsService.getProjects(userId, {
       page: parseInt(page, 10) || 1,
       pageSize: parseInt(pageSize, 10) || 10,
       search,
-    })
+    });
   }
 
   @Get(':id')
-  getProjectById(@Param('id') id: string): Promise<ProjectResult> {
-    return this.projectsService.getProjectById(id)
+  async findOne(@Param('id') id: string): Promise<ProjectViewModel> {
+    return this.projectsService.getProjectById(id);
+  }
+
+  @Post()
+  async create(
+    @Body() submit: CreateProjectSubmit,
+    @Request() req,
+  ): Promise<CreateProjectResult> {
+    const userId = req.user?.id;
+    return this.projectsService.createProject(userId, submit);
   }
 
   @Put(':id')
-  updateProject(@Param('id') id: string, @Body() submit: UpdateProjectSubmit) {
-    return this.projectsService.updateProject(id, submit)
+  async update(
+    @Param('id') id: string,
+    @Body() submit: UpdateProjectSubmit,
+  ): Promise<UpdateProjectResult> {
+    return this.projectsService.updateProject(id, submit);
   }
 
   @Delete(':id')
-  deleteProject(@Param('id') id: string) {
-    return this.projectsService.deleteProject(id)
+  async remove(@Param('id') id: string): Promise<DeleteProjectResult> {
+    await this.projectsService.deleteProject(id);
+    return { success: true, message: '项目删除成功' };
   }
 
   @Get(':id/members')
-  getProjectMembers(@Param('id') id: string) {
-    return this.projectsService.getProjectMembers(id)
+  async getMembers(@Param('id') id: string): Promise<ProjectMemberListItem[]> {
+    return this.projectsService.getProjectMembers(id);
   }
 
   @Post(':id/members')
-  addMember(@Param('id') id: string, @Body() submit: AddProjectMemberSubmit) {
-    return this.projectsService.addMember(id, submit)
+  async addMember(
+    @Param('id') id: string,
+    @Body() submit: AddProjectMemberSubmit,
+  ) {
+    return this.projectsService.addMember(id, submit);
   }
 
   @Put(':id/members/:userId')
-  updateMember(
+  async updateMember(
     @Param('id') id: string,
     @Param('userId') userId: string,
     @Body() submit: UpdateProjectMemberSubmit,
   ) {
-    return this.projectsService.updateMember(id, userId, submit)
+    return this.projectsService.updateMember(id, userId, submit);
   }
 
   @Delete(':id/members/:userId')
-  removeMember(@Param('id') id: string, @Param('userId') userId: string) {
-    return this.projectsService.removeMember(id, userId)
+  async removeMember(
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+  ) {
+    await this.projectsService.removeMember(id, userId);
+    return { success: true, message: '成员移除成功' };
   }
 
   @Get(':id/settings')
-  getProjectSettings(@Param('id') id: string): Promise<ProjectSettingsResult> {
-    return this.projectsService.getProjectSettings(id)
+  async getSettings(@Param('id') id: string): Promise<ProjectSettingsViewModel> {
+    return this.projectsService.getProjectSettings(id);
   }
 
   @Put(':id/settings')
-  updateProjectSettings(@Param('id') id: string, @Body() data: any) {
-    return this.projectsService.updateProjectSettings(id, data)
+  async updateSettings(
+    @Param('id') id: string,
+    @Body() data: any,
+  ) {
+    return this.projectsService.updateProjectSettings(id, data);
   }
 
-  @Get(':id/workflow')
-  getWorkflow(@Param('id') id: string) {
-    return this.projectsService.getProjectSettings(id).then((settings) => settings?.workflowConfig)
-  }
-
-  @Put(':id/workflow')
-  updateWorkflow(@Param('id') id: string, @Body() workflowConfig: any) {
-    return this.projectsService.updateWorkflow(id, workflowConfig)
+  @Get('users')
+  async getAllUsers(): Promise<UserListItem[]> {
+    return this.projectsService.getAllUsers();
   }
 }

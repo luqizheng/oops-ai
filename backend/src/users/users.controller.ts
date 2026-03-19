@@ -1,25 +1,33 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common'
-import { UsersService } from './users.service'
-import { AuthGuard } from '@nestjs/passport'
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
+import { UsersService } from './users.service';
 import {
   CreateUserSubmit,
   UpdateUserSubmit,
-  UserResult,
+  CreateUserResult,
+  UpdateUserResult,
+  DeleteUserResult,
   UserPaginatedResult,
-} from '@oops-ai/shared'
+  Role
+} from '@oops-ai/shared';
+import { PaginationParams } from '../common/dto/pagination.dto';
 
 @Controller('users')
-@UseGuards(AuthGuard('jwt'))
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
-  create(@Body() submit: CreateUserSubmit): Promise<UserResult> {
-    return this.usersService.create(submit)
-  }
-
   @Get()
-  findAll(
+  async findAll(
     @Query('page') page: string = '1',
     @Query('pageSize') pageSize: string = '10',
     @Query('search') search?: string,
@@ -28,26 +36,39 @@ export class UsersController {
       page: parseInt(page, 10) || 1,
       pageSize: parseInt(pageSize, 10) || 10,
       search,
-    })
+    });
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<UserResult> {
-    return this.usersService.findOne(id)
+  findOne(@Param('id') id: string) {
+    return this.usersService.findById(id);
+  }
+
+  @Post()
+  async create(
+    @Body() submit: CreateUserSubmit,
+    @Request() req,
+  ): Promise<CreateUserResult> {
+    const userId = req.user?.id;
+    return this.usersService.create(userId, submit);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() submit: UpdateUserSubmit): Promise<UserResult> {
-    return this.usersService.update(id, submit)
+  async update(
+    @Param('id') id: string,
+    @Body() submit: UpdateUserSubmit,
+  ): Promise<UpdateUserResult> {
+    return this.usersService.update(id, submit);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string): Promise<void> {
-    return this.usersService.remove(id)
+  async remove(@Param('id') id: string): Promise<DeleteUserResult> {
+    await this.usersService.remove(id);
+    return { success: true, message: '用户删除成功' };
   }
 
-  @Get(':id/projects')
-  getProjects(@Param('id') id: string) {
-    return this.usersService.getProjects(id)
+  @Get('roles/list')
+  findRoles() {
+    return this.usersService.findAllRoles();
   }
 }

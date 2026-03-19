@@ -11,9 +11,7 @@
             @input="handleSearch"
           >
             <template #prefix>
-              <el-icon>
-                <Search />
-              </el-icon>
+              <el-icon><Search /></el-icon>
             </template>
           </el-input>
         </el-form-item>
@@ -32,15 +30,11 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">
-            <el-icon>
-              <Search />
-            </el-icon>
+            <el-icon><Search /></el-icon>
             搜索
           </el-button>
           <el-button @click="handleReset">
-            <el-icon>
-              <Refresh />
-            </el-icon>
+            <el-icon><Refresh /></el-icon>
             重置
           </el-button>
         </el-form-item>
@@ -51,15 +45,11 @@
       <div class="table-header">
         <div class="header-left">
           <h3>项目列表</h3>
-          <el-tag type="info" effect="plain">
-            共 {{ filteredProjects?.length }} 个项目
-          </el-tag>
+          <el-tag type="info" effect="plain"> 共 {{ total }} 个项目 </el-tag>
         </div>
         <div class="header-right">
           <el-button type="primary" @click="handleAdd">
-            <el-icon>
-              <Plus />
-            </el-icon>
+            <el-icon><Plus /></el-icon>
             创建项目
           </el-button>
         </div>
@@ -83,9 +73,7 @@
         <el-table-column prop="name" label="项目名称" min-width="180" sortable>
           <template #default="{ row }">
             <div class="project-name" @click="handleView(row)">
-              <el-icon class="project-icon">
-                <FolderOpened />
-              </el-icon>
+              <el-icon class="project-icon"><FolderOpened /></el-icon>
               <span>{{ row.name }}</span>
             </div>
           </template>
@@ -118,7 +106,6 @@
                   :key="idx"
                   :size="28"
                   class="member-avatar"
-                  :style="{ zIndex: 3 - idx }"
                 >
                   {{ member.user?.name?.charAt(0) || "U" }}
                 </el-avatar>
@@ -258,9 +245,7 @@
 
     <el-dialog v-model="deleteDialogVisible" title="确认删除" width="400px">
       <div class="delete-confirm">
-        <el-icon color="#f56c6c" size="48">
-          <WarningFilled />
-        </el-icon>
+        <el-icon color="#f56c6c" size="48"><WarningFilled /></el-icon>
         <p>
           确定要删除项目 <strong>{{ currentProject?.name }}</strong> 吗？
         </p>
@@ -366,10 +351,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-
-defineOptions({
-  name: "ProjectManagement"
-});
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import {
   getProjects,
@@ -380,12 +361,15 @@ import {
   getProjectMembers,
   addProjectMember,
   removeProjectMember,
-  type Project,
-  type ProjectMember,
-  type CreateProjectDto,
-  type UpdateProjectDto
+  getAllUsers
 } from "@/api/system/project";
-import { getUsers, type User } from "@/api/system/user";
+import type {
+  ProjectListItem,
+  ProjectMemberListItem,
+  CreateProjectSubmit,
+  UpdateProjectSubmit,
+  UserListItem
+} from "@oops-ai/shared";
 import {
   Search,
   Refresh,
@@ -410,17 +394,41 @@ const currentProject = ref<ProjectListItem | null>(null);
 const deleteDialogVisible = ref(false);
 
 const membersDrawerVisible = ref(false);
-const currentProjectMembers = ref<ProjectMemberResult[]>([]);
+const currentProjectMembers = ref<ProjectMemberListItem[]>([]);
 const newMemberId = ref("");
 const newMemberRole = ref("developer");
+const allUsers = ref<UserListItem[]>([]);
 
 const formRef = ref<FormInstance>();
-const formData = ref<CreateProjectSubmit | UpdateProjectSubmit>({
+
+interface CreateProjectForm {
+  name: string;
+  key: string;
+  description: string;
+  status?: string;
+}
+
+interface UpdateProjectForm {
+  name?: string;
+  key?: string;
+  description?: string;
+  status?: string;
+}
+
+const createFormData = (): CreateProjectForm => ({
   name: "",
   key: "",
   description: "",
   status: "active"
 });
+
+const updateFormData = (): UpdateProjectForm => ({
+  name: "",
+  description: "",
+  status: "active"
+});
+
+const formData = ref<CreateProjectForm>(createFormData());
 
 const formRules: FormRules = {
   name: [
@@ -456,16 +464,23 @@ const availableUsers = computed(() => {
   return allUsers.value.filter(user => !memberUserIds.includes(user.id));
 });
 
+const loadAllUsers = async () => {
+  try {
+    const res = await getAllUsers();
+    allUsers.value = res.data;
+  } catch (error: any) {
+    console.error("加载用户列表失败", error);
+  }
+};
+
 const loadData = async () => {
   loading.value = true;
   try {
-    const [projectsRes] = await Promise.all([
-      getProjects({
-        page: currentPage.value,
-        pageSize: pageSize.value,
-        search: searchQuery.value || undefined
-      })
-    ]);
+    const projectsRes = await getProjects({
+      page: currentPage.value,
+      pageSize: pageSize.value,
+      search: searchQuery.value || undefined
+    });
     projects.value = projectsRes.data.data;
     total.value = projectsRes.data.total;
   } catch (error: any) {
@@ -503,23 +518,17 @@ const handleCurrentChange = () => {
 
 const handleAdd = () => {
   dialogMode.value = "add";
-  formData.value = {
-    name: "",
-    key: "",
-    description: "",
-    status: "active"
-  };
+  formData.value = createFormData();
   dialogVisible.value = true;
 };
 
-const handleEdit = (project: Project) => {
+const handleEdit = (project: ProjectListItem) => {
   dialogMode.value = "edit";
   currentProject.value = project;
   formData.value = {
     name: project.name,
-    key: project.key,
     description: project.description || "",
-    status: project.status || "active"
+    status: project.status
   };
   dialogVisible.value = true;
 };
@@ -528,7 +537,7 @@ const handleView = (project: ProjectListItem) => {
   ElMessage.info(`查看项目: ${project.name}`);
 };
 
-const handleDelete = (project: Project) => {
+const handleDelete = (project: ProjectListItem) => {
   currentProject.value = project;
   deleteDialogVisible.value = true;
 };
@@ -541,18 +550,13 @@ const handleSubmit = async () => {
       submitLoading.value = true;
       try {
         if (dialogMode.value === "add") {
-          await createProject(formData.value as CreateProjectDto);
+          await createProject(formData.value as CreateProjectSubmit);
           ElMessage.success("项目创建成功");
         } else {
           if (!currentProject.value) return;
-          const updateData: UpdateProjectDto = {
-            name: formData.value.name,
-            description: formData.value.description,
-            status: formData.value.status
-          };
           await updateProject(
             currentProject.value.id,
-            updateData as UpdateProjectSubmit
+            formData.value as UpdateProjectSubmit
           );
           ElMessage.success("项目更新成功");
         }
@@ -622,7 +626,7 @@ const handleAddMember = async () => {
   }
 };
 
-const handleUpdateMemberRole = async (member: ProjectMember) => {
+const handleUpdateMemberRole = async (member: ProjectMemberResult) => {
   if (!currentProject.value) return;
 
   try {
@@ -632,7 +636,7 @@ const handleUpdateMemberRole = async (member: ProjectMember) => {
   }
 };
 
-const handleRemoveMember = async (member: ProjectMemberResult) => {
+const handleRemoveMember = async (member: ProjectMemberListItem) => {
   if (!currentProject.value) return;
 
   try {
@@ -669,6 +673,10 @@ const getStatusText = (status?: string) => {
 onMounted(() => {
   loadData();
 });
+
+defineOptions({
+  name: "ProjectManagement"
+});
 </script>
 
 <style scoped lang="scss">
@@ -678,7 +686,6 @@ onMounted(() => {
 
 .search-card {
   margin-bottom: 20px;
-
   :deep(.el-card__body) {
     padding-bottom: 0;
   }

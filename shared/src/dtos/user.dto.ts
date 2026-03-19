@@ -1,33 +1,3 @@
-// 用户创建 DTO - 客户端提交
-export interface CreateUserSubmit {
-  email: string;
-  password: string;
-  name?: string;
-  roleId: string;
-}
-
-// 用户更新 DTO - 客户端提交
-export interface UpdateUserSubmit {
-  email?: string;
-  password?: string;
-  name?: string;
-  roleId?: string;
-}
-
-// 用户登录 DTO - 客户端提交
-export interface LoginSubmit {
-  email: string;
-  password: string;
-}
-
-// 用户登录响应 DTO
-export interface LoginResult {
-  id: string;
-  email: string;
-  name?: string;
-  roleId: string;
-}
-
 // 用户列表项 DTO
 export interface UserListItem {
   id: string;
@@ -39,28 +9,49 @@ export interface UserListItem {
   updatedAt: Date | string;
 }
 
-// 用户单个响应 DTO
-export interface UserResult extends UserListItem {}
-
-// 用户分页响应 DTO
-export interface UserPaginatedResult {
-  data: UserListItem[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
+// 用户视图模型 DTO
+export interface UserViewModel {
+  id: string;
+  email: string;
+  name: string | null;
+  roleId: string;
+  role: { name: string };
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }
 
-// 角色创建 DTO - 客户端提交
-export interface CreateRoleSubmit {
-  name: string;
-  description?: string;
+// 创建用户结果 DTO
+export interface CreateUserResult {
+  id: string;
+  email: string;
+  name: string | null;
+  roleId: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }
 
-// 角色更新 DTO - 客户端提交
-export interface UpdateRoleSubmit {
+// 更新用户结果 DTO
+export interface UpdateUserResult {
+  id: string;
+  email: string;
+  name: string | null;
+  roleId: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+// 删除用户结果 DTO
+export interface DeleteUserResult {
+  success: boolean;
+  message?: string;
+}
+
+// 用户登录结果 DTO
+export interface LoginResult {
+  id: string;
+  email: string;
   name?: string;
-  description?: string;
+  roleId: string;
 }
 
 // 角色列表项 DTO
@@ -72,15 +63,14 @@ export interface RoleListItem {
   updatedAt: Date | string;
 }
 
-// 角色单个响应 DTO
-export interface RoleResult extends RoleListItem {}
+// 角色视图模型 DTO
+export interface RoleViewModel extends RoleListItem {}
 
-// 权限创建 DTO - 客户端提交
-export interface CreatePermissionSubmit {
-  name: string;
-  description?: string;
-  roleId: string;
-}
+// 角色创建结果 DTO
+export interface CreateRoleResult extends RoleListItem {}
+
+// 角色更新结果 DTO
+export interface UpdateRoleResult extends RoleListItem {}
 
 // 权限列表项 DTO
 export interface PermissionListItem {
@@ -92,5 +82,5 @@ export interface PermissionListItem {
   updatedAt: Date | string;
 }
 
-// 权限单个响应 DTO
-export interface PermissionResult extends PermissionListItem {}
+// 权限视图模型 DTO
+export interface PermissionViewModel extends PermissionListItem {}

@@ -11,7 +11,9 @@
             @input="handleSearch"
           >
             <template #prefix>
-              <el-icon><Search /></el-icon>
+              <el-icon>
+                <Search />
+              </el-icon>
             </template>
           </el-input>
         </el-form-item>
@@ -33,11 +35,15 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">
-            <el-icon><Search /></el-icon>
+            <el-icon>
+              <Search />
+            </el-icon>
             搜索
           </el-button>
           <el-button @click="handleReset">
-            <el-icon><Refresh /></el-icon>
+            <el-icon>
+              <Refresh />
+            </el-icon>
             重置
           </el-button>
         </el-form-item>
@@ -52,15 +58,17 @@
         </div>
         <div class="header-right">
           <el-button type="primary" @click="handleAdd">
-            <el-icon><Plus /></el-icon>
+            <el-icon>
+              <Plus />
+            </el-icon>
             添加用户
           </el-button>
         </div>
       </div>
-
+      {{ users }}eeeeeeeeeeeeeeeeeeeeeeeee
       <el-table
         v-loading="loading"
-        :data="paginatedUsers"
+        :data="users"
         stripe
         border
         class="user-table"
@@ -198,7 +206,9 @@
 
     <el-dialog v-model="deleteDialogVisible" title="确认删除" width="400px">
       <div class="delete-confirm">
-        <el-icon color="#f56c6c" size="48"><WarningFilled /></el-icon>
+        <el-icon color="#f56c6c" size="48">
+          <WarningFilled />
+        </el-icon>
         <p>
           确定要删除用户 <strong>{{ currentUser?.name }}</strong> 吗？
         </p>
@@ -234,7 +244,7 @@ import {
 } from "@/api/system/user";
 import {
   UserListItem,
-  Role,
+  RoleListItem,
   CreateUserSubmit,
   UpdateUserSubmit
 } from "@oops-ai/shared";
@@ -244,7 +254,7 @@ const loading = ref(false);
 const submitLoading = ref(false);
 const deleteLoading = ref(false);
 const users = ref<UserListItem[]>([]);
-const roles = ref<Role[]>([]);
+const roles = ref<RoleListItem[]>([]);
 const searchQuery = ref("");
 const roleFilter = ref("");
 const currentPage = ref(1);
@@ -257,7 +267,7 @@ const currentUser = ref<UserListItem | null>(null);
 const deleteDialogVisible = ref(false);
 
 const formRef = ref<FormInstance>();
-const formData = ref<CreateUserDto | UpdateUserDto>({
+const formData = ref<CreateUserSubmit | UpdateUserSubmit>({
   name: "",
   email: "",
   password: "",
@@ -282,6 +292,7 @@ const formRules: FormRules = {
 
 const loadData = async () => {
   loading.value = true;
+
   try {
     const [usersRes, rolesRes] = await Promise.all([
       getUsers({
@@ -291,9 +302,10 @@ const loadData = async () => {
       }),
       getRoles()
     ]);
-    users.value = usersRes.data.data;
-    total.value = usersRes.data.total;
-    roles.value = rolesRes.data;
+
+    users.value = usersRes.data;
+    total.value = usersRes.total;
+    roles.value = rolesRes;
   } catch (error: any) {
     ElMessage.error(error.message || "加载数据失败");
   } finally {
@@ -438,6 +450,7 @@ onMounted(() => {
 
 .search-card {
   margin-bottom: 20px;
+
   :deep(.el-card__body) {
     padding-bottom: 0;
   }

@@ -1,17 +1,3 @@
-// 项目创建 DTO - 客户端提交
-export interface CreateProjectSubmit {
-  name: string;
-  description?: string;
-  key: string;
-}
-
-// 项目更新 DTO - 客户端提交
-export interface UpdateProjectSubmit {
-  name?: string;
-  description?: string;
-  status?: string;
-}
-
 // 项目列表项 DTO
 export interface ProjectListItem {
   id: string;
@@ -24,32 +10,44 @@ export interface ProjectListItem {
   ownerId?: string;
 }
 
-// 项目单个响应 DTO
-export interface ProjectResult extends ProjectListItem {
+// 项目视图模型 DTO
+export interface ProjectViewModel {
+  id: string;
+  name: string;
+  description?: string;
+  key: string;
+  status?: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  ownerId?: string;
   members?: ProjectMemberListItem[];
-  projectSettings?: ProjectSettingsResult;
+  projectSettings?: ProjectSettingsViewModel;
 }
 
-// 项目分页响应 DTO
-export interface ProjectPaginatedResult {
-  data: ProjectListItem[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
+// 创建项目结果 DTO
+export interface CreateProjectResult {
+  id: string;
+  name: string;
+  description?: string;
+  key: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }
 
-// 项目成员添加 DTO - 客户端提交
-export interface AddProjectMemberSubmit {
-  userId: string;
-  role: string;
-  permissions?: any;
+// 更新项目结果 DTO
+export interface UpdateProjectResult {
+  id: string;
+  name: string;
+  description?: string;
+  status?: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }
 
-// 项目成员更新 DTO - 客户端提交
-export interface UpdateProjectMemberSubmit {
-  role?: string;
-  permissions?: any;
+// 删除项目结果 DTO
+export interface DeleteProjectResult {
+  success: boolean;
+  message?: string;
 }
 
 // 项目成员列表项 DTO
@@ -66,20 +64,29 @@ export interface ProjectMemberListItem {
   joinedAt: Date | string;
 }
 
-// 项目成员单个响应 DTO
-export interface ProjectMemberResult extends ProjectMemberListItem {}
+// 项目成员视图模型 DTO
+export interface ProjectMemberViewModel extends ProjectMemberListItem {}
 
-// 项目设置更新 DTO - 客户端提交
-export interface UpdateProjectSettingsSubmit {
-  workflowConfig?: any;
-  notificationConfig?: any;
+// 添加项目成员结果 DTO
+export interface AddProjectMemberResult extends ProjectMemberListItem {}
+
+// 更新项目成员结果 DTO
+export interface UpdateProjectMemberResult {
+  projectId: string;
+  userId: string;
+  role: string;
+  permissions?: any;
+  joinedAt: Date | string;
 }
 
-// 项目设置响应 DTO
-export interface ProjectSettingsResult {
+// 项目设置视图模型 DTO
+export interface ProjectSettingsViewModel {
   projectId: string;
   workflowConfig?: any;
   notificationConfig?: any;
-  createdAt: Date | string;
-  updatedAt: Date | string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }
+
+// 更新项目设置结果 DTO
+export interface UpdateProjectSettingsResult extends ProjectSettingsViewModel {}
