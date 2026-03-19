@@ -3,7 +3,13 @@
     <el-card shadow="never" class="search-card">
       <el-form inline @submit.prevent>
         <el-form-item label="关键词搜索">
-          <el-input v-model="searchQuery" placeholder="搜索项目名称或描述" clearable class="search-input" @input="handleSearch">
+          <el-input
+            v-model="searchQuery"
+            placeholder="搜索项目名称或描述"
+            clearable
+            class="search-input"
+            @input="handleSearch"
+          >
             <template #prefix>
               <el-icon>
                 <Search />
@@ -12,7 +18,12 @@
           </el-input>
         </el-form-item>
         <el-form-item label="状态筛选">
-          <el-select v-model="statusFilter" placeholder="选择状态" clearable @change="handleFilterChange">
+          <el-select
+            v-model="statusFilter"
+            placeholder="选择状态"
+            clearable
+            @change="handleFilterChange"
+          >
             <el-option label="全部" value="" />
             <el-option label="进行中" value="active" />
             <el-option label="已暂停" value="paused" />
@@ -52,7 +63,13 @@
         </div>
       </div>
 
-      <el-table v-loading="loading" :data="projects" stripe border class="project-table">
+      <el-table
+        v-loading="loading"
+        :data="projects"
+        stripe
+        border
+        class="project-table"
+      >
         <el-table-column type="selection" width="50" />
         <el-table-column prop="key" label="项目标识" width="100">
           <template #default="{ row }">
@@ -94,10 +111,20 @@
           <template #default="{ row }">
             <div class="members-preview">
               <template v-if="row.members && row.members.length > 0">
-                <el-avatar v-for="(member, idx) in row.members.slice(0, 3)" :key="idx" :size="28" class="member-avatar">
+                <el-avatar
+                  v-for="(member, idx) in row.members.slice(0, 3)"
+                  :key="idx"
+                  :size="28"
+                  class="member-avatar"
+                >
                   {{ member.user?.name?.charAt(0) || "U" }}
                 </el-avatar>
-                <el-tag v-if="row.members.length > 3" type="info" size="small" class="more-members">
+                <el-tag
+                  v-if="row.members.length > 3"
+                  type="info"
+                  size="small"
+                  class="more-members"
+                >
                   +{{ row.members.length - 3 }}
                 </el-tag>
               </template>
@@ -107,16 +134,36 @@
         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" size="small" link @click="handleView(row)">
+            <el-button
+              type="primary"
+              size="small"
+              link
+              @click="handleView(row)"
+            >
               查看
             </el-button>
-            <el-button type="success" size="small" link @click="handleManageMembers(row)">
+            <el-button
+              type="success"
+              size="small"
+              link
+              @click="handleManageMembers(row)"
+            >
               成员
             </el-button>
-            <el-button type="warning" size="small" link @click="handleEdit(row)">
+            <el-button
+              type="warning"
+              size="small"
+              link
+              @click="handleEdit(row)"
+            >
               编辑
             </el-button>
-            <el-button type="danger" size="small" link @click="handleDelete(row)">
+            <el-button
+              type="danger"
+              size="small"
+              link
+              @click="handleDelete(row)"
+            >
               删除
             </el-button>
           </template>
@@ -124,31 +171,70 @@
       </el-table>
 
       <div class="pagination-wrapper">
-        <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 20, 50, 100]"
-          :total="total" layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange"
-          @current-change="handleCurrentChange" />
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          :total="total"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
       </div>
     </el-card>
 
-    <el-dialog v-model="dialogVisible" :title="dialogMode === 'add' ? '创建项目' : '编辑项目'" width="600px"
-      @close="handleDialogClose">
-      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
+    <el-dialog
+      v-model="dialogVisible"
+      :title="dialogMode === 'add' ? '创建项目' : '编辑项目'"
+      width="600px"
+      @close="handleDialogClose"
+    >
+      <el-form
+        ref="formRef"
+        :model="formData"
+        :rules="formRules"
+        label-width="100px"
+      >
         <el-form-item label="项目名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入项目名称" maxlength="100" show-word-limit />
+          <el-input
+            v-model="formData.name"
+            placeholder="请输入项目名称"
+            maxlength="100"
+            show-word-limit
+          />
         </el-form-item>
         <el-form-item label="项目标识" prop="key">
-          <el-input v-model="formData.key" placeholder="请输入项目标识（如：PROJ）" maxlength="20" show-word-limit
-            :disabled="dialogMode === 'edit'" />
+          <el-input
+            v-model="formData.key"
+            placeholder="请输入项目标识（如：PROJ）"
+            maxlength="20"
+            show-word-limit
+            :disabled="dialogMode === 'edit'"
+          />
           <div class="form-tip">
             项目标识用于在系统中唯一标识项目，建议使用简短的英文缩写
           </div>
         </el-form-item>
         <el-form-item label="项目描述" prop="description">
-          <el-input v-model="formData.description" type="textarea" :rows="4" placeholder="请输入项目描述" maxlength="500"
-            show-word-limit />
+          <el-input
+            v-model="formData.description"
+            type="textarea"
+            :rows="4"
+            placeholder="请输入项目描述"
+            maxlength="500"
+            show-word-limit
+          />
         </el-form-item>
-        <el-form-item v-if="dialogMode === 'edit'" label="项目状态" prop="status">
-          <el-select v-model="formData.status" placeholder="选择项目状态" style="width: 100%">
+        <el-form-item
+          v-if="dialogMode === 'edit'"
+          label="项目状态"
+          prop="status"
+        >
+          <el-select
+            v-model="formData.status"
+            placeholder="选择项目状态"
+            style="width: 100%"
+          >
             <el-option label="进行中" value="active" />
             <el-option label="已暂停" value="paused" />
             <el-option label="已完成" value="completed" />
@@ -157,7 +243,11 @@
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">
+        <el-button
+          type="primary"
+          :loading="submitLoading"
+          @click="handleSubmit"
+        >
           确定
         </el-button>
       </template>
@@ -177,20 +267,41 @@
       </div>
       <template #footer>
         <el-button @click="deleteDialogVisible = false">取消</el-button>
-        <el-button type="danger" :loading="deleteLoading" @click="confirmDelete">
+        <el-button
+          type="danger"
+          :loading="deleteLoading"
+          @click="confirmDelete"
+        >
           删除
         </el-button>
       </template>
     </el-dialog>
 
-    <el-drawer v-model="membersDrawerVisible" :title="`成员管理 - ${currentProject?.name}`" size="500px">
+    <el-drawer
+      v-model="membersDrawerVisible"
+      :title="`成员管理 - ${currentProject?.name}`"
+      size="500px"
+    >
       <div class="members-management">
         <div class="add-member">
-          <el-select v-model="newMemberId" placeholder="选择用户" filterable style="flex: 1">
-            <el-option v-for="user in availableUsers" :key="user.id" :label="`${user.name || '未命名'} (${user.email})`"
-              :value="user.id" />
+          <el-select
+            v-model="newMemberId"
+            placeholder="选择用户"
+            filterable
+            style="flex: 1"
+          >
+            <el-option
+              v-for="user in availableUsers"
+              :key="user.id"
+              :label="`${user.name || '未命名'} (${user.email})`"
+              :value="user.id"
+            />
           </el-select>
-          <el-select v-model="newMemberRole" placeholder="选择角色" style="width: 120px">
+          <el-select
+            v-model="newMemberRole"
+            placeholder="选择角色"
+            style="width: 120px"
+          >
             <el-option label="管理员" value="admin" />
             <el-option label="开发者" value="developer" />
             <el-option label="观察者" value="viewer" />
@@ -202,9 +313,16 @@
 
         <div class="members-list">
           <h4>项目成员 ({{ currentProjectMembers.length }})</h4>
-          <el-empty v-if="currentProjectMembers.length === 0" description="暂无成员" />
-          <div v-for="member in currentProjectMembers" v-else :key="member.userId + '-' + member.projectId"
-            class="member-item">
+          <el-empty
+            v-if="currentProjectMembers.length === 0"
+            description="暂无成员"
+          />
+          <div
+            v-for="member in currentProjectMembers"
+            v-else
+            :key="member.userId + '-' + member.projectId"
+            class="member-item"
+          >
             <div class="member-info">
               <el-avatar :size="40">
                 {{ member.user?.name?.charAt(0) || "U" }}
@@ -217,13 +335,22 @@
               </div>
             </div>
             <div class="member-actions">
-              <el-select v-model="member.role" size="small" style="width: 100px"
-                @change="handleUpdateMemberRole(member)">
+              <el-select
+                v-model="member.role"
+                size="small"
+                style="width: 100px"
+                @change="handleUpdateMemberRole(member)"
+              >
                 <el-option label="管理员" value="admin" />
                 <el-option label="开发者" value="developer" />
                 <el-option label="观察者" value="viewer" />
               </el-select>
-              <el-button type="danger" size="small" link @click="handleRemoveMember(member)">
+              <el-button
+                type="danger"
+                size="small"
+                link
+                @click="handleRemoveMember(member)"
+              >
                 移除
               </el-button>
             </div>
@@ -354,7 +481,7 @@ const availableUsers = computed(() => {
 const loadAllUsers = async () => {
   try {
     const res = await getAllUsers();
-    allUsers.value = res.data;
+    allUsers.value = res;
   } catch (error: any) {
     console.error("加载用户列表失败", error);
   }
@@ -414,6 +541,7 @@ const handleEdit = (project: ProjectListItem) => {
   currentProject.value = project;
   formData.value = {
     name: project.name,
+    key: project.key,
     description: project.description || "",
     status: project.status
   };
@@ -487,7 +615,7 @@ const handleManageMembers = async (project: ProjectListItem) => {
 const loadProjectMembers = async (projectId: string) => {
   try {
     const res = await getProjectMembers(projectId);
-    currentProjectMembers.value = res.data;
+    currentProjectMembers.value = res;
   } catch (error: any) {
     ElMessage.error(error.message || "加载成员失败");
   }
@@ -591,15 +719,15 @@ defineOptions({
 
 .table-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   padding: 16px 20px;
   border-bottom: 1px solid var(--el-border-color-lighter);
 
   .header-left {
     display: flex;
-    align-items: center;
     gap: 12px;
+    align-items: center;
 
     h3 {
       margin: 0;
@@ -612,9 +740,9 @@ defineOptions({
 .project-table {
   :deep(.el-table__header) {
     th {
-      background-color: var(--el-fill-color-light);
-      color: var(--el-text-color-primary);
       font-weight: 600;
+      color: var(--el-text-color-primary);
+      background-color: var(--el-fill-color-light);
     }
   }
 }
@@ -627,11 +755,11 @@ defineOptions({
 
 .project-name {
   display: flex;
-  align-items: center;
   gap: 8px;
-  cursor: pointer;
-  color: var(--el-color-primary);
+  align-items: center;
   font-weight: 500;
+  color: var(--el-color-primary);
+  cursor: pointer;
 
   .project-icon {
     font-size: 18px;
@@ -643,20 +771,20 @@ defineOptions({
 }
 
 .project-description {
-  color: var(--el-text-color-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--el-text-color-secondary);
   white-space: nowrap;
 }
 
 .members-preview {
   display: flex;
-  align-items: center;
   gap: 4px;
+  align-items: center;
 
   .member-avatar {
-    border: 2px solid white;
     margin-left: -8px;
+    border: 2px solid white;
 
     &:first-child {
       margin-left: 0;
@@ -668,8 +796,8 @@ defineOptions({
   }
 
   .no-members {
-    color: var(--el-text-color-secondary);
     font-size: 12px;
+    color: var(--el-text-color-secondary);
   }
 }
 
@@ -684,8 +812,8 @@ defineOptions({
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
   padding: 20px 0;
+  text-align: center;
 
   p {
     margin: 16px 0 0;
@@ -694,15 +822,15 @@ defineOptions({
   }
 
   .warning-text {
-    color: var(--el-text-color-secondary);
     font-size: 12px;
+    color: var(--el-text-color-secondary);
   }
 }
 
 .form-tip {
+  margin-top: 4px;
   font-size: 12px;
   color: var(--el-text-color-secondary);
-  margin-top: 4px;
 }
 
 .members-management {
@@ -718,15 +846,15 @@ defineOptions({
     padding: 16px;
 
     h4 {
-      margin: 0 0 16px 0;
+      margin: 0 0 16px;
       font-size: 14px;
       color: var(--el-text-color-primary);
     }
 
     .member-item {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
       padding: 12px;
       border-bottom: 1px solid var(--el-border-color-lighter);
 
@@ -736,8 +864,8 @@ defineOptions({
 
       .member-info {
         display: flex;
-        align-items: center;
         gap: 12px;
+        align-items: center;
 
         .member-details {
           display: flex;
@@ -758,14 +886,14 @@ defineOptions({
 
       .member-actions {
         display: flex;
-        align-items: center;
         gap: 12px;
+        align-items: center;
       }
     }
   }
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .search-card {
     :deep(.el-form) {
       display: flex;
@@ -783,8 +911,8 @@ defineOptions({
 
   .table-header {
     flex-direction: column;
-    align-items: flex-start;
     gap: 12px;
+    align-items: flex-start;
   }
 
   .project-table {

@@ -22,8 +22,14 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import type { AcceptanceCriteriaStatus } from "@oops-ai/shared/src/models/requirement";
-import { acceptanceCriteriaStatusMap } from "../utils/enumMapping";
+import { acceptanceCriteriaStatusMap } from "../../utils/enumMapping";
 
+type AcceptanceCriteriaStatusTagType =
+  | "primary"
+  | "success"
+  | "info"
+  | "warning"
+  | "danger";
 interface Props {
   modelValue: AcceptanceCriteriaStatus;
   edit?: boolean;
@@ -56,13 +62,18 @@ const handleChange = (value: AcceptanceCriteriaStatus) => {
   emit("update:modelValue", value);
 };
 
-const getStatusTagType = (status: AcceptanceCriteriaStatus): string => {
-  const typeMap: Record<AcceptanceCriteriaStatus, string> = {
+const getStatusTagType = (
+  status: AcceptanceCriteriaStatus
+): AcceptanceCriteriaStatusTagType => {
+  const typeMap: Record<
+    AcceptanceCriteriaStatus,
+    AcceptanceCriteriaStatusTagType
+  > = {
     NOT_TESTED: "info",
     PASS: "success",
     FAIL: "danger",
     BLOCKED: "warning",
-    IN_PROGRESS: "processing"
+    IN_PROGRESS: "primary"
   };
   return typeMap[status] || "info";
 };

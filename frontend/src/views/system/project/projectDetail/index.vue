@@ -2,40 +2,11 @@
   <div class="project-detail">
     <el-row :gutter="20">
       <el-col :span="24">
-        <el-card shadow="never" class="project-header-card">
-          <div class="project-header">
-            <div class="project-info">
-              <div class="project-title">
-                <el-icon size="32" color="var(--el-color-primary)">
-                  <FolderOpened />
-                </el-icon>
-                <div class="title-content">
-                  <h1>{{ project?.name || '加载中...' }}</h1>
-                  <div class="project-meta">
-                    <el-tag type="primary" effect="plain">{{ project?.key }}</el-tag>
-                    <el-tag :type="getStatusType(project?.status)" effect="light">
-                      {{ getStatusText(project?.status) }}
-                    </el-tag>
-                    <span class="meta-text">创建于 {{ formatDate(project?.createdAt) }}</span>
-                  </div>
-                </div>
-              </div>
-              <p class="project-description">
-                {{ project?.description || '暂无项目描述' }}
-              </p>
-            </div>
-            <div class="project-actions">
-              <el-button type="primary" @click="handleEdit">
-                <el-icon><Edit /></el-icon>
-                编辑项目
-              </el-button>
-              <el-button @click="handleBack">
-                <el-icon><Back /></el-icon>
-                返回列表
-              </el-button>
-            </div>
-          </div>
-        </el-card>
+        <ProjectHeaderCard
+          :project="project"
+          @edit="handleEdit"
+          @back="handleBack"
+        />
       </el-col>
     </el-row>
 
@@ -43,8 +14,15 @@
       <el-col :xs="24" :sm="12" :md="6">
         <el-card shadow="never" class="stat-card">
           <div class="stat-content">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-              <el-icon size="24"><Document /></el-icon>
+            <div
+              class="stat-icon"
+              style="
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              "
+            >
+              <el-icon size="24">
+                <Document />
+              </el-icon>
             </div>
             <div class="stat-info">
               <span class="stat-value">{{ statistics.totalRequirements }}</span>
@@ -56,8 +34,15 @@
       <el-col :xs="24" :sm="12" :md="6">
         <el-card shadow="never" class="stat-card">
           <div class="stat-content">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-              <el-icon size="24"><ChatLineSquare /></el-icon>
+            <div
+              class="stat-icon"
+              style="
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+              "
+            >
+              <el-icon size="24">
+                <ChatLineSquare />
+              </el-icon>
             </div>
             <div class="stat-info">
               <span class="stat-value">{{ statistics.totalStories }}</span>
@@ -69,8 +54,15 @@
       <el-col :xs="24" :sm="12" :md="6">
         <el-card shadow="never" class="stat-card">
           <div class="stat-content">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-              <el-icon size="24"><Clock /></el-icon>
+            <div
+              class="stat-icon"
+              style="
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+              "
+            >
+              <el-icon size="24">
+                <Clock />
+              </el-icon>
             </div>
             <div class="stat-info">
               <span class="stat-value">{{ statistics.pendingApprovals }}</span>
@@ -82,11 +74,20 @@
       <el-col :xs="24" :sm="12" :md="6">
         <el-card shadow="never" class="stat-card">
           <div class="stat-content">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-              <el-icon size="24"><CircleCheck /></el-icon>
+            <div
+              class="stat-icon"
+              style="
+                background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+              "
+            >
+              <el-icon size="24">
+                <CircleCheck />
+              </el-icon>
             </div>
             <div class="stat-info">
-              <span class="stat-value">{{ statistics.completedRequirements }}</span>
+              <span class="stat-value">{{
+                statistics.completedRequirements
+              }}</span>
               <span class="stat-label">已完成</span>
             </div>
           </div>
@@ -99,141 +100,13 @@
         <el-card shadow="never" class="tabs-card">
           <el-tabs v-model="activeTab" class="project-tabs">
             <el-tab-pane label="需求管理" name="requirements">
-              <div class="tab-toolbar">
-                <div class="toolbar-left">
-                  <el-input
-                    v-model="requirementSearch"
-                    placeholder="搜索需求标题"
-                    clearable
-                    style="width: 280px"
-                    @input="handleRequirementSearch"
-                  >
-                    <template #prefix>
-                      <el-icon><Search /></el-icon>
-                    </template>
-                  </el-input>
-                  <el-select
-                    v-model="requirementStatusFilter"
-                    placeholder="状态筛选"
-                    clearable
-                    style="width: 150px"
-                    @change="loadRequirements"
-                  >
-                    <el-option label="全部" value="" />
-                    <el-option label="草稿" value="DRAFT" />
-                    <el-option label="已提交" value="SUBMITTED" />
-                    <el-option label="审核中" value="REVIEWING" />
-                    <el-option label="已批准" value="APPROVED" />
-                    <el-option label="已拒绝" value="REJECTED" />
-                    <el-option label="实施中" value="IMPLEMENTING" />
-                    <el-option label="测试中" value="TESTING" />
-                    <el-option label="已完成" value="COMPLETED" />
-                    <el-option label="已取消" value="CANCELED" />
-                  </el-select>
-                  <el-select
-                    v-model="requirementPriorityFilter"
-                    placeholder="优先级筛选"
-                    clearable
-                    style="width: 150px"
-                    @change="loadRequirements"
-                  >
-                    <el-option label="全部" value="" />
-                    <el-option label="低" value="LOW" />
-                    <el-option label="中" value="MEDIUM" />
-                    <el-option label="高" value="HIGH" />
-                    <el-option label="紧急" value="URGENT" />
-                  </el-select>
-                </div>
-                <div class="toolbar-right">
-                  <el-button type="primary" @click="handleCreateRequirement">
-                    <el-icon><Plus /></el-icon>
-                    创建需求
-                  </el-button>
-                </div>
-              </div>
-
-              <el-table
-                v-loading="requirementsLoading"
-                :data="requirements"
-                stripe
-                border
-                class="data-table"
-              >
-                <el-table-column prop="title" label="需求标题" min-width="200" sortable>
-                  <template #default="{ row }">
-                    <div class="requirement-title" @click="handleViewRequirement(row)">
-                      <el-icon class="title-icon"><Document /></el-icon>
-                      <span>{{ row.title }}</span>
-                    </div>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="type" label="类型" width="120">
-                  <template #default="{ row }">
-                    <el-tag :type="getRequirementTypeTag(row.type)" size="small">
-                      {{ getRequirementTypeText(row.type) }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="priority" label="优先级" width="100">
-                  <template #default="{ row }">
-                    <el-tag :type="getPriorityType(row.priority)" size="small">
-                      {{ getPriorityText(row.priority) }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="status" label="状态" width="120">
-                  <template #default="{ row }">
-                    <el-tag :type="getRequirementStatusType(row.status)" effect="light" round>
-                      {{ getRequirementStatusText(row.status) }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="storyPoints" label="故事点" width="80" align="center">
-                  <template #default="{ row }">
-                    <span v-if="row.storyPoints">{{ row.storyPoints }}</span>
-                    <span v-else class="text-muted">-</span>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="assignee" label="负责人" width="120">
-                  <template #default="{ row }">
-                    <div v-if="row.assignee" class="assignee-info">
-                      <el-avatar :size="24">{{ row.assignee.name?.charAt(0) || 'U' }}</el-avatar>
-                      <span>{{ row.assignee.name || '未分配' }}</span>
-                    </div>
-                    <span v-else class="text-muted">未分配</span>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="createdAt" label="创建时间" width="160" sortable>
-                  <template #default="{ row }">
-                    {{ formatDate(row.createdAt) }}
-                  </template>
-                </el-table-column>
-                <el-table-column label="操作" width="150" fixed="right">
-                  <template #default="{ row }">
-                    <el-button type="primary" size="small" link @click="handleViewRequirement(row)">
-                      查看
-                    </el-button>
-                    <el-button type="success" size="small" link @click="handleGenerateStories(row)">
-                      生成故事
-                    </el-button>
-                    <el-button type="warning" size="small" link @click="handleEditRequirement(row)">
-                      编辑
-                    </el-button>
-                  </template>
-                </el-table-column>
-              </el-table>
-
-              <div class="pagination-wrapper">
-                <el-pagination
-                  v-model:current-page="requirementPage"
-                  v-model:page-size="requirementPageSize"
-                  :page-sizes="[10, 20, 50, 100]"
-                  :total="requirementTotal"
-                  layout="total, sizes, prev, pager, next, jumper"
-                  @size-change="handleRequirementSizeChange"
-                  @current-change="handleRequirementPageChange"
-                />
-              </div>
+              <RequirementList
+                :project-id="projectId"
+                @view="handleViewRequirement"
+                @edit="handleEditRequirement"
+                @create="handleCreateRequirement"
+                @generate-stories="handleGenerateStories"
+              />
             </el-tab-pane>
 
             <el-tab-pane label="用户故事" name="stories">
@@ -247,13 +120,17 @@
                     @input="handleStorySearch"
                   >
                     <template #prefix>
-                      <el-icon><Search /></el-icon>
+                      <el-icon>
+                        <Search />
+                      </el-icon>
                     </template>
                   </el-input>
                 </div>
                 <div class="toolbar-right">
                   <el-button type="primary" @click="handleCreateStory">
-                    <el-icon><Plus /></el-icon>
+                    <el-icon>
+                      <Plus />
+                    </el-icon>
                     创建故事
                   </el-button>
                 </div>
@@ -276,15 +153,23 @@
                           </template>
                           <div class="story-content">{{ row.role }}</div>
                         </el-card>
-                        <el-icon size="20"><ArrowRight /></el-icon>
+                        <el-icon size="20">
+                          <ArrowRight />
+                        </el-icon>
                         <el-card shadow="never" class="story-card">
                           <template #header>
                             <span class="card-title">I want...</span>
                           </template>
                           <div class="story-content">{{ row.want }}</div>
                         </el-card>
-                        <el-icon v-if="row.soThat" size="20"><ArrowRight /></el-icon>
-                        <el-card v-if="row.soThat" shadow="never" class="story-card">
+                        <el-icon v-if="row.soThat" size="20">
+                          <ArrowRight />
+                        </el-icon>
+                        <el-card
+                          v-if="row.soThat"
+                          shadow="never"
+                          class="story-card"
+                        >
                           <template #header>
                             <span class="card-title">So that...</span>
                           </template>
@@ -303,10 +188,16 @@
                     <span class="story-id">{{ row.id.slice(0, 8) }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="requirement" label="关联需求" min-width="180">
+                <el-table-column
+                  prop="requirement"
+                  label="关联需求"
+                  min-width="180"
+                >
                   <template #default="{ row }">
                     <div v-if="row.requirement" class="requirement-link">
-                      <el-icon><Link /></el-icon>
+                      <el-icon>
+                        <Link />
+                      </el-icon>
                       <span @click="handleViewRequirement(row.requirement)">
                         {{ row.requirement.title }}
                       </span>
@@ -314,9 +205,16 @@
                     <span v-else class="text-muted">未关联</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="storyPoints" label="故事点" width="80" align="center">
+                <el-table-column
+                  prop="storyPoints"
+                  label="故事点"
+                  width="80"
+                  align="center"
+                >
                   <template #default="{ row }">
-                    <el-tag v-if="row.storyPoints" type="primary">{{ row.storyPoints }}</el-tag>
+                    <el-tag v-if="row.storyPoints" type="primary">{{
+                      row.storyPoints
+                    }}</el-tag>
                     <span v-else class="text-muted">-</span>
                   </template>
                 </el-table-column>
@@ -327,10 +225,20 @@
                 </el-table-column>
                 <el-table-column label="操作" width="120" fixed="right">
                   <template #default="{ row }">
-                    <el-button type="primary" size="small" link @click="handleEditStory(row)">
+                    <el-button
+                      type="primary"
+                      size="small"
+                      link
+                      @click="handleEditStory(row)"
+                    >
                       编辑
                     </el-button>
-                    <el-button type="danger" size="small" link @click="handleDeleteStory(row)">
+                    <el-button
+                      type="danger"
+                      size="small"
+                      link
+                      @click="handleDeleteStory(row)"
+                    >
                       删除
                     </el-button>
                   </template>
@@ -381,7 +289,9 @@
                 </div>
                 <div class="toolbar-right">
                   <el-button type="primary" @click="handleCreateApproval">
-                    <el-icon><Plus /></el-icon>
+                    <el-icon>
+                      <Plus />
+                    </el-icon>
                     创建审批
                   </el-button>
                 </div>
@@ -397,19 +307,25 @@
                   </el-col>
                   <el-col :span="6">
                     <div class="approval-stat-card approved">
-                      <div class="stat-number">{{ approvalStats.approved }}</div>
+                      <div class="stat-number">
+                        {{ approvalStats.approved }}
+                      </div>
                       <div class="stat-text">已批准</div>
                     </div>
                   </el-col>
                   <el-col :span="6">
                     <div class="approval-stat-card rejected">
-                      <div class="stat-number">{{ approvalStats.rejected }}</div>
+                      <div class="stat-number">
+                        {{ approvalStats.rejected }}
+                      </div>
                       <div class="stat-text">已拒绝</div>
                     </div>
                   </el-col>
                   <el-col :span="6">
                     <div class="approval-stat-card conditional">
-                      <div class="stat-number">{{ approvalStats.conditional }}</div>
+                      <div class="stat-number">
+                        {{ approvalStats.conditional }}
+                      </div>
                       <div class="stat-text">有条件批准</div>
                     </div>
                   </el-col>
@@ -423,15 +339,27 @@
                 border
                 class="data-table"
               >
-                <el-table-column prop="signoffType" label="审批类型" width="120">
+                <el-table-column
+                  prop="signoffType"
+                  label="审批类型"
+                  width="120"
+                >
                   <template #default="{ row }">
-                    <el-tag type="primary">{{ getApprovalTypeText(row.signoffType) }}</el-tag>
+                    <el-tag type="primary">{{
+                      getApprovalTypeText(row.signoffType)
+                    }}</el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column prop="requirement" label="关联需求" min-width="180">
+                <el-table-column
+                  prop="requirement"
+                  label="关联需求"
+                  min-width="180"
+                >
                   <template #default="{ row }">
                     <div v-if="row.requirement" class="requirement-link">
-                      <el-icon><Link /></el-icon>
+                      <el-icon>
+                        <Link />
+                      </el-icon>
                       <span @click="handleViewRequirement(row.requirement)">
                         {{ row.requirement.title }}
                       </span>
@@ -439,9 +367,17 @@
                     <span v-else class="text-muted">未关联</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="signoffStatus" label="审批状态" width="120">
+                <el-table-column
+                  prop="signoffStatus"
+                  label="审批状态"
+                  width="120"
+                >
                   <template #default="{ row }">
-                    <el-tag :type="getApprovalStatusType(row.signoffStatus)" effect="light" round>
+                    <el-tag
+                      :type="getApprovalStatusType(row.signoffStatus)"
+                      effect="light"
+                      round
+                    >
                       {{ getApprovalStatusText(row.signoffStatus) }}
                     </el-tag>
                   </template>
@@ -449,20 +385,22 @@
                 <el-table-column prop="signedBy" label="审批人" width="120">
                   <template #default="{ row }">
                     <div v-if="row.signedBy" class="signer-info">
-                      <el-avatar :size="24">{{ row.signedBy.name?.charAt(0) || 'U' }}</el-avatar>
-                      <span>{{ row.signedBy.name || '未知' }}</span>
+                      <el-avatar :size="24">{{
+                        row.signedBy.name?.charAt(0) || "U"
+                      }}</el-avatar>
+                      <span>{{ row.signedBy.name || "未知" }}</span>
                     </div>
                     <span v-else class="text-muted">待审批</span>
                   </template>
                 </el-table-column>
                 <el-table-column prop="signedAt" label="审批时间" width="160">
                   <template #default="{ row }">
-                    {{ row.signedAt ? formatDate(row.signedAt) : '-' }}
+                    {{ row.signedAt ? formatDate(row.signedAt) : "-" }}
                   </template>
                 </el-table-column>
                 <el-table-column prop="milestone" label="里程碑" width="120">
                   <template #default="{ row }">
-                    {{ row.milestone || '-' }}
+                    {{ row.milestone || "-" }}
                   </template>
                 </el-table-column>
                 <el-table-column label="操作" width="150" fixed="right">
@@ -485,7 +423,12 @@
                     >
                       拒绝
                     </el-button>
-                    <el-button type="primary" size="small" link @click="handleViewApproval(row)">
+                    <el-button
+                      type="primary"
+                      size="small"
+                      link
+                      @click="handleViewApproval(row)"
+                    >
                       查看
                     </el-button>
                   </template>
@@ -516,7 +459,9 @@
                     @input="handleMemberSearch"
                   >
                     <template #prefix>
-                      <el-icon><Search /></el-icon>
+                      <el-icon>
+                        <Search />
+                      </el-icon>
                     </template>
                   </el-input>
                   <el-select
@@ -534,7 +479,9 @@
                 </div>
                 <div class="toolbar-right">
                   <el-button type="primary" @click="handleAddMember">
-                    <el-icon><Plus /></el-icon>
+                    <el-icon>
+                      <Plus />
+                    </el-icon>
                     添加成员
                   </el-button>
                 </div>
@@ -550,9 +497,13 @@
                 <el-table-column prop="user" label="成员" min-width="200">
                   <template #default="{ row }">
                     <div class="member-info">
-                      <el-avatar :size="40">{{ row.user?.name?.charAt(0) || 'U' }}</el-avatar>
+                      <el-avatar :size="40">{{
+                        row.user?.name?.charAt(0) || "U"
+                      }}</el-avatar>
                       <div class="member-details">
-                        <span class="member-name">{{ row.user?.name || '未命名用户' }}</span>
+                        <span class="member-name">{{
+                          row.user?.name || "未命名用户"
+                        }}</span>
                         <span class="member-email">{{ row.user?.email }}</span>
                       </div>
                     </div>
@@ -560,7 +511,11 @@
                 </el-table-column>
                 <el-table-column prop="role" label="角色" width="120">
                   <template #default="{ row }">
-                    <el-tag :type="getMemberRoleType(row.role)" effect="light" round>
+                    <el-tag
+                      :type="getMemberRoleType(row.role)"
+                      effect="light"
+                      round
+                    >
                       {{ getMemberRoleText(row.role) }}
                     </el-tag>
                   </template>
@@ -572,10 +527,20 @@
                 </el-table-column>
                 <el-table-column label="操作" width="180" fixed="right">
                   <template #default="{ row }">
-                    <el-button type="warning" size="small" link @click="handleEditMember(row)">
+                    <el-button
+                      type="warning"
+                      size="small"
+                      link
+                      @click="handleEditMember(row)"
+                    >
                       编辑角色
                     </el-button>
-                    <el-button type="danger" size="small" link @click="handleRemoveMember(row)">
+                    <el-button
+                      type="danger"
+                      size="small"
+                      link
+                      @click="handleRemoveMember(row)"
+                    >
                       移除
                     </el-button>
                   </template>
@@ -607,10 +572,16 @@
                   <el-card shadow="never">
                     <div class="activity-content">
                       <div class="activity-header">
-                        <el-avatar :size="32">{{ activity.user?.name?.charAt(0) || 'U' }}</el-avatar>
+                        <el-avatar :size="32">{{
+                          activity.user?.name?.charAt(0) || "U"
+                        }}</el-avatar>
                         <div class="activity-info">
-                          <span class="activity-user">{{ activity.user?.name || '系统' }}</span>
-                          <span class="activity-action">{{ activity.action }}</span>
+                          <span class="activity-user">{{
+                            activity.user?.name || "系统"
+                          }}</span>
+                          <span class="activity-action">{{
+                            activity.action
+                          }}</span>
                         </div>
                       </div>
                       <div class="activity-description">
@@ -645,7 +616,11 @@
     <el-dialog v-model="memberDialogVisible" title="编辑成员角色" width="400px">
       <el-form :model="memberFormData" label-width="80px">
         <el-form-item label="角色">
-          <el-select v-model="memberFormData.role" placeholder="选择角色" style="width: 100%">
+          <el-select
+            v-model="memberFormData.role"
+            placeholder="选择角色"
+            style="width: 100%"
+          >
             <el-option label="管理员" value="admin" />
             <el-option label="开发者" value="developer" />
             <el-option label="观察者" value="viewer" />
@@ -654,7 +629,11 @@
       </el-form>
       <template #footer>
         <el-button @click="memberDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="memberSubmitLoading" @click="handleUpdateMember">
+        <el-button
+          type="primary"
+          :loading="memberSubmitLoading"
+          @click="handleUpdateMember"
+        >
           确定
         </el-button>
       </template>
@@ -678,7 +657,11 @@
           </el-select>
         </el-form-item>
         <el-form-item label="角色" required>
-          <el-select v-model="addMemberFormData.role" placeholder="选择角色" style="width: 100%">
+          <el-select
+            v-model="addMemberFormData.role"
+            placeholder="选择角色"
+            style="width: 100%"
+          >
             <el-option label="管理员" value="admin" />
             <el-option label="开发者" value="developer" />
             <el-option label="观察者" value="viewer" />
@@ -687,16 +670,33 @@
       </el-form>
       <template #footer>
         <el-button @click="addMemberDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="addMemberSubmitLoading" @click="handleAddMemberSubmit">
+        <el-button
+          type="primary"
+          :loading="addMemberSubmitLoading"
+          @click="handleAddMemberSubmit"
+        >
           确定
         </el-button>
       </template>
     </el-dialog>
 
-    <el-dialog v-model="approvalDialogVisible" :title="approvalDialogTitle" width="600px">
-      <el-form ref="approvalFormRef" :model="approvalFormData" :rules="approvalRules" label-width="100px">
+    <el-dialog
+      v-model="approvalDialogVisible"
+      :title="approvalDialogTitle"
+      width="600px"
+    >
+      <el-form
+        ref="approvalFormRef"
+        :model="approvalFormData"
+        :rules="approvalRules"
+        label-width="100px"
+      >
         <el-form-item label="审批类型" prop="signoffType">
-          <el-select v-model="approvalFormData.signoffType" placeholder="选择审批类型" style="width: 100%">
+          <el-select
+            v-model="approvalFormData.signoffType"
+            placeholder="选择审批类型"
+            style="width: 100%"
+          >
             <el-option label="需求审批" value="requirement" />
             <el-option label="发布审批" value="release" />
             <el-option label="变更审批" value="change" />
@@ -710,7 +710,7 @@
             style="width: 100%"
           >
             <el-option
-              v-for="req in requirements"
+              v-for="req in approvalRequirements"
               :key="req.id"
               :label="req.title"
               :value="req.id"
@@ -718,7 +718,10 @@
           </el-select>
         </el-form-item>
         <el-form-item label="里程碑">
-          <el-input v-model="approvalFormData.milestone" placeholder="请输入里程碑" />
+          <el-input
+            v-model="approvalFormData.milestone"
+            placeholder="请输入里程碑"
+          />
         </el-form-item>
         <el-form-item label="备注">
           <el-input
@@ -731,7 +734,11 @@
       </el-form>
       <template #footer>
         <el-button @click="approvalDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="approvalSubmitLoading" @click="handleApprovalSubmit">
+        <el-button
+          type="primary"
+          :loading="approvalSubmitLoading"
+          @click="handleApprovalSubmit"
+        >
           提交
         </el-button>
       </template>
@@ -740,9 +747,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { ElMessage, type FormInstance, type FormRules } from 'element-plus';
+import { ref, computed, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import {
   Search,
   Plus,
@@ -752,10 +759,11 @@ import {
   ChatLineSquare,
   Clock,
   CircleCheck,
-  FolderOpened,
   ArrowRight,
   Link
-} from '@element-plus/icons-vue';
+} from "@element-plus/icons-vue";
+import { ProjectHeaderCard } from "@/components/Project";
+import { RequirementList } from "@/components/Requirement";
 import {
   getProject,
   getProjectMembers,
@@ -763,12 +771,13 @@ import {
   updateProjectMember,
   removeProjectMember,
   getAllUsers
-} from '@/api/system/project';
+} from "@/api/system/project";
+import { getRequirementsByProject } from "@/api/system/requirement";
 import type {
   ProjectViewModel,
   ProjectMemberListItem,
   UserListItem
-} from '@oops-ai/shared';
+} from "@oops-ai/shared";
 
 const route = useRoute();
 const router = useRouter();
@@ -776,7 +785,7 @@ const router = useRouter();
 const projectId = computed(() => route.params.id as string);
 
 const project = ref<ProjectViewModel | null>(null);
-const activeTab = ref('requirements');
+const activeTab = ref("requirements");
 
 const statistics = ref({
   totalRequirements: 0,
@@ -785,29 +794,22 @@ const statistics = ref({
   completedRequirements: 0
 });
 
-const requirements = ref<any[]>([]);
-const requirementsLoading = ref(false);
-const requirementPage = ref(1);
-const requirementPageSize = ref(10);
-const requirementTotal = ref(0);
-const requirementSearch = ref('');
-const requirementStatusFilter = ref('');
-const requirementPriorityFilter = ref('');
-
 const stories = ref<any[]>([]);
 const storiesLoading = ref(false);
 const storyPage = ref(1);
 const storyPageSize = ref(10);
 const storyTotal = ref(0);
-const storySearch = ref('');
+const storySearch = ref("");
+
+const approvalRequirements = ref<any[]>([]);
 
 const approvals = ref<any[]>([]);
 const approvalsLoading = ref(false);
 const approvalPage = ref(1);
 const approvalPageSize = ref(10);
 const approvalTotal = ref(0);
-const approvalStatusFilter = ref('');
-const approvalTypeFilter = ref('');
+const approvalStatusFilter = ref("");
+const approvalTypeFilter = ref("");
 
 const approvalStats = ref({
   pending: 0,
@@ -821,8 +823,8 @@ const membersLoading = ref(false);
 const memberPage = ref(1);
 const memberPageSize = ref(10);
 const memberTotal = ref(0);
-const memberSearch = ref('');
-const memberRoleFilter = ref('');
+const memberSearch = ref("");
+const memberRoleFilter = ref("");
 const allUsers = ref<UserListItem[]>([]);
 
 const activities = ref<any[]>([]);
@@ -832,35 +834,35 @@ const activityTotal = ref(0);
 
 const memberDialogVisible = ref(false);
 const memberFormData = ref({
-  userId: '',
-  role: 'developer'
+  userId: "",
+  role: "developer"
 });
 const memberSubmitLoading = ref(false);
 
 const addMemberDialogVisible = ref(false);
 const addMemberFormData = ref({
-  userId: '',
-  role: 'developer'
+  userId: "",
+  role: "developer"
 });
 const addMemberSubmitLoading = ref(false);
 
 const approvalDialogVisible = ref(false);
-const approvalDialogTitle = ref('创建审批');
+const approvalDialogTitle = ref("创建审批");
 const approvalFormRef = ref<FormInstance>();
 const approvalFormData = ref({
-  signoffType: '',
-  requirementId: '',
-  milestone: '',
-  comments: ''
+  signoffType: "",
+  requirementId: "",
+  milestone: "",
+  comments: ""
 });
 const approvalSubmitLoading = ref(false);
 
 const approvalRules: FormRules = {
   signoffType: [
-    { required: true, message: '请选择审批类型', trigger: 'change' }
+    { required: true, message: "请选择审批类型", trigger: "change" }
   ],
   requirementId: [
-    { required: true, message: '请选择关联需求', trigger: 'change' }
+    { required: true, message: "请选择关联需求", trigger: "change" }
   ]
 };
 
@@ -874,7 +876,7 @@ const loadProject = async () => {
     const res = await getProject(projectId.value);
     project.value = res.data;
   } catch (error: any) {
-    ElMessage.error(error.message || '加载项目信息失败');
+    ElMessage.error(error.message || "加载项目信息失败");
   }
 };
 
@@ -887,79 +889,46 @@ const loadStatistics = async () => {
   };
 };
 
-const loadRequirements = async () => {
-  requirementsLoading.value = true;
-  try {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    requirements.value = [
-      {
-        id: '1',
-        title: '用户登录功能',
-        type: 'FEATURE',
-        priority: 'HIGH',
-        status: 'APPROVED',
-        storyPoints: 8,
-        assignee: { name: '张三' },
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: '2',
-        title: '密码找回功能',
-        type: 'FEATURE',
-        priority: 'MEDIUM',
-        status: 'IMPLEMENTING',
-        storyPoints: 5,
-        assignee: { name: '李四' },
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: '3',
-        title: '用户权限管理',
-        type: 'ENHANCEMENT',
-        priority: 'HIGH',
-        status: 'TESTING',
-        storyPoints: 13,
-        assignee: { name: '王五' },
-        createdAt: new Date().toISOString()
-      }
-    ];
-    requirementTotal.value = 3;
-  } catch (error: any) {
-    ElMessage.error(error.message || '加载需求列表失败');
-  } finally {
-    requirementsLoading.value = false;
-  }
-};
-
 const loadStories = async () => {
   storiesLoading.value = true;
   try {
     await new Promise(resolve => setTimeout(resolve, 500));
     stories.value = [
       {
-        id: '1',
-        role: '系统管理员',
-        want: '管理所有用户账户',
-        soThat: '确保系统安全性和用户权限控制',
+        id: "1",
+        role: "系统管理员",
+        want: "管理所有用户账户",
+        soThat: "确保系统安全性和用户权限控制",
         storyPoints: 5,
-        requirement: { title: '用户权限管理' },
+        requirement: { title: "用户权限管理" },
         createdAt: new Date().toISOString()
       },
       {
-        id: '2',
-        role: '普通用户',
-        want: '重置我的密码',
-        soThat: '当我忘记密码时能够恢复账户访问',
+        id: "2",
+        role: "普通用户",
+        want: "重置我的密码",
+        soThat: "当我忘记密码时能够恢复账户访问",
         storyPoints: 3,
-        requirement: { title: '密码找回功能' },
+        requirement: { title: "密码找回功能" },
         createdAt: new Date().toISOString()
       }
     ];
     storyTotal.value = 2;
   } catch (error: any) {
-    ElMessage.error(error.message || '加载故事列表失败');
+    ElMessage.error(error.message || "加载故事列表失败");
   } finally {
     storiesLoading.value = false;
+  }
+};
+
+const loadApprovalRequirements = async () => {
+  try {
+    const res = await getRequirementsByProject(projectId.value, {
+      pageSize: 100
+    });
+    approvalRequirements.value = res.data;
+  } catch (error: any) {
+    console.error("加载审批需求列表失败", error);
   }
 };
 
@@ -969,22 +938,22 @@ const loadApprovals = async () => {
     await new Promise(resolve => setTimeout(resolve, 500));
     approvals.value = [
       {
-        id: '1',
-        signoffType: 'requirement',
-        requirement: { title: '用户权限管理' },
-        signoffStatus: 'PENDING',
+        id: "1",
+        signoffType: "requirement",
+        requirement: { title: "用户权限管理" },
+        signoffStatus: "PENDING",
         signedBy: null,
-        milestone: 'V1.0',
+        milestone: "V1.0",
         createdAt: new Date().toISOString()
       },
       {
-        id: '2',
-        signoffType: 'release',
-        requirement: { title: '用户登录功能' },
-        signoffStatus: 'APPROVED',
-        signedBy: { name: '管理员' },
+        id: "2",
+        signoffType: "release",
+        requirement: { title: "用户登录功能" },
+        signoffStatus: "APPROVED",
+        signedBy: { name: "管理员" },
         signedAt: new Date().toISOString(),
-        milestone: 'V1.0',
+        milestone: "V1.0",
         createdAt: new Date().toISOString()
       }
     ];
@@ -996,7 +965,7 @@ const loadApprovals = async () => {
       conditional: 3
     };
   } catch (error: any) {
-    ElMessage.error(error.message || '加载审批列表失败');
+    ElMessage.error(error.message || "加载审批列表失败");
   } finally {
     approvalsLoading.value = false;
   }
@@ -1009,7 +978,7 @@ const loadMembers = async () => {
     members.value = res.data;
     memberTotal.value = res.data.length;
   } catch (error: any) {
-    ElMessage.error(error.message || '加载成员列表失败');
+    ElMessage.error(error.message || "加载成员列表失败");
   } finally {
     membersLoading.value = false;
   }
@@ -1020,7 +989,7 @@ const loadAllUsers = async () => {
     const res = await getAllUsers();
     allUsers.value = res.data;
   } catch (error: any) {
-    console.error('加载用户列表失败', error);
+    console.error("加载用户列表失败", error);
   }
 };
 
@@ -1029,48 +998,34 @@ const loadActivities = async () => {
     await new Promise(resolve => setTimeout(resolve, 300));
     activities.value = [
       {
-        id: '1',
-        type: 'requirement',
-        action: '创建了需求',
+        id: "1",
+        type: "requirement",
+        action: "创建了需求",
         description: '创建了需求"用户登录功能"',
-        user: { name: '张三' },
+        user: { name: "张三" },
         createdAt: new Date().toISOString()
       },
       {
-        id: '2',
-        type: 'approval',
-        action: '审批了需求',
+        id: "2",
+        type: "approval",
+        action: "审批了需求",
         description: '批准了需求"用户登录功能"',
-        user: { name: '管理员' },
+        user: { name: "管理员" },
         createdAt: new Date(Date.now() - 86400000).toISOString()
       },
       {
-        id: '3',
-        type: 'member',
-        action: '添加了成员',
-        description: '添加李四为项目开发者',
-        user: { name: '管理员' },
+        id: "3",
+        type: "member",
+        action: "添加了成员",
+        description: "添加李四为项目开发者",
+        user: { name: "管理员" },
         createdAt: new Date(Date.now() - 172800000).toISOString()
       }
     ];
     activityTotal.value = 3;
   } catch (error: any) {
-    ElMessage.error(error.message || '加载活动列表失败');
+    ElMessage.error(error.message || "加载活动列表失败");
   }
-};
-
-const handleRequirementSearch = () => {
-  requirementPage.value = 1;
-  loadRequirements();
-};
-
-const handleRequirementSizeChange = () => {
-  requirementPage.value = 1;
-  loadRequirements();
-};
-
-const handleRequirementPageChange = () => {
-  loadRequirements();
 };
 
 const handleStorySearch = () => {
@@ -1125,15 +1080,15 @@ const handleActivityPageChange = () => {
 };
 
 const handleEdit = () => {
-  ElMessage.info('编辑项目功能');
+  ElMessage.info("编辑项目功能");
 };
 
 const handleBack = () => {
-  router.push('/system/project');
+  router.push("/system/project");
 };
 
 const handleCreateRequirement = () => {
-  ElMessage.info('创建需求功能');
+  ElMessage.info("创建需求功能");
 };
 
 const handleViewRequirement = (row: any) => {
@@ -1149,7 +1104,7 @@ const handleEditRequirement = (row: any) => {
 };
 
 const handleCreateStory = () => {
-  ElMessage.info('创建故事功能');
+  ElMessage.info("创建故事功能");
 };
 
 const handleEditStory = (row: any) => {
@@ -1161,23 +1116,23 @@ const handleDeleteStory = (row: any) => {
 };
 
 const handleCreateApproval = () => {
-  approvalDialogTitle.value = '创建审批';
+  approvalDialogTitle.value = "创建审批";
   approvalFormData.value = {
-    signoffType: '',
-    requirementId: '',
-    milestone: '',
-    comments: ''
+    signoffType: "",
+    requirementId: "",
+    milestone: "",
+    comments: ""
   };
   approvalDialogVisible.value = true;
 };
 
 const handleApprove = (row: any) => {
-  ElMessage.success(`已批准: ${row.requirement?.title || '需求'}`);
+  ElMessage.success(`已批准: ${row.requirement?.title || "需求"}`);
   loadApprovals();
 };
 
 const handleReject = (row: any) => {
-  ElMessage.warning(`已拒绝: ${row.requirement?.title || '需求'}`);
+  ElMessage.warning(`已拒绝: ${row.requirement?.title || "需求"}`);
   loadApprovals();
 };
 
@@ -1187,17 +1142,17 @@ const handleViewApproval = (row: any) => {
 
 const handleApprovalSubmit = async () => {
   if (!approvalFormRef.value) return;
-  
+
   await approvalFormRef.value.validate(async valid => {
     if (valid) {
       approvalSubmitLoading.value = true;
       try {
         await new Promise(resolve => setTimeout(resolve, 500));
-        ElMessage.success('审批创建成功');
+        ElMessage.success("审批创建成功");
         approvalDialogVisible.value = false;
         loadApprovals();
       } catch (error: any) {
-        ElMessage.error(error.message || '创建审批失败');
+        ElMessage.error(error.message || "创建审批失败");
       } finally {
         approvalSubmitLoading.value = false;
       }
@@ -1207,15 +1162,15 @@ const handleApprovalSubmit = async () => {
 
 const handleAddMember = () => {
   addMemberFormData.value = {
-    userId: '',
-    role: 'developer'
+    userId: "",
+    role: "developer"
   };
   addMemberDialogVisible.value = true;
 };
 
 const handleAddMemberSubmit = async () => {
   if (!addMemberFormData.value.userId) {
-    ElMessage.warning('请选择用户');
+    ElMessage.warning("请选择用户");
     return;
   }
 
@@ -1225,11 +1180,11 @@ const handleAddMemberSubmit = async () => {
       userId: addMemberFormData.value.userId,
       role: addMemberFormData.value.role
     });
-    ElMessage.success('添加成员成功');
+    ElMessage.success("添加成员成功");
     addMemberDialogVisible.value = false;
     await loadMembers();
   } catch (error: any) {
-    ElMessage.error(error.message || '添加成员失败');
+    ElMessage.error(error.message || "添加成员失败");
   } finally {
     addMemberSubmitLoading.value = false;
   }
@@ -1249,11 +1204,11 @@ const handleUpdateMember = async () => {
     await updateProjectMember(projectId.value, memberFormData.value.userId, {
       role: memberFormData.value.role
     });
-    ElMessage.success('成员角色更新成功');
+    ElMessage.success("成员角色更新成功");
     memberDialogVisible.value = false;
     await loadMembers();
   } catch (error: any) {
-    ElMessage.error(error.message || '更新成员角色失败');
+    ElMessage.error(error.message || "更新成员角色失败");
   } finally {
     memberSubmitLoading.value = false;
   }
@@ -1262,258 +1217,97 @@ const handleUpdateMember = async () => {
 const handleRemoveMember = async (row: any) => {
   try {
     await removeProjectMember(projectId.value, row.userId);
-    ElMessage.success('成员已移除');
+    ElMessage.success("成员已移除");
     await loadMembers();
   } catch (error: any) {
-    ElMessage.error(error.message || '移除成员失败');
+    ElMessage.error(error.message || "移除成员失败");
   }
 };
 
 const formatDate = (date: any) => {
-  if (!date) return '-';
-  return new Date(date).toLocaleString('zh-CN');
-};
-
-const getStatusType = (status?: string) => {
-  const typeMap: Record<string, any> = {
-    active: 'success',
-    paused: 'warning',
-    completed: 'info'
-  };
-  return typeMap[status || 'active'] || 'info';
-};
-
-const getStatusText = (status?: string) => {
-  const textMap: Record<string, string> = {
-    active: '进行中',
-    paused: '已暂停',
-    completed: '已完成'
-  };
-  return textMap[status || 'active'] || '未知';
-};
-
-const getRequirementTypeTag = (type?: string) => {
-  const typeMap: Record<string, any> = {
-    FEATURE: 'primary',
-    BUGFIX: 'danger',
-    ENHANCEMENT: 'success',
-    TASK: 'info',
-    NON_FUNCTIONAL: 'warning'
-  };
-  return typeMap[type || 'FEATURE'] || 'info';
-};
-
-const getRequirementTypeText = (type?: string) => {
-  const textMap: Record<string, string> = {
-    FEATURE: '功能',
-    BUGFIX: '缺陷修复',
-    ENHANCEMENT: '优化',
-    TASK: '任务',
-    NON_FUNCTIONAL: '非功能'
-  };
-  return textMap[type || 'FEATURE'] || '未知';
-};
-
-const getPriorityType = (priority?: string) => {
-  const typeMap: Record<string, any> = {
-    LOW: 'info',
-    MEDIUM: '',
-    HIGH: 'warning',
-    URGENT: 'danger'
-  };
-  return typeMap[priority || 'MEDIUM'] || '';
-};
-
-const getPriorityText = (priority?: string) => {
-  const textMap: Record<string, string> = {
-    LOW: '低',
-    MEDIUM: '中',
-    HIGH: '高',
-    URGENT: '紧急'
-  };
-  return textMap[priority || 'MEDIUM'] || '未知';
-};
-
-const getRequirementStatusType = (status?: string) => {
-  const typeMap: Record<string, any> = {
-    DRAFT: 'info',
-    SUBMITTED: '',
-    REVIEWING: 'warning',
-    APPROVED: 'success',
-    REJECTED: 'danger',
-    IMPLEMENTING: 'primary',
-    TESTING: 'warning',
-    COMPLETED: 'success',
-    CANCELED: 'info'
-  };
-  return typeMap[status || 'DRAFT'] || 'info';
-};
-
-const getRequirementStatusText = (status?: string) => {
-  const textMap: Record<string, string> = {
-    DRAFT: '草稿',
-    SUBMITTED: '已提交',
-    REVIEWING: '审核中',
-    APPROVED: '已批准',
-    REJECTED: '已拒绝',
-    IMPLEMENTING: '实施中',
-    TESTING: '测试中',
-    COMPLETED: '已完成',
-    CANCELED: '已取消'
-  };
-  return textMap[status || 'DRAFT'] || '未知';
+  if (!date) return "-";
+  return new Date(date).toLocaleString("zh-CN");
 };
 
 const getApprovalTypeText = (type?: string) => {
   const textMap: Record<string, string> = {
-    requirement: '需求审批',
-    release: '发布审批',
-    change: '变更审批'
+    requirement: "需求审批",
+    release: "发布审批",
+    change: "变更审批"
   };
-  return textMap[type || ''] || '未知';
+  return textMap[type || ""] || "未知";
 };
 
 const getApprovalStatusType = (status?: string) => {
   const typeMap: Record<string, any> = {
-    PENDING: 'warning',
-    APPROVED: 'success',
-    REJECTED: 'danger',
-    CONDITIONAL: 'info'
+    PENDING: "warning",
+    APPROVED: "success",
+    REJECTED: "danger",
+    CONDITIONAL: "info"
   };
-  return typeMap[status || 'PENDING'] || 'info';
+  return typeMap[status || "PENDING"] || "info";
 };
 
 const getApprovalStatusText = (status?: string) => {
   const textMap: Record<string, string> = {
-    PENDING: '待审批',
-    APPROVED: '已批准',
-    REJECTED: '已拒绝',
-    CONDITIONAL: '有条件批准'
+    PENDING: "待审批",
+    APPROVED: "已批准",
+    REJECTED: "已拒绝",
+    CONDITIONAL: "有条件批准"
   };
-  return textMap[status || 'PENDING'] || '未知';
+  return textMap[status || "PENDING"] || "未知";
 };
 
 const getMemberRoleType = (role?: string) => {
   const typeMap: Record<string, any> = {
-    admin: 'danger',
-    developer: 'primary',
-    viewer: 'info'
+    admin: "danger",
+    developer: "primary",
+    viewer: "info"
   };
-  return typeMap[role || 'developer'] || 'info';
+  return typeMap[role || "developer"] || "info";
 };
 
 const getMemberRoleText = (role?: string) => {
   const textMap: Record<string, string> = {
-    admin: '管理员',
-    developer: '开发者',
-    viewer: '观察者'
+    admin: "管理员",
+    developer: "开发者",
+    viewer: "观察者"
   };
-  return textMap[role || 'developer'] || '未知';
+  return textMap[role || "developer"] || "未知";
 };
 
 const getActivityType = (type?: string) => {
   const typeMap: Record<string, any> = {
-    requirement: 'primary',
-    approval: 'success',
-    member: 'warning',
-    story: 'info'
+    requirement: "primary",
+    approval: "success",
+    member: "warning",
+    story: "info"
   };
-  return typeMap[type || 'info'] || 'info';
+  return typeMap[type || "info"] || "info";
 };
 
 onMounted(async () => {
   await Promise.all([
     loadProject(),
     loadStatistics(),
-    loadRequirements(),
     loadStories(),
     loadApprovals(),
+    loadApprovalRequirements(),
     loadMembers(),
-    loadAllUsers(),
     loadActivities()
   ]);
 });
 
 defineOptions({
-  name: 'ProjectDetail'
+  name: "ProjectDetail"
 });
 </script>
 
 <style scoped lang="scss">
 .project-detail {
+  min-height: calc(100vh - 140px);
   padding: 20px;
   background: var(--el-bg-color-page);
-  min-height: calc(100vh - 140px);
-}
-
-.project-header-card {
-  margin-bottom: 20px;
-  
-  :deep(.el-card__body) {
-    padding: 24px;
-  }
-}
-
-.project-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 20px;
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-  }
-}
-
-.project-info {
-  flex: 1;
-  
-  .project-title {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 12px;
-    
-    .title-content {
-      h1 {
-        margin: 0 0 8px 0;
-        font-size: 24px;
-        font-weight: 600;
-        color: var(--el-text-color-primary);
-      }
-      
-      .project-meta {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        
-        .meta-text {
-          color: var(--el-text-color-secondary);
-          font-size: 14px;
-        }
-      }
-    }
-  }
-  
-  .project-description {
-    margin: 0;
-    color: var(--el-text-color-regular);
-    font-size: 14px;
-    line-height: 1.6;
-  }
-}
-
-.project-actions {
-  display: flex;
-  gap: 12px;
-  
-  @media (max-width: 768px) {
-    width: 100%;
-    
-    .el-button {
-      flex: 1;
-    }
-  }
 }
 
 .stats-row {
@@ -1522,7 +1316,7 @@ defineOptions({
 
 .stat-card {
   height: 100%;
-  
+
   :deep(.el-card__body) {
     padding: 20px;
   }
@@ -1530,33 +1324,33 @@ defineOptions({
 
 .stat-content {
   display: flex;
-  align-items: center;
   gap: 16px;
+  align-items: center;
 }
 
 .stat-icon {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   width: 56px;
   height: 56px;
-  border-radius: 12px;
   color: white;
-  flex-shrink: 0;
+  border-radius: 12px;
 }
 
 .stat-info {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  
+
   .stat-value {
     font-size: 28px;
     font-weight: 700;
-    color: var(--el-text-color-primary);
     line-height: 1;
+    color: var(--el-text-color-primary);
   }
-  
+
   .stat-label {
     font-size: 14px;
     color: var(--el-text-color-secondary);
@@ -1571,16 +1365,16 @@ defineOptions({
 
 .project-tabs {
   :deep(.el-tabs__header) {
-    margin: 0 0 0 20px;
     padding: 16px 20px 0;
+    margin: 0 0 0 20px;
     background: var(--el-fill-color-light);
     border-radius: 8px 8px 0 0;
   }
-  
+
   :deep(.el-tabs__nav-wrap::after) {
     display: none;
   }
-  
+
   :deep(.el-tabs__content) {
     padding: 20px;
   }
@@ -1588,26 +1382,26 @@ defineOptions({
 
 .tab-toolbar {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
   gap: 12px;
-  
-  @media (max-width: 768px) {
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+
+  @media (width <= 768px) {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .toolbar-left {
     display: flex;
-    gap: 12px;
     flex-wrap: wrap;
-    
-    @media (max-width: 768px) {
+    gap: 12px;
+
+    @media (width <= 768px) {
       flex-direction: column;
     }
   }
-  
+
   .toolbar-right {
     flex-shrink: 0;
   }
@@ -1616,24 +1410,24 @@ defineOptions({
 .data-table {
   :deep(.el-table__header) {
     th {
-      background-color: var(--el-fill-color-light);
-      color: var(--el-text-color-primary);
       font-weight: 600;
+      color: var(--el-text-color-primary);
+      background-color: var(--el-fill-color-light);
     }
   }
 }
 
 .requirement-title {
   display: flex;
-  align-items: center;
   gap: 8px;
-  cursor: pointer;
+  align-items: center;
   color: var(--el-color-primary);
-  
+  cursor: pointer;
+
   .title-icon {
     flex-shrink: 0;
   }
-  
+
   &:hover {
     text-decoration: underline;
   }
@@ -1643,8 +1437,8 @@ defineOptions({
 .member-info,
 .signer-info {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
 .member-info {
@@ -1652,12 +1446,12 @@ defineOptions({
     display: flex;
     flex-direction: column;
     gap: 2px;
-    
+
     .member-name {
       font-weight: 500;
       color: var(--el-text-color-primary);
     }
-    
+
     .member-email {
       font-size: 12px;
       color: var(--el-text-color-secondary);
@@ -1666,8 +1460,8 @@ defineOptions({
 }
 
 .text-muted {
-  color: var(--el-text-color-secondary);
   font-size: 13px;
+  color: var(--el-text-color-secondary);
 }
 
 .story-id {
@@ -1677,11 +1471,11 @@ defineOptions({
 
 .requirement-link {
   display: flex;
-  align-items: center;
   gap: 6px;
-  cursor: pointer;
+  align-items: center;
   color: var(--el-color-primary);
-  
+  cursor: pointer;
+
   &:hover {
     text-decoration: underline;
   }
@@ -1695,39 +1489,39 @@ defineOptions({
 
 .story-format {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
   flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
   margin-bottom: 16px;
-  
+
   .story-card {
     flex: 1;
     min-width: 200px;
-    
+
     :deep(.el-card__header) {
       padding: 8px 12px;
       background: var(--el-color-primary-light-9);
-      
+
       .card-title {
         font-weight: 600;
         color: var(--el-color-primary);
       }
     }
-    
+
     :deep(.el-card__body) {
       padding: 12px;
     }
-    
+
     .story-content {
       font-size: 14px;
-      color: var(--el-text-color-primary);
       line-height: 1.6;
+      color: var(--el-text-color-primary);
     }
   }
-  
+
   .el-icon {
-    color: var(--el-text-color-secondary);
     margin-top: 24px;
+    color: var(--el-text-color-secondary);
   }
 }
 
@@ -1735,19 +1529,19 @@ defineOptions({
   padding: 12px;
   background: white;
   border-radius: 4px;
-  
+
   h4 {
-    margin: 0 0 8px 0;
+    margin: 0 0 8px;
     font-size: 14px;
     font-weight: 600;
     color: var(--el-text-color-primary);
   }
-  
+
   p {
     margin: 0;
     font-size: 14px;
-    color: var(--el-text-color-regular);
     line-height: 1.6;
+    color: var(--el-text-color-regular);
   }
 }
 
@@ -1757,33 +1551,33 @@ defineOptions({
 
 .approval-stat-card {
   padding: 20px;
-  border-radius: 8px;
-  text-align: center;
   color: white;
-  
+  text-align: center;
+  border-radius: 8px;
+
   &.pending {
     background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
   }
-  
+
   &.approved {
     background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
   }
-  
+
   &.rejected {
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   }
-  
+
   &.conditional {
     background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
   }
-  
+
   .stat-number {
+    margin-bottom: 8px;
     font-size: 32px;
     font-weight: 700;
     line-height: 1;
-    margin-bottom: 8px;
   }
-  
+
   .stat-text {
     font-size: 14px;
     opacity: 0.9;
@@ -1793,32 +1587,32 @@ defineOptions({
 .activity-content {
   .activity-header {
     display: flex;
-    align-items: center;
     gap: 12px;
+    align-items: center;
     margin-bottom: 8px;
-    
+
     .activity-info {
       display: flex;
       flex-direction: column;
       gap: 2px;
-      
+
       .activity-user {
         font-weight: 600;
         color: var(--el-text-color-primary);
       }
-      
+
       .activity-action {
         font-size: 13px;
         color: var(--el-text-color-secondary);
       }
     }
   }
-  
+
   .activity-description {
-    color: var(--el-text-color-regular);
+    padding-left: 44px;
     font-size: 14px;
     line-height: 1.6;
-    padding-left: 44px;
+    color: var(--el-text-color-regular);
   }
 }
 
@@ -1830,8 +1624,8 @@ defineOptions({
   display: flex;
   justify-content: flex-end;
   padding: 16px 0;
-  border-top: 1px solid var(--el-border-color-lighter);
   margin-top: 16px;
+  border-top: 1px solid var(--el-border-color-lighter);
 }
 
 .form-tip {
@@ -1840,21 +1634,21 @@ defineOptions({
   color: var(--el-text-color-secondary);
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .project-detail {
     padding: 12px;
   }
-  
+
   .stats-row {
     .el-col {
       margin-bottom: 12px;
     }
   }
-  
+
   .data-table {
     :deep(.el-table) {
       overflow-x: auto;
-      
+
       &::before {
         display: none;
       }

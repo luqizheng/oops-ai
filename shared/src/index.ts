@@ -7,6 +7,8 @@ export * from './dtos/requirement.dto';
 export * from './dtos/project.dto';
 export * from './dtos/user.dto';
 export * from './dtos/auth.dto';
+export * from './dtos/llm.dto';
+export * from './dtos/prompt-template.dto';
 
 // 导出分页结果接口
 export interface PaginatedResult<T> {
@@ -22,3 +24,6 @@ export interface UserPaginatedResult extends PaginatedResult<import('./dtos/user
 
 // 项目分页结果
 export interface ProjectPaginatedResult extends PaginatedResult<import('./dtos/project.dto').ProjectListItem> {}
+
+// 需求分页结果
+export interface RequirementPaginatedResult extends PaginatedResult<import('./dtos/requirement.dto').RequirementListItem> {}

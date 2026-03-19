@@ -47,6 +47,28 @@ export default {
         keepAlive: false,
         activePath: "/system/project"
       }
+    },
+    {
+      path: "/system/llm-config",
+      name: "LLMConfigManagement",
+      component: () => import("@/views/system/llm-config/index.vue"),
+      meta: {
+        title: "LLM 配置",
+        icon: "ri:robot-line",
+        showLink: true,
+        keepAlive: false
+      }
+    },
+    {
+      path: "/system/prompt-template",
+      name: "PromptTemplateManagement",
+      component: () => import("@/views/system/prompt-template/index.vue"),
+      meta: {
+        title: "提示词模板",
+        icon: "ri-file-text-line",
+        showLink: true,
+        keepAlive: false
+      }
     }
   ]
 } satisfies RouteConfigsTable;

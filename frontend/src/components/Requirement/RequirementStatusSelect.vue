@@ -22,7 +22,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
 import type { RequirementStatus } from "@oops-ai/shared/src/models/requirement";
-import { requirementStatusMap } from "../utils/enumMapping";
+import { requirementStatusMap } from "../../utils/enumMapping";
 
 interface Props {
   modelValue: RequirementStatus;
@@ -56,11 +56,16 @@ const handleChange = (value: RequirementStatus) => {
   emit("update:modelValue", value);
 };
 
-const getStatusTagType = (status: RequirementStatus): string => {
-  const typeMap: Record<RequirementStatus, string> = {
+const getStatusTagType = (
+  status: RequirementStatus
+): "primary" | "success" | "info" | "warning" | "danger" => {
+  const typeMap: Record<
+    RequirementStatus,
+    "primary" | "success" | "info" | "warning" | "danger"
+  > = {
     DRAFT: "info",
     SUBMITTED: "primary",
-    REVIEWING: "processing",
+    REVIEWING: "success",
     APPROVED: "success",
     REJECTED: "danger",
     IMPLEMENTING: "warning",

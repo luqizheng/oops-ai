@@ -22,7 +22,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import type { AcceptanceSignoffStatus } from "@oops-ai/shared/src/models/requirement";
-import { acceptanceSignoffStatusMap } from "../utils/enumMapping";
+import { acceptanceSignoffStatusMap } from "../../utils/enumMapping";
 
 interface Props {
   modelValue: AcceptanceSignoffStatus;
@@ -56,8 +56,13 @@ const handleChange = (value: AcceptanceSignoffStatus) => {
   emit("update:modelValue", value);
 };
 
-const getStatusTagType = (status: AcceptanceSignoffStatus): string => {
-  const typeMap: Record<AcceptanceSignoffStatus, string> = {
+const getStatusTagType = (
+  status: AcceptanceSignoffStatus
+): "primary" | "success" | "info" | "warning" | "danger" => {
+  const typeMap: Record<
+    AcceptanceSignoffStatus,
+    "primary" | "success" | "info" | "warning" | "danger"
+  > = {
     PENDING: "info",
     APPROVED: "success",
     REJECTED: "danger",

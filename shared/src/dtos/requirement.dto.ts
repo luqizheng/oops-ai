@@ -164,6 +164,87 @@ export interface UpdateAcceptanceCriteriaDto {
   testEvidence?: string;
 }
 
+// 需求列表项 DTO
+export interface RequirementListItem {
+  id: string;
+  title: string;
+  description?: string;
+  type?: string;
+  priority: string;
+  status: string;
+  storyPoints?: number;
+  assigneeId?: string;
+  assignee?: {
+    id: string;
+    name: string | null;
+    email: string;
+  };
+  reporterId?: string;
+  reporter?: {
+    id: string;
+    name: string | null;
+    email: string;
+  };
+  projectId: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+// 需求视图模型 DTO
+export interface RequirementViewModel extends RequirementListItem {
+  rawRequirementId?: string;
+  rawInput?: string;
+  structuredData?: any;
+  qualityScore?: any;
+  dueDate?: Date | string;
+}
+
+// 创建需求结果 DTO
+export interface CreateRequirementResult extends RequirementViewModel {}
+
+// 更新需求结果 DTO
+export interface UpdateRequirementResult extends RequirementViewModel {}
+
+// 删除需求结果 DTO
+export interface DeleteRequirementResult {
+  success: boolean;
+  message?: string;
+}
+
+// 需求分页结果 DTO
+export interface RequirementPaginatedResult {
+  data: RequirementListItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+// 创建需求提交 DTO
+export interface CreateRequirementSubmit {
+  title: string;
+  description?: string;
+  rawInput?: string;
+  projectId: string;
+  status?: string;
+  priority?: string;
+  storyPoints?: number;
+  assigneeId?: string;
+}
+
+// 更新需求提交 DTO
+export interface UpdateRequirementSubmit {
+  title?: string;
+  description?: string;
+  structuredData?: any;
+  qualityScore?: any;
+  status?: string;
+  priority?: string;
+  storyPoints?: number;
+  assigneeId?: string;
+  dueDate?: Date | string;
+}
+
 // 测试用例创建 DTO
 export interface CreateTestCaseDto {
   title: string;

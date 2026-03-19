@@ -419,3 +419,59 @@ export interface UserItem { }           // 应该用 ListItem
 1. 所有页面必须支持响应式布局
 2. 移动端和桌面端布局要合理适配
 3. 使用 Element Plus 的栅格系统和响应式类
+
+### API 请求规范
+
+#### 强制规则：无需从 `data` 属性获取数据
+
+**使用 `http`（PureHttp）发起的请求，在 `then` 或 `await` 之后，不需要从 `data` 属性获取数据。**
+
+#### 原因
+
+`PureHttp` 在响应拦截器中已经自动提取 `response.data`，直接返回业务数据。因此：
+
+- ✅ **正确**：`res.success`、`res.message`、`res.data`
+- ❌ **错误**：`res.data.success`、`res.data.message`
+
+#### 实现原理
+
+在 [http/index.ts](file:///d:\projects\oops-ai\frontend/src/utils/http/index.ts#L117-136) 中，响应拦截器已经处理了 `response.data`：
+
+```typescript
+instance.interceptors.response.use(
+  (response: PureHttpResponse) => {
+    // ...
+    return response.data;  // 直接返回 response.data
+  },
+  // ...
+);
+```
+
+#### 正确示例
+
+```typescript
+const res = await testLLMConnection(currentConfig.value.id);
+testResult.value = {
+  success: res.success,      // ✅ 直接使用
+  message: res.message      // ✅ 直接使用
+};
+
+// 列表数据
+const res = await getList(params);
+listData.value = res.data;   // ✅ res 已经是 data
+total.value = res.total;     // ✅ 直接使用
+```
+
+#### 禁止的行为
+
+```typescript
+// ❌ 错误示例 - 多余的 data 属性
+const res = await testLLMConnection(id);
+const { success } = res.data;      // ❌ 不需要 res.data
+
+// ❌ 错误示例 - 错误的嵌套
+testResult.value = {
+  success: res.data.success,        // ❌ 错误
+  message: res.data.message         // ❌ 错误
+};
+```

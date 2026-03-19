@@ -22,7 +22,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import type { RequirementType } from "@oops-ai/shared/src/models/requirement";
-import { requirementTypeMap } from "../utils/enumMapping";
+import { requirementTypeMap } from "../../utils/enumMapping";
 
 interface Props {
   modelValue: RequirementType;
@@ -56,8 +56,13 @@ const handleChange = (value: RequirementType) => {
   emit("update:modelValue", value);
 };
 
-const getTypeTagType = (type: RequirementType): string => {
-  const typeMap: Record<RequirementType, string> = {
+const getTypeTagType = (
+  type: RequirementType
+): "primary" | "success" | "info" | "warning" | "danger" => {
+  const typeMap: Record<
+    RequirementType,
+    "primary" | "success" | "info" | "warning" | "danger"
+  > = {
     FEATURE: "primary",
     BUGFIX: "danger",
     ENHANCEMENT: "warning",

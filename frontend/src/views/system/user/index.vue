@@ -468,15 +468,15 @@ onMounted(() => {
 
 .table-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   padding: 16px 20px;
   border-bottom: 1px solid var(--el-border-color-lighter);
 
   .header-left {
     display: flex;
-    align-items: center;
     gap: 12px;
+    align-items: center;
 
     h3 {
       margin: 0;
@@ -489,23 +489,23 @@ onMounted(() => {
 .user-table {
   :deep(.el-table__header) {
     th {
-      background-color: var(--el-fill-color-light);
-      color: var(--el-text-color-primary);
       font-weight: 600;
+      color: var(--el-text-color-primary);
+      background-color: var(--el-fill-color-light);
     }
   }
 }
 
 .user-info {
   display: flex;
-  align-items: center;
   gap: 12px;
+  align-items: center;
 }
 
 .user-avatar {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
   font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .user-details {
@@ -535,8 +535,8 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
   padding: 20px 0;
+  text-align: center;
 
   p {
     margin: 16px 0 0;
@@ -545,12 +545,12 @@ onMounted(() => {
   }
 
   .warning-text {
-    color: var(--el-text-color-secondary);
     font-size: 12px;
+    color: var(--el-text-color-secondary);
   }
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .search-card {
     :deep(.el-form) {
       display: flex;
@@ -568,8 +568,8 @@ onMounted(() => {
 
   .table-header {
     flex-direction: column;
-    align-items: flex-start;
     gap: 12px;
+    align-items: flex-start;
   }
 
   .user-table {

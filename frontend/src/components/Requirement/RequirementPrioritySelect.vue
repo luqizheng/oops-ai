@@ -22,7 +22,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import type { RequirementPriority } from "@oops-ai/shared/src/models/requirement";
-import { requirementPriorityMap } from "../utils/enumMapping";
+import { requirementPriorityMap } from "../../utils/enumMapping";
 
 interface Props {
   modelValue: RequirementPriority;
@@ -56,8 +56,13 @@ const handleChange = (value: RequirementPriority) => {
   emit("update:modelValue", value);
 };
 
-const getPriorityTagType = (priority: RequirementPriority): string => {
-  const typeMap: Record<RequirementPriority, string> = {
+const getPriorityTagType = (
+  priority: RequirementPriority
+): "success" | "warning" | "danger" | "info" => {
+  const typeMap: Record<
+    RequirementPriority,
+    "success" | "warning" | "danger" | "info"
+  > = {
     LOW: "success",
     MEDIUM: "warning",
     HIGH: "danger",

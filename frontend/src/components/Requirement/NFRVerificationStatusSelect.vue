@@ -22,7 +22,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import type { NFRVerificationStatus } from "@oops-ai/shared/src/models/requirement";
-import { nfrVerificationStatusMap } from "../utils/enumMapping";
+import { nfrVerificationStatusMap } from "../../utils/enumMapping";
 
 interface Props {
   modelValue: NFRVerificationStatus;
@@ -56,13 +56,18 @@ const handleChange = (value: NFRVerificationStatus) => {
   emit("update:modelValue", value);
 };
 
-const getStatusTagType = (status: NFRVerificationStatus): string => {
-  const typeMap: Record<NFRVerificationStatus, string> = {
+const getStatusTagType = (
+  status: NFRVerificationStatus
+): "primary" | "success" | "info" | "warning" | "danger" => {
+  const typeMap: Record<
+    NFRVerificationStatus,
+    "primary" | "success" | "info" | "warning" | "danger"
+  > = {
     NOT_VERIFIED: "info",
     PASSED: "success",
     WARNING: "warning",
     FAILED: "danger",
-    IN_PROGRESS: "processing"
+    IN_PROGRESS: "primary"
   };
   return typeMap[status] || "info";
 };
