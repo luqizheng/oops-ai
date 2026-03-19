@@ -57,12 +57,24 @@ export class PromptTemplateService {
       where.category = params.category
     }
 
-    if (params?.provider) {
-      where.provider = params.provider
+    if (params?.provider !== undefined) {
+      // 处理 provider 为 null 或 "" 的情况
+      if (params.provider === null || params.provider === '') {
+        where.OR = where.OR || []
+        where.OR.push(...[{ provider: null }, { provider: '' }])
+      } else {
+        where.provider = params.provider
+      }
     }
 
-    if (params?.modelName) {
-      where.modelName = params.modelName
+    if (params?.modelName !== undefined) {
+      // 处理 modelName 为 null 或 "" 的情况
+      if (params.modelName === null || params.modelName === '') {
+        where.OR = where.OR || []
+        where.OR.push(...[{ modelName: null }, { modelName: '' }])
+      } else {
+        where.modelName = params.modelName
+      }
     }
 
     if (params?.isActive !== undefined) {
@@ -94,6 +106,10 @@ export class PromptTemplateService {
     provider?: string,
     modelName?: string,
   ): Promise<PromptTemplate | null> {
+    // 处理空字符串为 null
+    const processedProvider = provider === '' ? null : provider
+    const processedModelName = modelName === '' ? null : modelName
+
     // 查找优先级：特定模型 > 特定供应商 > 默认配置
     const templates = await this.prisma.promptTemplate.findMany({
       where: {
@@ -101,11 +117,20 @@ export class PromptTemplateService {
         isActive: true,
         OR: [
           // 1. 完全匹配：特定模型
-          { provider, modelName },
-          // 2. 供应商匹配：特定供应商的默认模板
-          { provider, modelName: null },
-          // 3. 通用默认：不指定供应商和模型
-          { provider: null, modelName: null },
+          { provider: processedProvider, modelName: processedModelName },
+          // 2. 供应商匹配：特定供应商的默认模板 (modelName 和 provider 为 null 或 "")
+          {
+            OR: [
+              { provider: processedProvider },
+              { provider: '' },
+              { modelName: null },
+              { modelName: '' },
+            ],
+          },
+          // 3. 通用默认：不指定供应商和模型 (modelName 和 provider 为 null 或 "")
+          {
+            OR: [{ provider: null }, { provider: '' }, { modelName: null }, { modelName: '' }],
+          },
         ],
       },
       orderBy: [
@@ -115,6 +140,8 @@ export class PromptTemplateService {
         { isDefault: 'desc' },
       ],
     })
+
+    console.debug('----------------------', templates)
 
     if (templates.length === 0) {
       return null
@@ -163,13 +190,17 @@ export class PromptTemplateService {
       throw new NotFoundException(`Prompt template with ID ${id} not found`)
     }
 
+    // 处理空字符串为 null
+    const processedProvider = data.provider === '' ? null : data.provider
+    const processedModelName = data.modelName === '' ? null : data.modelName
+
     // 如果设置为默认，先将同类别同配置的其他模板的默认标志设为false
     if (data.isDefault) {
       await this.prisma.promptTemplate.updateMany({
         where: {
           category: data.category || existingTemplate.category,
-          provider: data.provider !== undefined ? data.provider : existingTemplate.provider,
-          modelName: data.modelName !== undefined ? data.modelName : existingTemplate.modelName,
+          provider: data.provider !== undefined ? processedProvider : existingTemplate.provider,
+          modelName: data.modelName !== undefined ? processedModelName : existingTemplate.modelName,
           isDefault: true,
           NOT: { id },
         },
@@ -184,8 +215,8 @@ export class PromptTemplateService {
         description: data.description,
         template: data.template,
         category: data.category,
-        provider: data.provider,
-        modelName: data.modelName,
+        provider: processedProvider,
+        modelName: processedModelName,
         isDefault: data.isDefault,
         isActive: data.isActive,
         variables: data.variables,
@@ -222,8 +253,24 @@ export class PromptTemplateService {
     await this.prisma.promptTemplate.updateMany({
       where: {
         category: template.category,
-        provider: template.provider,
-        modelName: template.modelName,
+        AND: [
+          {
+            OR: [
+              { provider: template.provider },
+              // 处理 provider 为 null 或 "" 的情况
+              ...(template.provider === null ? [{ provider: '' }] : []),
+              ...(template.provider === '' ? [{ provider: null }] : []),
+            ],
+          },
+          {
+            OR: [
+              { modelName: template.modelName },
+              // 处理 modelName 为 null 或 "" 的情况
+              ...(template.modelName === null ? [{ modelName: '' }] : []),
+              ...(template.modelName === '' ? [{ modelName: null }] : []),
+            ],
+          },
+        ],
         isDefault: true,
         NOT: { id },
       },
@@ -275,6 +322,7 @@ export class PromptTemplateService {
     }
 
     if (!template) {
+      console.error('无法通过类别或ID找到匹配的categoryOrId:', categoryOrId, provider, modelName)
       throw new NotFoundException(`No prompt template found for: ${categoryOrId}`)
     }
     console.info('调用 llm template:', template.category)
