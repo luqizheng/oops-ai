@@ -1,8 +1,12 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common'
 import { UsersService } from './users.service'
-import { CreateUserDto, UpdateUserDto, UserDto } from './dto/users.dto'
 import { AuthGuard } from '@nestjs/passport'
-import { PaginatedResult } from '../common/dto/pagination.dto'
+import {
+  CreateUserSubmit,
+  UpdateUserSubmit,
+  UserResult,
+  UserPaginatedResult,
+} from '@oops-ai/shared'
 
 @Controller('users')
 @UseGuards(AuthGuard('jwt'))
@@ -10,8 +14,8 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto): Promise<UserDto> {
-    return this.usersService.create(createUserDto)
+  create(@Body() submit: CreateUserSubmit): Promise<UserResult> {
+    return this.usersService.create(submit)
   }
 
   @Get()
@@ -19,7 +23,7 @@ export class UsersController {
     @Query('page') page: string = '1',
     @Query('pageSize') pageSize: string = '10',
     @Query('search') search?: string,
-  ): Promise<PaginatedResult<UserDto>> {
+  ): Promise<UserPaginatedResult> {
     return this.usersService.findAll({
       page: parseInt(page, 10) || 1,
       pageSize: parseInt(pageSize, 10) || 10,
@@ -28,13 +32,13 @@ export class UsersController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<UserDto> {
+  findOne(@Param('id') id: string): Promise<UserResult> {
     return this.usersService.findOne(id)
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto): Promise<UserDto> {
-    return this.usersService.update(id, updateUserDto)
+  update(@Param('id') id: string, @Body() submit: UpdateUserSubmit): Promise<UserResult> {
+    return this.usersService.update(id, submit)
   }
 
   @Delete(':id')

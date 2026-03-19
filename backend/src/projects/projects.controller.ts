@@ -1,10 +1,26 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Query, Req, UseGuards } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { ProjectsService } from './projects.service'
-import { CreateProjectDto, UpdateProjectDto } from './dto/projects.dto'
-import { AddMemberDto, UpdateMemberDto } from './dto/members.dto'
-import { UpdateSettingsDto } from './dto/settings.dto'
-import { PaginatedResult } from '../common/dto/pagination.dto'
+import {
+  CreateProjectSubmit,
+  UpdateProjectSubmit,
+  ProjectResult,
+  ProjectPaginatedResult,
+  AddProjectMemberSubmit,
+  UpdateProjectMemberSubmit,
+  ProjectSettingsResult,
+} from '@oops-ai/shared'
 
 @Controller('projects')
 @UseGuards(AuthGuard('jwt'))
@@ -12,8 +28,8 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
-  createProject(@Req() req, @Body() data: CreateProjectDto) {
-    return this.projectsService.createProject(req.user.id, data)
+  createProject(@Req() req, @Body() submit: CreateProjectSubmit) {
+    return this.projectsService.createProject(req.user.id, submit)
   }
 
   @Get()
@@ -22,7 +38,7 @@ export class ProjectsController {
     @Query('page') page: string = '1',
     @Query('pageSize') pageSize: string = '10',
     @Query('search') search?: string,
-  ): Promise<PaginatedResult<any>> {
+  ): Promise<ProjectPaginatedResult> {
     return this.projectsService.getProjects(req.user.id, {
       page: parseInt(page, 10) || 1,
       pageSize: parseInt(pageSize, 10) || 10,
@@ -31,13 +47,13 @@ export class ProjectsController {
   }
 
   @Get(':id')
-  getProjectById(@Param('id') id: string) {
+  getProjectById(@Param('id') id: string): Promise<ProjectResult> {
     return this.projectsService.getProjectById(id)
   }
 
   @Put(':id')
-  updateProject(@Param('id') id: string, @Body() data: UpdateProjectDto) {
-    return this.projectsService.updateProject(id, data)
+  updateProject(@Param('id') id: string, @Body() submit: UpdateProjectSubmit) {
+    return this.projectsService.updateProject(id, submit)
   }
 
   @Delete(':id')
@@ -51,17 +67,17 @@ export class ProjectsController {
   }
 
   @Post(':id/members')
-  addMember(@Param('id') id: string, @Body() data: AddMemberDto) {
-    return this.projectsService.addMember(id, data)
+  addMember(@Param('id') id: string, @Body() submit: AddProjectMemberSubmit) {
+    return this.projectsService.addMember(id, submit)
   }
 
   @Put(':id/members/:userId')
   updateMember(
     @Param('id') id: string,
     @Param('userId') userId: string,
-    @Body() data: UpdateMemberDto,
+    @Body() submit: UpdateProjectMemberSubmit,
   ) {
-    return this.projectsService.updateMember(id, userId, data)
+    return this.projectsService.updateMember(id, userId, submit)
   }
 
   @Delete(':id/members/:userId')
@@ -70,12 +86,12 @@ export class ProjectsController {
   }
 
   @Get(':id/settings')
-  getProjectSettings(@Param('id') id: string) {
+  getProjectSettings(@Param('id') id: string): Promise<ProjectSettingsResult> {
     return this.projectsService.getProjectSettings(id)
   }
 
   @Put(':id/settings')
-  updateProjectSettings(@Param('id') id: string, @Body() data: UpdateSettingsDto) {
+  updateProjectSettings(@Param('id') id: string, @Body() data: any) {
     return this.projectsService.updateProjectSettings(id, data)
   }
 

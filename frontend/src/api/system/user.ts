@@ -1,77 +1,45 @@
 import { http } from "@/utils/http";
+import type {
+  CreateUserSubmit,
+  UpdateUserSubmit,
+  UserResult,
+  UserPaginatedResult,
+  Role
+} from "@oops-ai/shared";
 
-export interface User {
-  id: string;
-  email: string;
-  name: string | null;
-  roleId: string;
-  role: { name: string };
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Role {
-  id: string;
-  name: string;
-}
-
-export interface CreateUserDto {
-  email: string;
-  password: string;
-  name: string;
-  roleId: string;
-}
-
-export interface UpdateUserDto {
-  email?: string;
-  password?: string;
-  name?: string;
-  roleId?: string;
-}
-
-export interface PaginationParams {
-  page: number;
-  pageSize: number;
-  search?: string;
-}
-
-export interface PaginatedResult<T> {
-  data: T[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-}
-
-type ListResult = {
+type UserListResponse = {
   success: boolean;
-  data: PaginatedResult<User>;
+  data: UserPaginatedResult;
 };
 
-type SingleResult = {
+type UserSingleResponse = {
   success: boolean;
-  data: User;
+  data: UserResult;
 };
 
-type RolesResult = {
+type RolesResponse = {
   success: boolean;
   data: Role[];
 };
 
-export const getUsers = (params: PaginationParams) => {
-  return http.request<ListResult>("get", "/users", { params });
+export const getUsers = (params: {
+  page: number;
+  pageSize: number;
+  search?: string;
+}) => {
+  return http.request<UserListResponse>("get", "/users", { params });
 };
 
 export const getUser = (id: string) => {
-  return http.request<SingleResult>("get", `/users/${id}`);
+  return http.request<UserSingleResponse>("get", `/users/${id}`);
 };
 
-export const createUser = (data: CreateUserDto) => {
-  return http.request<SingleResult>("post", "/users", { data });
+export const createUser = (data: CreateUserSubmit) => {
+  return http.request<UserSingleResponse>("post", "/users", { data });
 };
 
-export const updateUser = (id: string, data: UpdateUserDto) => {
-  return http.request<SingleResult>("put", `/users/${id}`, { data });
+export const updateUser = (id: string, data: UpdateUserSubmit) => {
+  return http.request<UserSingleResponse>("put", `/users/${id}`, { data });
 };
 
 export const deleteUser = (id: string) => {
@@ -79,5 +47,5 @@ export const deleteUser = (id: string) => {
 };
 
 export const getRoles = () => {
-  return http.request<RolesResult>("get", "/roles");
+  return http.request<RolesResponse>("get", "/roles");
 };

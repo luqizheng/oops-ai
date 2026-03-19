@@ -52,7 +52,7 @@
         <div class="header-left">
           <h3>项目列表</h3>
           <el-tag type="info" effect="plain">
-            共 {{ filteredProjects.length }} 个项目
+            共 {{ filteredProjects?.length }} 个项目
           </el-tag>
         </div>
         <div class="header-right">
@@ -397,8 +397,7 @@ import {
 const loading = ref(false);
 const submitLoading = ref(false);
 const deleteLoading = ref(false);
-const projects = ref<Project[]>([]);
-const users = ref<User[]>([]);
+const projects = ref<ProjectListItem[]>([]);
 const searchQuery = ref("");
 const statusFilter = ref("");
 const currentPage = ref(1);
@@ -407,16 +406,16 @@ const total = ref(0);
 
 const dialogVisible = ref(false);
 const dialogMode = ref<"add" | "edit">("add");
-const currentProject = ref<Project | null>(null);
+const currentProject = ref<ProjectListItem | null>(null);
 const deleteDialogVisible = ref(false);
 
 const membersDrawerVisible = ref(false);
-const currentProjectMembers = ref<ProjectMember[]>([]);
+const currentProjectMembers = ref<ProjectMemberResult[]>([]);
 const newMemberId = ref("");
 const newMemberRole = ref("developer");
 
 const formRef = ref<FormInstance>();
-const formData = ref<CreateProjectDto | UpdateProjectDto>({
+const formData = ref<CreateProjectSubmit | UpdateProjectSubmit>({
   name: "",
   key: "",
   description: "",
@@ -454,23 +453,21 @@ const formRules: FormRules = {
 
 const availableUsers = computed(() => {
   const memberUserIds = currentProjectMembers.value.map(m => m.userId);
-  return users.value.filter(user => !memberUserIds.includes(user.id));
+  return allUsers.value.filter(user => !memberUserIds.includes(user.id));
 });
 
 const loadData = async () => {
   loading.value = true;
   try {
-    const [projectsRes, usersRes] = await Promise.all([
+    const [projectsRes] = await Promise.all([
       getProjects({
         page: currentPage.value,
         pageSize: pageSize.value,
         search: searchQuery.value || undefined
-      }),
-      getUsers()
+      })
     ]);
     projects.value = projectsRes.data.data;
     total.value = projectsRes.data.total;
-    users.value = usersRes.data;
   } catch (error: any) {
     ElMessage.error(error.message || "加载数据失败");
   } finally {
@@ -527,7 +524,7 @@ const handleEdit = (project: Project) => {
   dialogVisible.value = true;
 };
 
-const handleView = (project: Project) => {
+const handleView = (project: ProjectListItem) => {
   ElMessage.info(`查看项目: ${project.name}`);
 };
 
@@ -553,7 +550,10 @@ const handleSubmit = async () => {
             description: formData.value.description,
             status: formData.value.status
           };
-          await updateProject(currentProject.value.id, updateData);
+          await updateProject(
+            currentProject.value.id,
+            updateData as UpdateProjectSubmit
+          );
           ElMessage.success("项目更新成功");
         }
         dialogVisible.value = false;
@@ -587,10 +587,10 @@ const handleDialogClose = () => {
   formRef.value?.resetFields();
 };
 
-const handleManageMembers = async (project: Project) => {
+const handleManageMembers = async (project: ProjectListItem) => {
   currentProject.value = project;
   membersDrawerVisible.value = true;
-  await loadProjectMembers(project.id);
+  await Promise.all([loadProjectMembers(project.id), loadAllUsers()]);
 };
 
 const loadProjectMembers = async (projectId: string) => {
@@ -632,7 +632,7 @@ const handleUpdateMemberRole = async (member: ProjectMember) => {
   }
 };
 
-const handleRemoveMember = async (member: ProjectMember) => {
+const handleRemoveMember = async (member: ProjectMemberResult) => {
   if (!currentProject.value) return;
 
   try {

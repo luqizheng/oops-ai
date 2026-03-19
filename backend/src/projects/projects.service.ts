@@ -6,22 +6,28 @@ import {
   HttpStatus,
 } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
-import { CreateProjectDto, UpdateProjectDto } from './dto/projects.dto'
-import { AddMemberDto, UpdateMemberDto } from './dto/members.dto'
-import { UpdateSettingsDto } from './dto/settings.dto'
-import { PaginationParams, PaginatedResult } from '../common/dto/pagination.dto'
+import {
+  CreateProjectSubmit,
+  UpdateProjectSubmit,
+  AddProjectMemberSubmit,
+  UpdateProjectMemberSubmit,
+  ProjectResult,
+  ProjectPaginatedResult,
+  ProjectListItem,
+} from '@oops-ai/shared'
+import { PaginationParams } from '../common/dto/pagination.dto'
 
 @Injectable()
 export class ProjectsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createProject(userId: string, data: CreateProjectDto) {
+  async createProject(userId: string, submit: CreateProjectSubmit) {
     try {
       const project = await this.prisma.project.create({
         data: {
-          name: data.name,
-          description: data.description,
-          key: data.key,
+          name: submit.name,
+          description: submit.description,
+          key: submit.key,
           createdBy: userId,
           members: {
             create: {
@@ -40,7 +46,7 @@ export class ProjectsService {
       if (error.code === 'P2002') {
         if (error.meta?.target?.includes('key')) {
           throw new HttpException(
-            { message: `项目关键字 "${data.key}" 已存在，请使用其他关键字` },
+            { message: `项目关键字 "${submit.key}" 已存在，请使用其他关键字` },
             HttpStatus.CONFLICT,
           )
         }
@@ -59,7 +65,7 @@ export class ProjectsService {
     }
   }
 
-  async getProjects(userId: string, params: PaginationParams): Promise<PaginatedResult<any>> {
+  async getProjects(userId: string, params: PaginationParams): Promise<ProjectPaginatedResult> {
     const { page, pageSize, search } = params
     const skip = (page - 1) * pageSize
 
@@ -94,7 +100,16 @@ export class ProjectsService {
     ])
 
     return {
-      data: projects,
+      data: projects.map((project) => ({
+        id: project.id,
+        name: project.name,
+        description: project.description || undefined,
+        key: project.key,
+        status: project.status || undefined,
+        createdAt: project.createdAt,
+        updatedAt: project.updatedAt,
+        ownerId: project.createdBy,
+      })) as ProjectListItem[],
       total,
       page,
       pageSize,
@@ -102,11 +117,15 @@ export class ProjectsService {
     }
   }
 
-  async getProjectById(projectId: string) {
+  async getProjectById(projectId: string): Promise<ProjectResult> {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
       include: {
-        members: { include: { user: true } },
+        members: {
+          include: {
+            user: { select: { id: true, name: true, email: true } },
+          },
+        },
         projectSettings: true,
         requirements: true,
       },
@@ -116,10 +135,36 @@ export class ProjectsService {
       throw new NotFoundException(`Project with ID ${projectId} not found`)
     }
 
-    return project
+    return {
+      id: project.id,
+      name: project.name,
+      description: project.description || undefined,
+      key: project.key,
+      status: project.status || undefined,
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt,
+      ownerId: project.createdBy,
+      members: project.members.map((member) => ({
+        projectId: member.projectId,
+        userId: member.userId,
+        role: member.role,
+        permissions: member.permissions,
+        user: member.user,
+        joinedAt: member.joinedAt,
+      })),
+      projectSettings: project.projectSettings
+        ? {
+            projectId: project.projectSettings.projectId,
+            workflowConfig: project.projectSettings.workflowConfig,
+            notificationConfig: project.projectSettings.notificationConfig,
+            createdAt: project.projectSettings.createdAt,
+            updatedAt: project.projectSettings.updatedAt,
+          }
+        : undefined,
+    }
   }
 
-  async updateProject(projectId: string, data: UpdateProjectDto) {
+  async updateProject(projectId: string, submit: UpdateProjectSubmit) {
     const project = await this.prisma.project.findUnique({ where: { id: projectId } })
     if (!project) {
       throw new NotFoundException(`Project with ID ${projectId} not found`)
@@ -127,7 +172,7 @@ export class ProjectsService {
 
     return this.prisma.project.update({
       where: { id: projectId },
-      data,
+      data: submit,
     })
   }
 
@@ -145,19 +190,19 @@ export class ProjectsService {
     return project.members
   }
 
-  async addMember(projectId: string, data: AddMemberDto) {
+  async addMember(projectId: string, submit: AddProjectMemberSubmit) {
     const project = await this.prisma.project.findUnique({ where: { id: projectId } })
     if (!project) {
       throw new NotFoundException(`Project with ID ${projectId} not found`)
     }
 
-    const user = await this.prisma.user.findUnique({ where: { id: data.userId } })
+    const user = await this.prisma.user.findUnique({ where: { id: submit.userId } })
     if (!user) {
-      throw new NotFoundException(`User with ID ${data.userId} not found`)
+      throw new NotFoundException(`User with ID ${submit.userId} not found`)
     }
 
     const existingMember = await this.prisma.projectMember.findUnique({
-      where: { projectId_userId: { projectId, userId: data.userId } },
+      where: { projectId_userId: { projectId, userId: submit.userId } },
     })
 
     if (existingMember) {
@@ -167,14 +212,14 @@ export class ProjectsService {
     return this.prisma.projectMember.create({
       data: {
         projectId,
-        userId: data.userId,
-        role: data.role,
-        permissions: data.permissions,
+        userId: submit.userId,
+        role: submit.role,
+        permissions: submit.permissions,
       },
     })
   }
 
-  async updateMember(projectId: string, userId: string, data: UpdateMemberDto) {
+  async updateMember(projectId: string, userId: string, submit: UpdateProjectMemberSubmit) {
     const member = await this.prisma.projectMember.findUnique({
       where: { projectId_userId: { projectId, userId } },
     })
@@ -185,7 +230,7 @@ export class ProjectsService {
 
     return this.prisma.projectMember.update({
       where: { projectId_userId: { projectId, userId } },
-      data,
+      data: submit,
     })
   }
 
@@ -204,11 +249,29 @@ export class ProjectsService {
   }
 
   async getProjectSettings(projectId: string) {
-    const project = await this.getProjectById(projectId)
-    return project.projectSettings
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      include: { projectSettings: true },
+    })
+
+    if (!project) {
+      throw new NotFoundException(`Project with ID ${projectId} not found`)
+    }
+
+    if (!project.projectSettings) {
+      throw new NotFoundException(`Settings not found for project ${projectId}`)
+    }
+
+    return {
+      projectId: project.projectSettings.projectId,
+      workflowConfig: project.projectSettings.workflowConfig,
+      notificationConfig: project.projectSettings.notificationConfig,
+      createdAt: project.projectSettings.createdAt,
+      updatedAt: project.projectSettings.updatedAt,
+    }
   }
 
-  async updateProjectSettings(projectId: string, data: UpdateSettingsDto) {
+  async updateProjectSettings(projectId: string, data: any) {
     const project = await this.prisma.project.findUnique({ where: { id: projectId } })
     if (!project) {
       throw new NotFoundException(`Project with ID ${projectId} not found`)

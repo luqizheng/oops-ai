@@ -230,18 +230,20 @@ import {
   getRoles,
   createUser,
   updateUser,
-  deleteUser,
-  type User,
-  type Role,
-  type CreateUserDto,
-  type UpdateUserDto
+  deleteUser
 } from "@/api/system/user";
+import {
+  UserListItem,
+  Role,
+  CreateUserSubmit,
+  UpdateUserSubmit
+} from "@oops-ai/shared";
 import { Search, Refresh, Plus, WarningFilled } from "@element-plus/icons-vue";
 
 const loading = ref(false);
 const submitLoading = ref(false);
 const deleteLoading = ref(false);
-const users = ref<User[]>([]);
+const users = ref<UserListItem[]>([]);
 const roles = ref<Role[]>([]);
 const searchQuery = ref("");
 const roleFilter = ref("");
@@ -251,7 +253,7 @@ const total = ref(0);
 
 const dialogVisible = ref(false);
 const dialogMode = ref<"add" | "edit">("add");
-const currentUser = ref<User | null>(null);
+const currentUser = ref<UserListItem | null>(null);
 const deleteDialogVisible = ref(false);
 
 const formRef = ref<FormInstance>();
@@ -348,7 +350,7 @@ const handleEdit = (user: User) => {
   dialogVisible.value = true;
 };
 
-const handleDelete = (user: User) => {
+const handleDelete = (user: UserListItem) => {
   currentUser.value = user;
   deleteDialogVisible.value = true;
 };
@@ -373,7 +375,10 @@ const handleSubmit = async () => {
           if (formData.value.password) {
             updateData.password = formData.value.password;
           }
-          await updateUser(currentUser.value.id, updateData);
+          await updateUser(
+            currentUser.value.id,
+            updateData as UpdateUserSubmit
+          );
           ElMessage.success("用户更新成功");
         }
         dialogVisible.value = false;

@@ -1,79 +1,54 @@
 import { http } from "@/utils/http";
+import type {
+  CreateProjectSubmit,
+  UpdateProjectSubmit,
+  ProjectResult,
+  ProjectPaginatedResult,
+  ProjectMemberResult,
+  AddProjectMemberSubmit,
+  UserListItem
+} from "@oops-ai/shared";
 
-export interface Project {
-  id: string;
-  name: string;
-  description?: string;
-  key: string;
-  status?: string;
-  createdAt: string;
-  updatedAt: string;
-  ownerId: string;
-  members?: ProjectMember[];
-}
+type ProjectListResponse = {
+  success: boolean;
+  data: ProjectPaginatedResult;
+};
 
-export interface ProjectMember {
-  id: string;
-  projectId: string;
-  userId: string;
-  role: string;
-  user?: {
-    id: string;
-    name: string | null;
-    email: string;
-  };
-}
+type ProjectSingleResponse = {
+  success: boolean;
+  data: ProjectResult;
+};
 
-export interface CreateProjectDto {
-  name: string;
-  description?: string;
-  key: string;
-}
+type ProjectMembersResponse = {
+  success: boolean;
+  data: ProjectMemberResult[];
+};
 
-export interface UpdateProjectDto {
-  name?: string;
-  description?: string;
-  status?: string;
-}
+type UsersResponse = {
+  success: boolean;
+  data: UserListItem[];
+};
 
-export interface PaginationParams {
+export const getProjects = (params: {
   page: number;
   pageSize: number;
   search?: string;
-}
-
-export interface PaginatedResult<T> {
-  data: T[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-}
-
-type ListResult = {
-  success: boolean;
-  data: PaginatedResult<Project>;
-};
-
-type SingleResult = {
-  success: boolean;
-  data: Project;
-};
-
-export const getProjects = (params: PaginationParams) => {
-  return http.request<ListResult>("get", "/projects", { params });
+}) => {
+  return http.request<ProjectListResponse>("get", "/projects", { params });
 };
 
 export const getProject = (id: string) => {
-  return http.request<SingleResult>("get", `/projects/${id}`);
+  return http.request<ProjectSingleResponse>("get", `/projects/${id}`);
 };
 
-export const createProject = (data: CreateProjectDto) => {
-  return http.request<SingleResult>("post", "/projects", { data });
+export const createProject = (data: CreateProjectSubmit) => {
+  return http.request<ProjectSingleResponse>("post", "/projects", { data });
 };
 
-export const updateProject = (id: string, data: UpdateProjectDto) => {
-  return http.request<SingleResult>("put", `/projects/${id}`, { data });
+export const updateProject = (id: string, data: UpdateProjectSubmit) => {
+  return http.request<ProjectSingleResponse>("put", `/projects/${id}`, {
+    data
+  });
 };
 
 export const deleteProject = (id: string) => {
@@ -81,16 +56,23 @@ export const deleteProject = (id: string) => {
 };
 
 export const getProjectMembers = (projectId: string) => {
-  return http.request("get", `/projects/${projectId}/members`);
+  return http.request<ProjectMembersResponse>(
+    "get",
+    `/projects/${projectId}/members`
+  );
 };
 
 export const addProjectMember = (
   projectId: string,
-  data: { userId: string; role: string }
+  data: AddProjectMemberSubmit
 ) => {
   return http.request("post", `/projects/${projectId}/members`, { data });
 };
 
 export const removeProjectMember = (projectId: string, userId: string) => {
   return http.request("delete", `/projects/${projectId}/members/${userId}`);
+};
+
+export const getAllUsers = () => {
+  return http.request<UsersResponse>("get", "/users");
 };

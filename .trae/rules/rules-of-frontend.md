@@ -176,6 +176,216 @@ const loadAllData = async () => {
 
 ---
 
+## 数据类型定义规范
+
+### 强制规则：共享类型定义
+
+**所有服务端和客户端共享的数据模型（DTO、接口、类型）都必须定义在 `@oops-ai/shared` 包中，禁止在各自的业务模块中重复定义。**
+
+#### 原因
+1. **类型一致性**：前后端使用同一套类型定义，避免类型不匹配
+2. **可维护性**：修改类型只需在一处修改，全局生效
+3. **代码复用**：避免重复代码，减少维护成本
+4. **类型安全**：编译时即可发现类型错误
+
+#### 命名规范
+
+##### 1. 客户端提交到服务器的 DTO（`*Submit`）
+
+客户端发起请求时使用，命名格式：`[操作][实体]Submit`
+
+```typescript
+// ✅ 正确示例
+export interface CreateUserSubmit {
+  email: string;
+  password: string;
+  name: string;
+  roleId: string;
+}
+
+export interface UpdateUserSubmit {
+  email?: string;
+  password?: string;
+  name?: string;
+  roleId?: string;
+}
+
+export interface CreateProjectSubmit {
+  name: string;
+  description?: string;
+  key: string;
+}
+
+export interface AddProjectMemberSubmit {
+  userId: string;
+  role: string;
+  permissions?: any;
+}
+```
+
+##### 2. 服务器响应的 DTO（`*Result`）
+
+服务器返回单个实体时使用，命名格式：`[实体][操作]Result`
+
+```typescript
+// ✅ 正确示例
+export interface UserResult {
+  id: string;
+  email: string;
+  name: string | null;
+  roleId: string;
+  role: { name: string };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProjectResult {
+  id: string;
+  name: string;
+  description?: string;
+  key: string;
+  status?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+##### 3. 列表项 DTO（`*ListItem`）
+
+服务器返回列表数据中的单个项，命名格式：`[实体]ListItem`
+
+```typescript
+// ✅ 正确示例
+export interface UserListItem {
+  id: string;
+  email: string;
+  name: string | null;
+  roleId: string;
+  role: { name: string };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProjectListItem {
+  id: string;
+  name: string;
+  description?: string;
+  key: string;
+  status?: string;
+  createdAt: string;
+}
+```
+
+##### 4. 分页结果 DTO（`*PaginatedResult`）
+
+服务器返回分页列表时使用，命名格式：`[实体]PaginatedResult`
+
+```typescript
+// ✅ 正确示例
+export interface UserPaginatedResult {
+  data: UserListItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export interface ProjectPaginatedResult {
+  data: ProjectListItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+```
+
+#### 文件组织结构
+
+```
+@oops-ai/shared/src/
+├── dtos/
+│   ├── user.dto.ts          # 用户相关 DTO
+│   ├── project.dto.ts       # 项目相关 DTO
+│   └── requirement.dto.ts   # 需求相关 DTO
+├── models/
+│   ├── user.model.ts        # 用户数据模型
+│   ├── project.model.ts     # 项目数据模型
+│   └── requirement.model.ts # 需求数据模型
+└── index.ts                 # 统一导出
+```
+
+#### 后端使用示例
+
+```typescript
+// users.controller.ts
+import { CreateUserSubmit, UserResult, UserPaginatedResult } from '@oops-ai/shared';
+
+@Controller('users')
+export class UsersController {
+  @Post()
+  create(@Body() submit: CreateUserSubmit): Promise<UserResult> {
+    return this.usersService.create(submit);
+  }
+
+  @Get()
+  findAll(): Promise<UserPaginatedResult> {
+    return this.usersService.findAll();
+  }
+}
+```
+
+#### 前端使用示例
+
+```typescript
+// user.api.ts
+import { http } from '@/utils/http';
+import {
+  CreateUserSubmit,
+  UpdateUserSubmit,
+  UserResult,
+  UserPaginatedResult
+} from '@oops-ai/shared';
+
+export const createUser = (data: CreateUserSubmit) => {
+  return http.request<UserResult>('post', '/users', { data });
+};
+
+export const getUsers = (params: PaginationParams) => {
+  return http.request<{ success: boolean; data: UserPaginatedResult }>(
+    'get',
+    '/users',
+    { params }
+  );
+};
+```
+
+#### 禁止的行为
+
+❌ **禁止**在各自业务模块中定义与 shared 重复的类型：
+```typescript
+// ❌ 错误示例 - 在 frontend 中定义
+export interface User {
+  id: string;
+  email: string;
+  // ...
+}
+
+// ✅ 正确做法 - 从 shared 导入
+import { UserListItem } from '@oops-ai/shared';
+```
+
+❌ **禁止**使用不一致的命名：
+```typescript
+// ❌ 错误示例 - 混乱的命名
+export interface UserDTO { }           // 应该用 Submit
+export interface UserResponse { }       // 应该用 Result
+export interface UserItem { }           // 应该用 ListItem
+```
+
+❌ **禁止**在前后端使用不同的类型定义文件
+
+---
+
 ## 其他前端规范
 
 ### 组件规范

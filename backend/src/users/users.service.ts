@@ -1,15 +1,15 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
-import { CreateUserDto, UpdateUserDto, UserDto } from './dto/users.dto'
-import { PaginationParams, PaginatedResult } from '../common/dto/pagination.dto'
+import { CreateUserSubmit, UpdateUserSubmit, UserResult, UserPaginatedResult, UserListItem } from '@oops-ai/shared'
 import * as bcrypt from 'bcrypt'
+import { PaginationParams } from '../common/dto/pagination.dto'
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createUserDto: CreateUserDto): Promise<UserDto> {
-    const { email, password, name, roleId } = createUserDto
+  async create(submit: CreateUserSubmit): Promise<UserResult> {
+    const { email, password, name, roleId } = submit
 
     const existingUser = await this.prisma.user.findUnique({ where: { email } })
     if (existingUser) {
@@ -38,10 +38,10 @@ export class UsersService {
       role: user.role,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
-    } as UserDto
+    } as UserResult
   }
 
-  async findAll(params: PaginationParams): Promise<PaginatedResult<UserDto>> {
+  async findAll(params: PaginationParams): Promise<UserPaginatedResult> {
     const { page, pageSize, search } = params
     const skip = (page - 1) * pageSize
 
@@ -76,7 +76,7 @@ export class UsersService {
         role: user.role,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
-      })) as UserDto[],
+      })) as UserListItem[],
       total,
       page,
       pageSize,
@@ -84,7 +84,7 @@ export class UsersService {
     }
   }
 
-  async findOne(id: string): Promise<UserDto> {
+  async findOne(id: string): Promise<UserResult> {
     const user = await this.prisma.user.findUnique({
       where: { id },
       include: {
@@ -104,14 +104,14 @@ export class UsersService {
       role: user.role,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
-    } as UserDto
+    } as UserResult
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<UserDto> {
-    const data: any = { ...updateUserDto }
+  async update(id: string, submit: UpdateUserSubmit): Promise<UserResult> {
+    const data: any = { ...submit }
 
-    if (updateUserDto.password) {
-      data.password = await bcrypt.hash(updateUserDto.password, 10)
+    if (submit.password) {
+      data.password = await bcrypt.hash(submit.password, 10)
     }
 
     const user = await this.prisma.user.update({
@@ -130,7 +130,7 @@ export class UsersService {
       role: user.role,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
-    } as UserDto
+    } as UserResult
   }
 
   async remove(id: string): Promise<void> {
