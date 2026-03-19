@@ -19,6 +19,8 @@ import {
   UpdateRequirementDependencyDto,
   CreateAcceptanceSignoffDto,
   UpdateAcceptanceSignoffDto,
+  CreateRequirementDefinitionDto,
+  UpdateRequirementDefinitionDto,
 } from './dto/requirements.dto'
 import { VectorService } from '../vector/vector.service'
 
@@ -577,6 +579,142 @@ export class RequirementsService {
   }
 
   // ============================================
+  // 9. 需求定义 (Requirement Definition) 相关方法
+  // ============================================
+
+  async createRequirementDefinition(
+    requirementId: string,
+    userId: string,
+    createRequirementDefinitionDto: CreateRequirementDefinitionDto,
+  ) {
+    await this.findOne(requirementId)
+
+    // 检查是否已经存在该需求的最新版本定义
+    const latestDefinition = await this.prisma.requirementDefinition.findFirst({
+      where: { requirementId },
+      orderBy: { version: 'desc' },
+    })
+
+    const newVersion = latestDefinition ? latestDefinition.version + 1 : 1
+
+    return this.prisma.requirementDefinition.create({
+      data: {
+        ...createRequirementDefinitionDto,
+        requirementId,
+        definedById: userId,
+        definedAt: new Date(),
+        version: newVersion,
+        changeHistory: [
+          {
+            version: newVersion,
+            changedBy: userId,
+            changedAt: new Date(),
+            changeDescription: 'Initial version created',
+          },
+        ],
+      },
+    })
+  }
+
+  async getRequirementDefinitions(requirementId: string) {
+    await this.findOne(requirementId)
+    return this.prisma.requirementDefinition.findMany({
+      where: { requirementId },
+      orderBy: { version: 'desc' },
+      include: {
+        definedBy: true,
+        lastUpdatedBy: true,
+      },
+    })
+  }
+
+  async getRequirementDefinitionById(definitionId: string) {
+    const definition = await this.prisma.requirementDefinition.findUnique({
+      where: { id: definitionId },
+      include: {
+        definedBy: true,
+        lastUpdatedBy: true,
+      },
+    })
+
+    if (!definition) {
+      throw new NotFoundException(`Requirement definition with ID ${definitionId} not found`)
+    }
+
+    return definition
+  }
+
+  async getLatestRequirementDefinition(requirementId: string) {
+    await this.findOne(requirementId)
+    // 获取最新版本的需求定义
+    return this.prisma.requirementDefinition.findFirst({
+      where: { requirementId },
+      orderBy: { version: 'desc' },
+      include: {
+        definedBy: true,
+        lastUpdatedBy: true,
+      },
+    })
+  }
+
+  async updateRequirementDefinition(
+    definitionId: string,
+    userId: string,
+    updateRequirementDefinitionDto: UpdateRequirementDefinitionDto,
+  ) {
+    // 检查是否存在该需求定义
+    const existingDefinition = await this.getRequirementDefinitionById(definitionId)
+
+    // 创建新版本
+    return this.prisma.requirementDefinition.create({
+      data: {
+        requirementId: existingDefinition.requirementId,
+        title: updateRequirementDefinitionDto.title || existingDefinition.title,
+        detailedDescription:
+          updateRequirementDefinitionDto.detailedDescription ||
+          existingDefinition.detailedDescription,
+        acceptanceCriteria:
+          updateRequirementDefinitionDto.acceptanceCriteria ||
+          existingDefinition.acceptanceCriteria,
+        businessRules:
+          updateRequirementDefinitionDto.businessRules || existingDefinition.businessRules,
+        dependencies:
+          updateRequirementDefinitionDto.dependencies || existingDefinition.dependencies,
+        assumptions: updateRequirementDefinitionDto.assumptions || existingDefinition.assumptions,
+        constraints: updateRequirementDefinitionDto.constraints || existingDefinition.constraints,
+        riskNotes: updateRequirementDefinitionDto.riskNotes || existingDefinition.riskNotes,
+        estimatedEffort:
+          updateRequirementDefinitionDto.estimatedEffort || existingDefinition.estimatedEffort,
+        estimatedCost:
+          updateRequirementDefinitionDto.estimatedCost || existingDefinition.estimatedCost,
+        status: updateRequirementDefinitionDto.status || existingDefinition.status,
+        version: existingDefinition.version + 1,
+        definedById: existingDefinition.definedById, // 保持原始创建者
+        definedAt: existingDefinition.definedAt, // 保持原始创建时间
+        lastUpdatedById: userId,
+        lastUpdatedAt: new Date(),
+        changeHistory: [
+          ...((existingDefinition.changeHistory as any[]) || []),
+          {
+            version: existingDefinition.version + 1,
+            changedBy: userId,
+            changedAt: new Date(),
+            changeDescription:
+              updateRequirementDefinitionDto.changeDescription || 'Updated definition',
+          },
+        ],
+      },
+    })
+  }
+
+  async deleteRequirementDefinition(definitionId: string) {
+    await this.getRequirementDefinitionById(definitionId)
+    return this.prisma.requirementDefinition.delete({
+      where: { id: definitionId },
+    })
+  }
+
+  // ============================================
   // 需求详情获取方法（包含所有关联信息）
   // ============================================
 
@@ -604,6 +742,13 @@ export class RequirementsService {
           include: {
             signedBy: true,
           },
+        },
+        requirementDefinitions: {
+          include: {
+            definedBy: true,
+            lastUpdatedBy: true,
+          },
+          orderBy: { version: 'desc' },
         },
         assignee: true,
         reporter: true,

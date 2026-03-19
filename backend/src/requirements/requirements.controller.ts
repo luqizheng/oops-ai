@@ -20,6 +20,8 @@ import {
   UpdateRequirementDependencyDto,
   CreateAcceptanceSignoffDto,
   UpdateAcceptanceSignoffDto,
+  CreateRequirementDefinitionDto,
+  UpdateRequirementDefinitionDto,
 } from './dto/requirements.dto'
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger'
 
@@ -409,5 +411,61 @@ export class RequirementsController {
   @ApiOperation({ summary: '删除验收签名' })
   deleteAcceptanceSignoff(@Param('signoffId') signoffId: string) {
     return this.requirementsService.deleteAcceptanceSignoff(signoffId)
+  }
+
+  // ============================================
+  // 9. 需求定义 (Requirement Definition) 相关API
+  // ============================================
+
+  @Post(':id/definitions')
+  @ApiOperation({ summary: '为需求添加需求定义' })
+  createRequirementDefinition(
+    @Param('id') id: string,
+    @Req() req,
+    @Body() createRequirementDefinitionDto: CreateRequirementDefinitionDto,
+  ) {
+    return this.requirementsService.createRequirementDefinition(
+      id,
+      req.user.id,
+      createRequirementDefinitionDto,
+    )
+  }
+
+  @Get(':id/definitions')
+  @ApiOperation({ summary: '获取需求的所有需求定义' })
+  getRequirementDefinitions(@Param('id') id: string) {
+    return this.requirementsService.getRequirementDefinitions(id)
+  }
+
+  @Get(':id/definitions/latest')
+  @ApiOperation({ summary: '获取需求的最新需求定义' })
+  getLatestRequirementDefinition(@Param('id') id: string) {
+    return this.requirementsService.getLatestRequirementDefinition(id)
+  }
+
+  @Get('definitions/:definitionId')
+  @ApiOperation({ summary: '获取单个需求定义' })
+  getRequirementDefinitionById(@Param('definitionId') definitionId: string) {
+    return this.requirementsService.getRequirementDefinitionById(definitionId)
+  }
+
+  @Put('definitions/:definitionId')
+  @ApiOperation({ summary: '更新需求定义（创建新版本）' })
+  updateRequirementDefinition(
+    @Param('definitionId') definitionId: string,
+    @Req() req,
+    @Body() updateRequirementDefinitionDto: UpdateRequirementDefinitionDto,
+  ) {
+    return this.requirementsService.updateRequirementDefinition(
+      definitionId,
+      req.user.id,
+      updateRequirementDefinitionDto,
+    )
+  }
+
+  @Delete('definitions/:definitionId')
+  @ApiOperation({ summary: '删除需求定义' })
+  deleteRequirementDefinition(@Param('definitionId') definitionId: string) {
+    return this.requirementsService.deleteRequirementDefinition(definitionId)
   }
 }

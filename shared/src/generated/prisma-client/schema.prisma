@@ -1,0 +1,577 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../shared/src/generated/prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// 核心需求实体
+// ============================================
+
+model Requirement {
+  id        String  @id @default(uuid())
+  projectId String  @map("project_id")
+  project   Project @relation(fields: [projectId], references: [id])
+
+  // 原始需求关联
+  rawRequirementId String?         @map("raw_requirement_id")
+  rawRequirement   RawRequirement? @relation(fields: [rawRequirementId], references: [id])
+
+  // 基础信息
+  title       String
+  description String?
+  status      String  @default("draft")
+  priority    String  @default("medium")
+  storyPoints Int?    @map("story_points")
+
+  // AI分析相关字段
+  rawInput        String? @map("raw_input")
+  structuredData  Json?   @map("structured_data")
+  qualityScore    Json?   @map("quality_score")
+  vectorEmbedding String? @map("vector_embedding")
+
+  // 负责人信息
+  assigneeId String? @map("assignee_id")
+  assignee   User?   @relation(name: "RequirementAssignee", fields: [assigneeId], references: [id])
+  reporterId String  @map("reporter_id")
+  reporter   User    @relation(name: "RequirementReporter", fields: [reporterId], references: [id])
+
+  // 时间信息
+  dueDate   DateTime? @map("due_date")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  // 关联的核心需求管理点
+  userStories            UserStory[] // 2. 用户故事
+  acceptanceCriteria     AcceptanceCriteria[] // 3. 验收标准
+  testCases              TestCase[] // 4. 测试用例
+  businessRules          BusinessRule[] // 5. 业务规则
+  nfrRequirements        NFRRequirement[] // 6. 非功能需求
+  requirementDeps        RequirementDependency[] @relation("RequirementToDependency")
+  dependentReqs          RequirementDependency[] @relation("DependencyToRequirement")
+  acceptanceSignoffs     AcceptanceSignoff[] // 8. 验收签名
+  requirementDefinitions RequirementDefinition[] // 9. 需求定义
+
+  @@map("requirements")
+}
+
+// ============================================
+// 1. 原始需求 (Raw Need)
+// ============================================
+
+model RawRequirement {
+  id String @id @default(uuid())
+
+  // 原始内容
+  content    String @db.Text // 原始文本
+  sourceType String @default("manual_input") // 会议记录/邮件/聊天/语音
+  sourceMeta Json?  @map("source_meta") // 来源元数据（会议ID、邮件ID等）
+
+  // 上下文信息
+  proposedBy String?  @map("proposed_by") // 提出人
+  proposedAt DateTime @map("proposed_at") // 提出时间
+  scenario   String?  @db.Text // 提出场景
+
+  // 项目关联
+  projectId String  @map("project_id")
+  project   Project @relation(fields: [projectId], references: [id])
+
+  // 关联的需求（一对多关系）
+  requirements Requirement[]
+
+  // 时间戳
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([projectId])
+  @@index([sourceType])
+  @@map("raw_requirements")
+}
+
+// ============================================
+// 2. 用户故事 (User Story)
+// ============================================
+
+model UserStory {
+  id            String      @id @default(uuid())
+  requirementId String      @map("requirement_id")
+  requirement   Requirement @relation(fields: [requirementId], references: [id])
+
+  // 核心格式：As a... I want... So that...
+  role   String // 角色
+  want   String  @db.Text // 想要的功能
+  soThat String? @db.Text // 带来的价值
+
+  // 验收要点
+  acceptanceNotes String? @map("acceptance_notes") @db.Text
+
+  // 故事点估算
+  storyPoints Int? @map("story_points")
+
+  // 时间戳
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([requirementId, role, want])
+  @@index([requirementId])
+  @@map("user_stories")
+}
+
+// ============================================
+// 3. 验收标准 (Acceptance Criteria)
+// ============================================
+
+model AcceptanceCriteria {
+  id            String      @id @default(uuid())
+  requirementId String      @map("requirement_id")
+  requirement   Requirement @relation(fields: [requirementId], references: [id])
+
+  // Gherkin 格式 (Given-When-Then)
+  scenario String // 场景名称
+  given    String[] // 前置条件
+  when     String // 操作
+  then     String[] // 预期结果
+  and      String[] // 补充条件
+
+  // 场景类型
+  scenarioType String @default("normal") @map("scenario_type") // 正常/异常/边界
+
+  // 验收状态
+  status       String    @default("pending")
+  testedById   String?   @map("tested_by_id")
+  testedBy     User?     @relation(name: "TestedByUser", fields: [testedById], references: [id])
+  testedAt     DateTime? @map("tested_at")
+  testEvidence String?   @map("test_evidence") @db.Text // 测试证据
+
+  // 关联的测试用例
+  testCases TestCase[]
+
+  // 时间戳
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([requirementId, scenario])
+  @@index([requirementId])
+  @@index([status])
+  @@map("acceptance_criteria")
+}
+
+// ============================================
+// 4. 测试用例 (Test Cases)
+// ============================================
+
+model TestCase {
+  id                   String              @id @default(uuid())
+  requirementId        String              @map("requirement_id")
+  requirement          Requirement         @relation(fields: [requirementId], references: [id])
+  acceptanceCriteriaId String?             @map("acceptance_criteria_id")
+  acceptanceCriteria   AcceptanceCriteria? @relation(fields: [acceptanceCriteriaId], references: [id])
+
+  // 基本信息
+  title       String
+  description String? @db.Text
+
+  // 测试步骤
+  preconditions String[] // 前置条件
+  testSteps     Json     @map("test_steps") // [{step: "步骤1", data: "测试数据", expected: "预期"}]
+
+  // 测试数据
+  testData Json? @map("test_data")
+
+  // 自动化信息
+  automationStatus    String  @default("manual") @map("automation_status")
+  automationScript    String? @map("automation_script") @db.Text
+  automationFramework String? @map("automation_framework")
+
+  // 执行结果
+  lastRunStatus String?   @map("last_run_status")
+  lastRunAt     DateTime? @map("last_run_at")
+  lastRunById   String?   @map("last_run_by_id")
+  lastRunBy     User?     @relation(name: "ExecutedByUser", fields: [lastRunById], references: [id])
+
+  // 执行历史
+  testExecutions TestExecution[]
+
+  // 时间戳
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([requirementId])
+  @@index([automationStatus])
+  @@index([acceptanceCriteriaId])
+  @@map("test_cases")
+}
+
+// 测试执行历史
+model TestExecution {
+  id         String   @id @default(uuid())
+  testCaseId String   @map("test_case_id")
+  testCase   TestCase @relation(fields: [testCaseId], references: [id])
+
+  status         String
+  duration       Int? // 执行耗时(ms)
+  errorMessage   String?  @map("error_message") @db.Text
+  screenshotUrls String[] @map("screenshot_urls")
+  logUrls        String[] @map("log_urls")
+
+  executedById String?  @map("executed_by_id")
+  executedBy   User?    @relation(fields: [executedById], references: [id])
+  executedAt   DateTime @default(now()) @map("executed_at")
+
+  environment  String?
+  buildVersion String? @map("build_version")
+
+  @@index([testCaseId])
+  @@index([executedAt])
+  @@map("test_executions")
+}
+
+// ============================================
+// 5. 业务规则 (Business Rules)
+// ============================================
+
+model BusinessRule {
+  id            String      @id @default(uuid())
+  requirementId String      @map("requirement_id")
+  requirement   Requirement @relation(fields: [requirementId], references: [id])
+
+  // 规则标识
+  ruleId   String @map("rule_id") // 业务规则编号（如 BR-001）
+  ruleName String @map("rule_name")
+
+  // 规则定义
+  ruleType        String @default("constraint") @map("rule_type")
+  ruleExpression  String @map("rule_expression") @db.Text
+  ruleDescription String @map("rule_description") @db.Text
+
+  // 结构化表示
+  condition  String? @db.Text
+  action     String? @db.Text
+  elseAction String? @map("else_action") @db.Text
+
+  // 优先级/时效性
+  effectiveFrom DateTime? @map("effective_from")
+  effectiveTo   DateTime? @map("effective_to")
+  priority      Int       @default(0)
+
+  // 影响范围
+  affectedModules String[] @map("affected_modules")
+
+  // 时间戳
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([requirementId, ruleId])
+  @@index([requirementId])
+  @@index([ruleType])
+  @@map("business_rules")
+}
+
+// ============================================
+// 6. 非功能需求 (Non-functional Requirements)
+// ============================================
+
+model NFRRequirement {
+  id            String      @id @default(uuid())
+  requirementId String      @map("requirement_id")
+  requirement   Requirement @relation(fields: [requirementId], references: [id])
+
+  // NFR 类型
+  nfrType String @map("nfr_type") // performance, security, availability
+
+  // 指标定义
+  metric      String // 指标名称
+  targetValue Float  @map("target_value")
+  unit        String // 单位
+  comparison  String @default("<=") @map("comparison") // <= / >= / = / between
+
+  // 阈值
+  warningThreshold  Float? @map("warning_threshold")
+  criticalThreshold Float? @map("critical_threshold")
+
+  // 测量方法
+  measurementMethod String? @map("measurement_method") @db.Text
+  measurementTool   String? @map("measurement_tool")
+
+  // 验证状态
+  verificationStatus String    @default("not_verified") @map("verification_status")
+  lastVerifiedAt     DateTime? @map("last_verified_at")
+  lastVerifiedValue  Float?    @map("last_verified_value")
+
+  // 时间戳
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([requirementId, nfrType, metric])
+  @@index([requirementId])
+  @@index([nfrType])
+  @@map("nfr_requirements")
+}
+
+// ============================================
+// 7. 依赖关系 (Dependencies)
+// ============================================
+
+model RequirementDependency {
+  id String @id @default(uuid())
+
+  // 依赖方向：requirement 依赖 dependsOn
+  requirementId String      @map("requirement_id")
+  requirement   Requirement @relation("RequirementToDependency", fields: [requirementId], references: [id])
+
+  dependsOnId String      @map("depends_on_id")
+  dependsOn   Requirement @relation("DependencyToRequirement", fields: [dependsOnId], references: [id])
+
+  // 依赖类型
+  dependencyType String @default("blocks") @map("dependency_type")
+
+  // 依赖描述
+  description String? @db.Text
+
+  // 依赖强度（0-1）
+  strength Float @default(1.0)
+
+  // 时间戳
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([requirementId, dependsOnId])
+  @@index([requirementId])
+  @@index([dependsOnId])
+  @@index([dependencyType])
+  @@map("requirement_dependencies")
+}
+
+// ============================================
+// 8. 验收签名 (Acceptance Sign-off)
+// ============================================
+
+model AcceptanceSignoff {
+  id            String      @id @default(uuid())
+  requirementId String      @map("requirement_id")
+  requirement   Requirement @relation(fields: [requirementId], references: [id])
+
+  // 签名信息
+  signoffType   String @default("functional") @map("signoff_type")
+  signoffStatus String @default("pending") @map("signoff_status")
+
+  // 签名人
+  signedById String?   @map("signed_by_id")
+  signedBy   User?     @relation(name: "SignedByUser", fields: [signedById], references: [id])
+  signedAt   DateTime? @map("signed_at")
+
+  // 签名证据
+  signoffEvidence String? @map("signoff_evidence") @db.Text
+  comments        String? @db.Text
+
+  // 关联的验收标准
+  criteriaIds String[] @map("criteria_ids")
+
+  // 迭代/版本信息
+  milestone      String?
+  releaseVersion String? @map("release_version")
+
+  // 时间戳
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([requirementId, signoffType, milestone])
+  @@index([requirementId])
+  @@index([signoffStatus])
+  @@index([signedById])
+  @@map("acceptance_signoffs")
+}
+
+// ============================================
+// 9. 需求定义 (Requirement Definition / PRD)
+// ============================================
+
+model RequirementDefinition {
+  id            String      @id @default(uuid())
+  requirementId String      @map("requirement_id")
+  requirement   Requirement @relation(fields: [requirementId], references: [id])
+
+  // PRD基本信息
+  title               String
+  detailedDescription String @map("detailed_description") @db.Text
+
+  // 核心内容
+  acceptanceCriteria String[] @map("acceptance_criteria")
+  businessRules      String[] @map("business_rules")
+  dependencies       String[]
+  assumptions        String[]
+  constraints        String[]
+  riskNotes          String[] @map("risk_notes")
+
+  // 估算信息
+  estimatedEffort Float? @map("estimated_effort")
+  estimatedCost   Float? @map("estimated_cost")
+
+  // 负责人信息
+  definedById String   @map("defined_by_id")
+  definedBy   User     @relation(name: "DefinedByUser", fields: [definedById], references: [id])
+  definedAt   DateTime @default(now()) @map("defined_at")
+
+  // 更新信息
+  lastUpdatedById String?   @map("last_updated_by_id")
+  lastUpdatedBy   User?     @relation(name: "LastUpdatedByUser", fields: [lastUpdatedById], references: [id])
+  lastUpdatedAt   DateTime? @map("last_updated_at")
+
+  // 版本信息
+  status        String @default("draft")
+  version       Int    @default(1)
+  changeHistory Json   @default("[]") @map("change_history")
+
+  // 时间戳
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([requirementId, version])
+  @@index([requirementId])
+  @@index([definedById])
+  @@index([status])
+  @@map("requirement_definitions")
+}
+
+// ============================================
+// 辅助模型：项目、用户等
+// ============================================
+
+model Project {
+  id              String           @id @default(uuid())
+  name            String
+  description     String?
+  key             String           @unique
+  settings        Json             @default("{}")
+  status          String           @default("active")
+  createdBy       String?          @map("created_by")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @default(now()) @updatedAt @map("updated_at")
+  members         ProjectMember[]
+  projectSettings ProjectSettings?
+  requirements    Requirement[]
+  rawRequirements RawRequirement[]
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  projectId   String   @map("project_id")
+  userId      String   @map("user_id")
+  role        String   @default("developer")
+  permissions Json     @default("{}")
+  joinedAt    DateTime @default(now()) @map("joined_at")
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, userId])
+  @@map("project_members")
+}
+
+model ProjectSettings {
+  projectId          String   @map("project_id")
+  workflowConfig     Json     @default("{\"states\": [\"draft\", \"reviewing\", \"approved\", \"developing\", \"testing\", \"done\"], \"transitions\": [{\"from\": \"draft\", \"to\": \"reviewing\", \"roles\": [\"product_manager\", \"project_manager\"]}, {\"from\": \"reviewing\", \"to\": \"approved\", \"roles\": [\"product_manager\", \"project_manager\", \"developer\"]}, {\"from\": \"approved\", \"to\": \"developing\", \"roles\": [\"project_manager\", \"developer\"]}, {\"from\": \"developing\", \"to\": \"testing\", \"roles\": [\"developer\"]}, {\"from\": \"testing\", \"to\": \"done\", \"roles\": [\"tester\", \"project_manager\"]}]}") @map("workflow_config")
+  notificationConfig Json     @default("{\"email_notifications\": true, \"in_app_notifications\": true, \"slack_integration\": false, \"mention_notifications\": true}") @map("notification_config")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at")
+  project            Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@id([projectId])
+  @@map("project_settings")
+}
+
+model User {
+  id                       String                  @id @default(uuid())
+  email                    String                  @unique
+  password                 String
+  name                     String?
+  createdAt                DateTime                @default(now()) @map("created_at")
+  updatedAt                DateTime                @default(now()) @updatedAt @map("updated_at")
+  roleId                   String                  @map("role_id")
+  role                     Role                    @relation(fields: [roleId], references: [id])
+  assignedRequirements     Requirement[]           @relation(name: "RequirementAssignee")
+  reportedRequirements     Requirement[]           @relation(name: "RequirementReporter")
+  projectMembers           ProjectMember[]
+  testExecutions           TestExecution[]
+  testedAcceptanceCriteria AcceptanceCriteria[]    @relation(name: "TestedByUser")
+  executedTestCases        TestCase[]              @relation(name: "ExecutedByUser")
+  signedAcceptances        AcceptanceSignoff[]     @relation(name: "SignedByUser")
+  definedRequirements      RequirementDefinition[] @relation(name: "DefinedByUser")
+  updatedRequirements      RequirementDefinition[] @relation(name: "LastUpdatedByUser")
+
+  @@map("users")
+}
+
+model Role {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  description String?
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @default(now()) @updatedAt @map("updated_at")
+  permissions Permission[]
+  users       User[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  roleId      String   @map("role_id")
+  role        Role     @relation(fields: [roleId], references: [id])
+
+  @@map("permissions")
+}
+
+model QuestionTemplate {
+  id              String   @id @default(uuid())
+  requirementType String   @map("requirement_type")
+  templateContent String   @map("template_content")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("question_templates")
+}
+
+model LLMConfiguration {
+  id          String   @id @default(uuid())
+  provider    String
+  modelName   String   @map("model_name")
+  apiEndpoint String?  @map("api_endpoint")
+  apiKey      String?  @map("api_key")
+  temperature Float    @default(0.7)
+  maxTokens   Int      @default(2000) @map("max_tokens")
+  isDefault   Boolean  @default(false) @map("is_default")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("llm_configurations")
+}
+
+model PromptTemplate {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  template    String   @db.Text
+  category    String
+  provider    String?
+  modelName   String?  @map("model_name")
+  isDefault   Boolean  @default(false) @map("is_default")
+  isActive    Boolean  @default(true) @map("is_active")
+  variables   String[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@unique([category, provider, modelName, isDefault])
+  @@index([category])
+  @@index([provider])
+  @@index([modelName])
+  @@index([isActive])
+  @@map("prompt_templates")
+}

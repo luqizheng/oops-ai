@@ -830,3 +830,130 @@ export class UpdateAcceptanceSignoffDto {
   @IsString()
   releaseVersion?: string
 }
+
+// ============================================
+// 9. 需求定义 (Requirement Definition) DTO
+// ============================================
+
+export class CreateRequirementDefinitionDto {
+  @ApiProperty({ description: '需求定义标题' })
+  @IsString()
+  title: string
+
+  @ApiProperty({ description: '需求详细描述' })
+  @IsString()
+  detailedDescription: string
+
+  @ApiProperty({ description: '验收标准', type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  acceptanceCriteria: string[]
+
+  @ApiProperty({ description: '业务规则', type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  businessRules: string[]
+
+  @ApiProperty({ description: '依赖关系', type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  dependencies: string[]
+
+  @ApiProperty({ description: '假设条件', type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  assumptions: string[]
+
+  @ApiProperty({ description: '约束条件', type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  constraints: string[]
+
+  @ApiProperty({ description: '风险说明', type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  riskNotes: string[]
+
+  @ApiProperty({ description: '预估工作量', required: false })
+  @IsOptional()
+  @IsNumber()
+  estimatedEffort?: number
+
+  @ApiProperty({ description: '预估成本', required: false })
+  @IsOptional()
+  @IsNumber()
+  estimatedCost?: number
+
+  @ApiProperty({ description: '需求定义状态', default: 'draft' })
+  @IsOptional()
+  @IsString()
+  status?: string
+}
+
+export class UpdateRequirementDefinitionDto {
+  @ApiProperty({ description: '需求定义标题', required: false })
+  @IsOptional()
+  @IsString()
+  title?: string
+
+  @ApiProperty({ description: '需求详细描述', required: false })
+  @IsOptional()
+  @IsString()
+  detailedDescription?: string
+
+  @ApiProperty({ description: '验收标准', type: [String], required: false })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  acceptanceCriteria?: string[]
+
+  @ApiProperty({ description: '业务规则', type: [String], required: false })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  businessRules?: string[]
+
+  @ApiProperty({ description: '依赖关系', type: [String], required: false })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  dependencies?: string[]
+
+  @ApiProperty({ description: '假设条件', type: [String], required: false })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  assumptions?: string[]
+
+  @ApiProperty({ description: '约束条件', type: [String], required: false })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  constraints?: string[]
+
+  @ApiProperty({ description: '风险说明', type: [String], required: false })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  riskNotes?: string[]
+
+  @ApiProperty({ description: '预估工作量', required: false })
+  @IsOptional()
+  @IsNumber()
+  estimatedEffort?: number
+
+  @ApiProperty({ description: '预估成本', required: false })
+  @IsOptional()
+  @IsNumber()
+  estimatedCost?: number
+
+  @ApiProperty({ description: '需求定义状态', required: false })
+  @IsOptional()
+  @IsString()
+  status?: string
+
+  @ApiProperty({ description: '变更描述', required: false })
+  @IsOptional()
+  @IsString()
+  changeDescription?: string
+}

@@ -1,6 +1,4 @@
-// 导出 Prisma 生成的客户端和类型
-export * from './generated/prisma-client';
-
+// 导出模型和DTO
 export * from './models/requirement';
 export * from './models/project';
 export * from './models/user';

@@ -283,3 +283,34 @@ export interface UpdateAcceptanceSignoffDto {
   milestone?: string;
   releaseVersion?: string;
 }
+
+// 需求定义创建 DTO
+export interface CreateRequirementDefinitionDto {
+  title: string;
+  detailedDescription: string;
+  acceptanceCriteria: string[];
+  businessRules: string[];
+  dependencies: string[];
+  assumptions: string[];
+  constraints: string[];
+  riskNotes: string[];
+  estimatedEffort?: number;
+  estimatedCost?: number;
+  status?: string;
+}
+
+// 需求定义更新 DTO
+export interface UpdateRequirementDefinitionDto {
+  title?: string;
+  detailedDescription?: string;
+  acceptanceCriteria?: string[];
+  businessRules?: string[];
+  dependencies?: string[];
+  assumptions?: string[];
+  constraints?: string[];
+  riskNotes?: string[];
+  estimatedEffort?: number;
+  estimatedCost?: number;
+  status?: string;
+  changeDescription?: string;
+}

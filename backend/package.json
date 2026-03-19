@@ -1,5 +1,5 @@
 {
-  "name": "oops-ai-backend",
+  "name": "@oops-ai/backend",
   "version": "1.0.0",
   "description": "OOPS-AI 后端服务",
   "main": "dist/main.js",

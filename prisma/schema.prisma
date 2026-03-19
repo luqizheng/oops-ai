@@ -54,6 +54,7 @@ model Requirement {
   requirementDeps   RequirementDependency[] @relation("RequirementToDependency")
   dependentReqs     RequirementDependency[] @relation("DependencyToRequirement")
   acceptanceSignoffs AcceptanceSignoff[]   // 8. 验收签名
+  requirementDefinitions RequirementDefinition[] // 9. 需求定义
   
   @@map("requirements")
 }
@@ -385,6 +386,57 @@ model AcceptanceSignoff {
 }
 
 // ============================================
+// 9. 需求定义 (Requirement Definition / PRD)
+// ============================================
+
+model RequirementDefinition {
+  id                  String   @id @default(uuid())
+  requirementId       String   @map("requirement_id")
+  requirement         Requirement @relation(fields: [requirementId], references: [id])
+  
+  // PRD基本信息
+  title               String
+  detailedDescription String @db.Text @map("detailed_description")
+  
+  // 核心内容
+  acceptanceCriteria  String[] @map("acceptance_criteria")
+  businessRules       String[] @map("business_rules")
+  dependencies        String[]
+  assumptions         String[]
+  constraints         String[]
+  riskNotes           String[] @map("risk_notes")
+  
+  // 估算信息
+  estimatedEffort     Float? @map("estimated_effort")
+  estimatedCost       Float? @map("estimated_cost")
+  
+  // 负责人信息
+  definedById         String @map("defined_by_id")
+  definedBy           User @relation(name: "DefinedByUser", fields: [definedById], references: [id])
+  definedAt           DateTime @default(now()) @map("defined_at")
+  
+  // 更新信息
+  lastUpdatedById     String? @map("last_updated_by_id")
+  lastUpdatedBy       User? @relation(name: "LastUpdatedByUser", fields: [lastUpdatedById], references: [id])
+  lastUpdatedAt       DateTime? @map("last_updated_at")
+  
+  // 版本信息
+  status              String @default("draft")
+  version             Int @default(1)
+  changeHistory       Json @default("[]") @map("change_history")
+  
+  // 时间戳
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+  
+  @@unique([requirementId, version])
+  @@index([requirementId])
+  @@index([definedById])
+  @@index([status])
+  @@map("requirement_definitions")
+}
+
+// ============================================
 // 辅助模型：项目、用户等
 // ============================================
 
@@ -447,6 +499,8 @@ model User {
   testedAcceptanceCriteria AcceptanceCriteria[] @relation(name: "TestedByUser")
   executedTestCases    TestCase[]         @relation(name: "ExecutedByUser")
   signedAcceptances    AcceptanceSignoff[] @relation(name: "SignedByUser")
+  definedRequirements  RequirementDefinition[] @relation(name: "DefinedByUser")
+  updatedRequirements  RequirementDefinition[] @relation(name: "LastUpdatedByUser")
 
   @@map("users")
 }

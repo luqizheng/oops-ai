@@ -239,3 +239,33 @@ export interface AcceptanceSignoff {
   createdAt: Date;
   updatedAt: Date;
 }
+
+// 需求定义 (PRD/规格说明书)
+export interface RequirementDefinition {
+  id: string;
+  requirementId: string;
+  title: string;
+  detailedDescription: string;
+  acceptanceCriteria: string[];
+  businessRules: string[];
+  dependencies: string[];
+  assumptions: string[];
+  constraints: string[];
+  riskNotes: string[];
+  estimatedEffort?: number;
+  estimatedCost?: number;
+  definedById: string;
+  definedAt: Date;
+  lastUpdatedById?: string;
+  lastUpdatedAt?: Date;
+  status: string;
+  version: number;
+  changeHistory: Array<{
+    version: number;
+    changedBy: string;
+    changedAt: Date;
+    changeDescription: string;
+  }>;
+  createdAt: Date;
+  updatedAt: Date;
+}
