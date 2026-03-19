@@ -7,6 +7,7 @@
 **所有列表页面的分页都必须采用服务器端分页（Server-side Pagination），禁止使用前端分页（Client-side Pagination）。**
 
 #### 原因
+
 1. **性能优化**：只请求当前页数据，减少网络传输和内存占用
 2. **可扩展性**：支持大数据量（数千到数百万条记录）
 3. **一致性**：搜索/筛选结果在服务器端执行，保证数据准确性
@@ -100,7 +101,7 @@ const loadData = async () => {
   const res = await getList({
     page: currentPage.value,
     pageSize: pageSize.value,
-    search: searchQuery.value || undefined
+    search: searchQuery.value || undefined,
   });
   listData.value = res.data.data;
   total.value = res.data.total;
@@ -139,6 +140,7 @@ const handleSearch = () => {
 #### 禁止的行为
 
 ❌ **禁止**在前端使用 computed 计算分页数据：
+
 ```typescript
 // 错误示例 - 前端分页
 const paginatedData = computed(() => {
@@ -149,6 +151,7 @@ const paginatedData = computed(() => {
 ```
 
 ❌ **禁止**一次性加载所有数据到前端：
+
 ```typescript
 // 错误示例
 const loadAllData = async () => {
@@ -170,6 +173,7 @@ const loadAllData = async () => {
 #### 例外情况
 
 如果后端 API 尚未实现分页功能，可以临时使用前端分页，但必须：
+
 1. 在代码中添加 TODO 注释
 2. 在任务管理系统中创建技术支持任务
 3. 尽快推动后端实现分页功能
@@ -183,6 +187,7 @@ const loadAllData = async () => {
 **所有服务端和客户端共享的数据模型（DTO、接口、类型）都必须定义在 `@oops-ai/shared` 包中，禁止在各自的业务模块中重复定义。**
 
 #### 原因
+
 1. **类型一致性**：前后端使用同一套类型定义，避免类型不匹配
 2. **可维护性**：修改类型只需在一处修改，全局生效
 3. **代码复用**：避免重复代码，减少维护成本
@@ -318,9 +323,13 @@ export interface ProjectPaginatedResult {
 
 ```typescript
 // users.controller.ts
-import { CreateUserSubmit, UserResult, UserPaginatedResult } from '@oops-ai/shared';
+import {
+  CreateUserSubmit,
+  UserResult,
+  UserPaginatedResult,
+} from "@oops-ai/shared";
 
-@Controller('users')
+@Controller("users")
 export class UsersController {
   @Post()
   create(@Body() submit: CreateUserSubmit): Promise<UserResult> {
@@ -338,23 +347,23 @@ export class UsersController {
 
 ```typescript
 // user.api.ts
-import { http } from '@/utils/http';
+import { http } from "@/utils/http";
 import {
   CreateUserSubmit,
   UpdateUserSubmit,
   UserResult,
-  UserPaginatedResult
-} from '@oops-ai/shared';
+  UserPaginatedResult,
+} from "@oops-ai/shared";
 
 export const createUser = (data: CreateUserSubmit) => {
-  return http.request<UserResult>('post', '/users', { data });
+  return http.request<UserResult>("post", "/users", { data });
 };
 
 export const getUsers = (params: PaginationParams) => {
   return http.request<{ success: boolean; data: UserPaginatedResult }>(
-    'get',
-    '/users',
-    { params }
+    "get",
+    "/users",
+    { params },
   );
 };
 ```
@@ -362,6 +371,7 @@ export const getUsers = (params: PaginationParams) => {
 #### 禁止的行为
 
 ❌ **禁止**在各自业务模块中定义与 shared 重复的类型：
+
 ```typescript
 // ❌ 错误示例 - 在 frontend 中定义
 export interface User {
@@ -371,15 +381,16 @@ export interface User {
 }
 
 // ✅ 正确做法 - 从 shared 导入
-import { UserListItem } from '@oops-ai/shared';
+import { UserListItem } from "@oops-ai/shared";
 ```
 
 ❌ **禁止**使用不一致的命名：
+
 ```typescript
 // ❌ 错误示例 - 混乱的命名
-export interface UserDTO { }           // 应该用 Submit
-export interface UserResponse { }       // 应该用 Result
-export interface UserItem { }           // 应该用 ListItem
+export interface UserDTO {} // 应该用 Submit
+export interface UserResponse {} // 应该用 Result
+export interface UserItem {} // 应该用 ListItem
 ```
 
 ❌ **禁止**在前后端使用不同的类型定义文件
@@ -441,7 +452,7 @@ export interface UserItem { }           // 应该用 ListItem
 instance.interceptors.response.use(
   (response: PureHttpResponse) => {
     // ...
-    return response.data;  // 直接返回 response.data
+    return response.data; // 直接返回 response.data
   },
   // ...
 );
@@ -452,14 +463,14 @@ instance.interceptors.response.use(
 ```typescript
 const res = await testLLMConnection(currentConfig.value.id);
 testResult.value = {
-  success: res.success,      // ✅ 直接使用
-  message: res.message      // ✅ 直接使用
+  success: res.success, // ✅ 直接使用
+  message: res.message, // ✅ 直接使用
 };
 
 // 列表数据
 const res = await getList(params);
-listData.value = res.data;   // ✅ res 已经是 data
-total.value = res.total;     // ✅ 直接使用
+listData.value = res.data; // ✅ res 已经是 data
+total.value = res.total; // ✅ 直接使用
 ```
 
 #### 禁止的行为
@@ -467,11 +478,11 @@ total.value = res.total;     // ✅ 直接使用
 ```typescript
 // ❌ 错误示例 - 多余的 data 属性
 const res = await testLLMConnection(id);
-const { success } = res.data;      // ❌ 不需要 res.data
+const { success } = res.data; // ❌ 不需要 res.data
 
 // ❌ 错误示例 - 错误的嵌套
 testResult.value = {
-  success: res.data.success,        // ❌ 错误
-  message: res.data.message         // ❌ 错误
+  success: res.data.success, // ❌ 错误
+  message: res.data.message, // ❌ 错误
 };
 ```

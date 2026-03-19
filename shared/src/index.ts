@@ -27,3 +27,6 @@ export interface ProjectPaginatedResult extends PaginatedResult<import('./dtos/p
 
 // 需求分页结果
 export interface RequirementPaginatedResult extends PaginatedResult<import('./dtos/requirement.dto').RequirementListItem> {}
+
+// 提示词模板分页结果
+export interface PromptTemplatePaginatedResult extends PaginatedResult<import('./dtos/prompt-template.dto').PromptTemplateListItem> {}

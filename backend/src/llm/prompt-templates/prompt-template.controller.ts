@@ -24,12 +24,16 @@ export class PromptTemplateController {
     @Query('provider') provider?: string,
     @Query('modelName') modelName?: string,
     @Query('isActive') isActive?: boolean,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
   ) {
     return this.promptTemplateService.findAll({
       category,
       provider,
       modelName,
       isActive,
+      page: page ? parseInt(page, 10) : 1,
+      pageSize: pageSize ? parseInt(pageSize, 10) : 10,
     })
   }
 

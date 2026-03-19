@@ -874,7 +874,7 @@ const availableUsers = computed(() => {
 const loadProject = async () => {
   try {
     const res = await getProject(projectId.value);
-    project.value = res.data;
+    project.value = res;
   } catch (error: any) {
     ElMessage.error(error.message || "加载项目信息失败");
   }
@@ -975,8 +975,8 @@ const loadMembers = async () => {
   membersLoading.value = true;
   try {
     const res = await getProjectMembers(projectId.value);
-    members.value = res.data;
-    memberTotal.value = res.data.length;
+    members.value = res;
+    memberTotal.value = res.length;
   } catch (error: any) {
     ElMessage.error(error.message || "加载成员列表失败");
   } finally {

@@ -50,7 +50,15 @@ export class PromptTemplateService {
     provider?: string
     modelName?: string
     isActive?: boolean
-  }): Promise<PromptTemplate[]> {
+    page?: number
+    pageSize?: number
+  }): Promise<{
+    data: PromptTemplate[]
+    total: number
+    page: number
+    pageSize: number
+    totalPages: number
+  }> {
     const where: any = {}
 
     if (params?.category) {
@@ -81,12 +89,27 @@ export class PromptTemplateService {
       where.isActive = params.isActive
     }
 
-    const templates = await this.prisma.promptTemplate.findMany({
-      where,
-      orderBy: [{ isDefault: 'desc' }, { category: 'asc' }, { name: 'asc' }],
-    })
+    const page = params?.page || 1
+    const pageSize = params?.pageSize || 10
+    const skip = (page - 1) * pageSize
 
-    return templates.map(this.mapToPromptTemplate)
+    const [templates, total] = await Promise.all([
+      this.prisma.promptTemplate.findMany({
+        where,
+        skip,
+        take: pageSize,
+        orderBy: [{ isDefault: 'desc' }, { category: 'asc' }, { name: 'asc' }],
+      }),
+      this.prisma.promptTemplate.count({ where }),
+    ])
+
+    return {
+      data: templates.map(this.mapToPromptTemplate),
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    }
   }
 
   async findById(id: string): Promise<PromptTemplate> {

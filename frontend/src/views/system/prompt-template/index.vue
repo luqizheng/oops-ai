@@ -150,6 +150,18 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <div class="pagination-wrapper">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          :total="total"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
     </el-card>
 
     <el-dialog
@@ -334,6 +346,8 @@ import type { PromptTemplateListItem } from "@oops-ai/shared";
 const templates = ref<PromptTemplateListItem[]>([]);
 const loading = ref(false);
 const total = ref(0);
+const currentPage = ref(1);
+const pageSize = ref(10);
 const categoryFilter = ref("");
 const statusFilter = ref("");
 
@@ -372,9 +386,11 @@ const loadData = async () => {
     if (statusFilter.value) {
       params.isActive = statusFilter.value === "true";
     }
+    params.page = currentPage.value;
+    params.pageSize = pageSize.value;
     const res = await getPromptTemplates(params);
     templates.value = res.data;
-    total.value = res.data.length;
+    total.value = res.total;
   } catch (error: any) {
     ElMessage.error(error.message || "加载模板列表失败");
   } finally {
@@ -383,6 +399,18 @@ const loadData = async () => {
 };
 
 const handleFilterChange = () => {
+  currentPage.value = 1;
+  loadData();
+};
+
+const handleSizeChange = (val: number) => {
+  pageSize.value = val;
+  currentPage.value = 1;
+  loadData();
+};
+
+const handleCurrentChange = (val: number) => {
+  currentPage.value = val;
   loadData();
 };
 
@@ -564,6 +592,12 @@ defineOptions({
 <style scoped lang="scss">
 .prompt-template {
   padding: 20px;
+}
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
 }
 
 .table-card {

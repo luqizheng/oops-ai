@@ -4,9 +4,9 @@ import {
   ConflictException,
   HttpException,
   HttpStatus,
-} from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { PaginationParams } from '../common/dto/pagination.dto';
+} from '@nestjs/common'
+import { PrismaService } from '../prisma/prisma.service'
+import { PaginationParams } from '../common/dto/pagination.dto'
 import {
   CreateUserSubmit,
   UpdateUserSubmit,
@@ -16,24 +16,24 @@ import {
   UserListItem,
   UserViewModel,
   RoleListItem,
-} from '@oops-ai/shared';
-import * as bcrypt from 'bcrypt';
+} from '@oops-ai/shared'
+import * as bcrypt from 'bcrypt'
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(params: PaginationParams): Promise<UserPaginatedResult> {
-    const { page, pageSize, search } = params;
-    const skip = (page - 1) * pageSize;
+    const { page, pageSize, search } = params
+    const skip = (page - 1) * pageSize
 
-    const where: any = {};
+    const where: any = {}
 
     if (search) {
       where.OR = [
         { email: { contains: search, mode: 'insensitive' } },
         { name: { contains: search, mode: 'insensitive' } },
-      ];
+      ]
     }
 
     const [users, total] = await Promise.all([
@@ -45,10 +45,10 @@ export class UsersService {
         include: { role: true },
       }),
       this.prisma.user.count({ where }),
-    ]);
+    ])
 
     return {
-      data: users.map(user => ({
+      data: users.map((user) => ({
         id: user.id,
         email: user.email,
         name: user.name,
@@ -61,17 +61,17 @@ export class UsersService {
       page,
       pageSize,
       totalPages: Math.ceil(total / pageSize),
-    };
+    }
   }
 
   async findById(id: string): Promise<UserViewModel> {
     const user = await this.prisma.user.findUnique({
       where: { id },
       include: { role: true },
-    });
+    })
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException(`User with ID ${id} not found`)
     }
 
     return {
@@ -82,19 +82,19 @@ export class UsersService {
       role: { name: user.role.name },
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
-    } as UserViewModel;
+    } as UserViewModel
   }
 
   async create(userId: string | undefined, submit: CreateUserSubmit): Promise<CreateUserResult> {
     const existingUser = await this.prisma.user.findUnique({
       where: { email: submit.email },
-    });
+    })
 
     if (existingUser) {
-      throw new ConflictException(`User with email ${submit.email} already exists`);
+      throw new ConflictException(`User with email ${submit.email} already exists`)
     }
 
-    const hashedPassword = await bcrypt.hash(submit.password, 10);
+    const hashedPassword = await bcrypt.hash(submit.password, 10)
 
     const user = await this.prisma.user.create({
       data: {
@@ -104,7 +104,7 @@ export class UsersService {
         roleId: submit.roleId,
       },
       include: { role: true },
-    });
+    })
 
     return {
       id: user.id,
@@ -113,37 +113,37 @@ export class UsersService {
       roleId: user.roleId,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
-    };
+    }
   }
 
   async update(id: string, submit: UpdateUserSubmit): Promise<UpdateUserResult> {
-    const user = await this.prisma.user.findUnique({ where: { id } });
+    const user = await this.prisma.user.findUnique({ where: { id } })
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException(`User with ID ${id} not found`)
     }
 
     if (submit.email && submit.email !== user.email) {
       const existingUser = await this.prisma.user.findUnique({
         where: { email: submit.email },
-      });
+      })
 
       if (existingUser) {
-        throw new ConflictException(`User with email ${submit.email} already exists`);
+        throw new ConflictException(`User with email ${submit.email} already exists`)
       }
     }
 
-    const updateData: any = { ...submit };
+    const updateData: any = { ...submit }
 
     if (submit.password) {
-      updateData.password = await bcrypt.hash(submit.password, 10);
+      updateData.password = await bcrypt.hash(submit.password, 10)
     }
 
     const updatedUser = await this.prisma.user.update({
       where: { id },
       data: updateData,
       include: { role: true },
-    });
+    })
 
     return {
       id: updatedUser.id,
@@ -152,30 +152,30 @@ export class UsersService {
       roleId: updatedUser.roleId,
       createdAt: updatedUser.createdAt,
       updatedAt: updatedUser.updatedAt,
-    };
+    }
   }
 
   async remove(id: string) {
-    const user = await this.prisma.user.findUnique({ where: { id } });
+    const user = await this.prisma.user.findUnique({ where: { id } })
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException(`User with ID ${id} not found`)
     }
 
-    await this.prisma.user.delete({ where: { id } });
+    await this.prisma.user.delete({ where: { id } })
   }
 
   async findAllRoles(): Promise<RoleListItem[]> {
     const roles = await this.prisma.role.findMany({
       orderBy: { createdAt: 'desc' },
-    });
+    })
 
-    return roles.map(role => ({
+    return roles.map((role) => ({
       id: role.id,
       name: role.name,
       description: role.description || undefined,
       createdAt: role.createdAt,
       updatedAt: role.updatedAt,
-    })) as RoleListItem[];
+    })) as RoleListItem[]
   }
 }

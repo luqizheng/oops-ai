@@ -6,7 +6,8 @@ import type {
   UpdatePromptTemplateResult,
   DeletePromptTemplateResult,
   PromptTemplateListItem,
-  RenderTemplateResult
+  RenderTemplateResult,
+  PromptTemplatePaginatedResult
 } from "@oops-ai/shared";
 
 export interface GetPromptTemplatesParams {
@@ -14,12 +15,18 @@ export interface GetPromptTemplatesParams {
   provider?: string;
   modelName?: string;
   isActive?: boolean;
+  page?: number;
+  pageSize?: number;
 }
 
 export const getPromptTemplates = (params?: GetPromptTemplatesParams) => {
-  return http.request<PromptTemplateListItem[]>("get", "/prompt-templates", {
-    params
-  });
+  return http.request<PromptTemplatePaginatedResult>(
+    "get",
+    "/prompt-templates",
+    {
+      params
+    }
+  );
 };
 
 export const getPromptTemplateById = (id: string) => {

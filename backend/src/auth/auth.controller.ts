@@ -43,11 +43,11 @@ export class AuthController {
   @ApiResponse({ status: HttpStatus.OK, description: 'Async routes retrieved successfully' })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
   async getAsyncRoutes(@Req() req) {
-    const userRole = req.user.role;
-    const routes = await this.authService.getAsyncRoutes(userRole);
+    const userRole = req.user.role
+    const routes = await this.authService.getAsyncRoutes(userRole)
     return {
       success: true,
-      data: routes
-    };
+      data: routes,
+    }
   }
 }
