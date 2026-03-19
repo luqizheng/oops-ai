@@ -34,6 +34,19 @@ export default {
         //roles: ["admin", "super-admin", "user"],
         keepAlive: false
       }
+    },
+    {
+      path: "/system/project/:id",
+      name: "ProjectDetail",
+      component: () => import("@/views/system/project/projectDetail/index.vue"),
+      meta: {
+        title: "项目详情",
+        icon: "ri:folder-open-line",
+        showLink: false,
+        //roles: ["admin", "super-admin", "user"],
+        keepAlive: false,
+        activePath: "/system/project"
+      }
     }
   ]
 } satisfies RouteConfigsTable;

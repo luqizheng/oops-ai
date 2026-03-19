@@ -3,25 +3,16 @@
     <el-card shadow="never" class="search-card">
       <el-form inline @submit.prevent>
         <el-form-item label="关键词搜索">
-          <el-input
-            v-model="searchQuery"
-            placeholder="搜索项目名称或描述"
-            clearable
-            class="search-input"
-            @input="handleSearch"
-          >
+          <el-input v-model="searchQuery" placeholder="搜索项目名称或描述" clearable class="search-input" @input="handleSearch">
             <template #prefix>
-              <el-icon><Search /></el-icon>
+              <el-icon>
+                <Search />
+              </el-icon>
             </template>
           </el-input>
         </el-form-item>
         <el-form-item label="状态筛选">
-          <el-select
-            v-model="statusFilter"
-            placeholder="选择状态"
-            clearable
-            @change="handleFilterChange"
-          >
+          <el-select v-model="statusFilter" placeholder="选择状态" clearable @change="handleFilterChange">
             <el-option label="全部" value="" />
             <el-option label="进行中" value="active" />
             <el-option label="已暂停" value="paused" />
@@ -30,11 +21,15 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">
-            <el-icon><Search /></el-icon>
+            <el-icon>
+              <Search />
+            </el-icon>
             搜索
           </el-button>
           <el-button @click="handleReset">
-            <el-icon><Refresh /></el-icon>
+            <el-icon>
+              <Refresh />
+            </el-icon>
             重置
           </el-button>
         </el-form-item>
@@ -49,19 +44,15 @@
         </div>
         <div class="header-right">
           <el-button type="primary" @click="handleAdd">
-            <el-icon><Plus /></el-icon>
+            <el-icon>
+              <Plus />
+            </el-icon>
             创建项目
           </el-button>
         </div>
       </div>
 
-      <el-table
-        v-loading="loading"
-        :data="projects"
-        stripe
-        border
-        class="project-table"
-      >
+      <el-table v-loading="loading" :data="projects" stripe border class="project-table">
         <el-table-column type="selection" width="50" />
         <el-table-column prop="key" label="项目标识" width="100">
           <template #default="{ row }">
@@ -73,7 +64,9 @@
         <el-table-column prop="name" label="项目名称" min-width="180" sortable>
           <template #default="{ row }">
             <div class="project-name" @click="handleView(row)">
-              <el-icon class="project-icon"><FolderOpened /></el-icon>
+              <el-icon class="project-icon">
+                <FolderOpened />
+              </el-icon>
               <span>{{ row.name }}</span>
             </div>
           </template>
@@ -101,20 +94,10 @@
           <template #default="{ row }">
             <div class="members-preview">
               <template v-if="row.members && row.members.length > 0">
-                <el-avatar
-                  v-for="(member, idx) in row.members.slice(0, 3)"
-                  :key="idx"
-                  :size="28"
-                  class="member-avatar"
-                >
+                <el-avatar v-for="(member, idx) in row.members.slice(0, 3)" :key="idx" :size="28" class="member-avatar">
                   {{ member.user?.name?.charAt(0) || "U" }}
                 </el-avatar>
-                <el-tag
-                  v-if="row.members.length > 3"
-                  type="info"
-                  size="small"
-                  class="more-members"
-                >
+                <el-tag v-if="row.members.length > 3" type="info" size="small" class="more-members">
                   +{{ row.members.length - 3 }}
                 </el-tag>
               </template>
@@ -124,36 +107,16 @@
         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
-            <el-button
-              type="primary"
-              size="small"
-              link
-              @click="handleView(row)"
-            >
+            <el-button type="primary" size="small" link @click="handleView(row)">
               查看
             </el-button>
-            <el-button
-              type="success"
-              size="small"
-              link
-              @click="handleManageMembers(row)"
-            >
+            <el-button type="success" size="small" link @click="handleManageMembers(row)">
               成员
             </el-button>
-            <el-button
-              type="warning"
-              size="small"
-              link
-              @click="handleEdit(row)"
-            >
+            <el-button type="warning" size="small" link @click="handleEdit(row)">
               编辑
             </el-button>
-            <el-button
-              type="danger"
-              size="small"
-              link
-              @click="handleDelete(row)"
-            >
+            <el-button type="danger" size="small" link @click="handleDelete(row)">
               删除
             </el-button>
           </template>
@@ -161,70 +124,31 @@
       </el-table>
 
       <div class="pagination-wrapper">
-        <el-pagination
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          :total="total"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
+        <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 20, 50, 100]"
+          :total="total" layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange"
+          @current-change="handleCurrentChange" />
       </div>
     </el-card>
 
-    <el-dialog
-      v-model="dialogVisible"
-      :title="dialogMode === 'add' ? '创建项目' : '编辑项目'"
-      width="600px"
-      @close="handleDialogClose"
-    >
-      <el-form
-        ref="formRef"
-        :model="formData"
-        :rules="formRules"
-        label-width="100px"
-      >
+    <el-dialog v-model="dialogVisible" :title="dialogMode === 'add' ? '创建项目' : '编辑项目'" width="600px"
+      @close="handleDialogClose">
+      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
         <el-form-item label="项目名称" prop="name">
-          <el-input
-            v-model="formData.name"
-            placeholder="请输入项目名称"
-            maxlength="100"
-            show-word-limit
-          />
+          <el-input v-model="formData.name" placeholder="请输入项目名称" maxlength="100" show-word-limit />
         </el-form-item>
         <el-form-item label="项目标识" prop="key">
-          <el-input
-            v-model="formData.key"
-            placeholder="请输入项目标识（如：PROJ）"
-            maxlength="20"
-            show-word-limit
-            :disabled="dialogMode === 'edit'"
-          />
+          <el-input v-model="formData.key" placeholder="请输入项目标识（如：PROJ）" maxlength="20" show-word-limit
+            :disabled="dialogMode === 'edit'" />
           <div class="form-tip">
             项目标识用于在系统中唯一标识项目，建议使用简短的英文缩写
           </div>
         </el-form-item>
         <el-form-item label="项目描述" prop="description">
-          <el-input
-            v-model="formData.description"
-            type="textarea"
-            :rows="4"
-            placeholder="请输入项目描述"
-            maxlength="500"
-            show-word-limit
-          />
+          <el-input v-model="formData.description" type="textarea" :rows="4" placeholder="请输入项目描述" maxlength="500"
+            show-word-limit />
         </el-form-item>
-        <el-form-item
-          v-if="dialogMode === 'edit'"
-          label="项目状态"
-          prop="status"
-        >
-          <el-select
-            v-model="formData.status"
-            placeholder="选择项目状态"
-            style="width: 100%"
-          >
+        <el-form-item v-if="dialogMode === 'edit'" label="项目状态" prop="status">
+          <el-select v-model="formData.status" placeholder="选择项目状态" style="width: 100%">
             <el-option label="进行中" value="active" />
             <el-option label="已暂停" value="paused" />
             <el-option label="已完成" value="completed" />
@@ -233,11 +157,7 @@
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button
-          type="primary"
-          :loading="submitLoading"
-          @click="handleSubmit"
-        >
+        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">
           确定
         </el-button>
       </template>
@@ -245,7 +165,9 @@
 
     <el-dialog v-model="deleteDialogVisible" title="确认删除" width="400px">
       <div class="delete-confirm">
-        <el-icon color="#f56c6c" size="48"><WarningFilled /></el-icon>
+        <el-icon color="#f56c6c" size="48">
+          <WarningFilled />
+        </el-icon>
         <p>
           确定要删除项目 <strong>{{ currentProject?.name }}</strong> 吗？
         </p>
@@ -255,41 +177,20 @@
       </div>
       <template #footer>
         <el-button @click="deleteDialogVisible = false">取消</el-button>
-        <el-button
-          type="danger"
-          :loading="deleteLoading"
-          @click="confirmDelete"
-        >
+        <el-button type="danger" :loading="deleteLoading" @click="confirmDelete">
           删除
         </el-button>
       </template>
     </el-dialog>
 
-    <el-drawer
-      v-model="membersDrawerVisible"
-      :title="`成员管理 - ${currentProject?.name}`"
-      size="500px"
-    >
+    <el-drawer v-model="membersDrawerVisible" :title="`成员管理 - ${currentProject?.name}`" size="500px">
       <div class="members-management">
         <div class="add-member">
-          <el-select
-            v-model="newMemberId"
-            placeholder="选择用户"
-            filterable
-            style="flex: 1"
-          >
-            <el-option
-              v-for="user in availableUsers"
-              :key="user.id"
-              :label="`${user.name || '未命名'} (${user.email})`"
-              :value="user.id"
-            />
+          <el-select v-model="newMemberId" placeholder="选择用户" filterable style="flex: 1">
+            <el-option v-for="user in availableUsers" :key="user.id" :label="`${user.name || '未命名'} (${user.email})`"
+              :value="user.id" />
           </el-select>
-          <el-select
-            v-model="newMemberRole"
-            placeholder="选择角色"
-            style="width: 120px"
-          >
+          <el-select v-model="newMemberRole" placeholder="选择角色" style="width: 120px">
             <el-option label="管理员" value="admin" />
             <el-option label="开发者" value="developer" />
             <el-option label="观察者" value="viewer" />
@@ -301,16 +202,9 @@
 
         <div class="members-list">
           <h4>项目成员 ({{ currentProjectMembers.length }})</h4>
-          <el-empty
-            v-if="currentProjectMembers.length === 0"
-            description="暂无成员"
-          />
-          <div
-            v-for="member in currentProjectMembers"
-            v-else
-            :key="member.userId +'-'+ member.projectId"
-            class="member-item"
-          >
+          <el-empty v-if="currentProjectMembers.length === 0" description="暂无成员" />
+          <div v-for="member in currentProjectMembers" v-else :key="member.userId + '-' + member.projectId"
+            class="member-item">
             <div class="member-info">
               <el-avatar :size="40">
                 {{ member.user?.name?.charAt(0) || "U" }}
@@ -323,22 +217,13 @@
               </div>
             </div>
             <div class="member-actions">
-              <el-select
-                v-model="member.role"
-                size="small"
-                style="width: 100px"
-                @change="handleUpdateMemberRole(member)"
-              >
+              <el-select v-model="member.role" size="small" style="width: 100px"
+                @change="handleUpdateMemberRole(member)">
                 <el-option label="管理员" value="admin" />
                 <el-option label="开发者" value="developer" />
                 <el-option label="观察者" value="viewer" />
               </el-select>
-              <el-button
-                type="danger"
-                size="small"
-                link
-                @click="handleRemoveMember(member)"
-              >
+              <el-button type="danger" size="small" link @click="handleRemoveMember(member)">
                 移除
               </el-button>
             </div>
@@ -351,6 +236,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import {
   getProjects,
@@ -378,6 +264,7 @@ import {
   FolderOpened
 } from "@element-plus/icons-vue";
 
+const router = useRouter();
 const loading = ref(false);
 const submitLoading = ref(false);
 const deleteLoading = ref(false);
@@ -534,7 +421,7 @@ const handleEdit = (project: ProjectListItem) => {
 };
 
 const handleView = (project: ProjectListItem) => {
-  ElMessage.info(`查看项目: ${project.name}`);
+  router.push(`/system/project/${project.id}`);
 };
 
 const handleDelete = (project: ProjectListItem) => {
@@ -686,6 +573,7 @@ defineOptions({
 
 .search-card {
   margin-bottom: 20px;
+
   :deep(.el-card__body) {
     padding-bottom: 0;
   }

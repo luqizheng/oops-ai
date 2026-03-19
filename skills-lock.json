@@ -6,6 +6,11 @@
       "sourceType": "github",
       "computedHash": "c94e6148d927518eac977f84c5221883616c41eda1b0a5ce3a974ed1175e9f90"
     },
+    "nestjs-best-practices": {
+      "source": "kadajett/agent-nestjs-skills",
+      "sourceType": "github",
+      "computedHash": "68658903272e1015f3ec5084c7d0988216a47f42f675ed819a675250fc6a23cd"
+    },
     "ux-admin-portal": {
       "source": "williamfontaine/claude-plugins-marketplace",
       "sourceType": "github",
