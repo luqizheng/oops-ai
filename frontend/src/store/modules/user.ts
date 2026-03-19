@@ -67,9 +67,24 @@ export const useUserStore = defineStore("pure-user", {
     async loginByUsername(data) {
       return new Promise<UserResult>((resolve, reject) => {
         getLogin(data)
-          .then(data => {
-            if (data?.success) setToken(data.data);
-            resolve(data);
+          .then(response => {
+            // 适配后端响应格式
+            const userData = {
+              success: true,
+              data: {
+                avatar: "",
+                username: response.user.email,
+                nickname: response.user.name,
+                roles: [response.user.role],
+                permissions: [],
+                accessToken: response.accessToken,
+                refreshToken: "",
+                // 设置过期时间为24小时（与后端JWT配置一致）
+                expires: new Date(Date.now() + 24 * 60 * 60 * 1000)
+              }
+            };
+            setToken(userData.data);
+            resolve(userData);
           })
           .catch(error => {
             reject(error);

@@ -1,6 +1,7 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateUserDto, UpdateUserDto, UserDto } from './dto/users.dto'
+import { PaginationParams, PaginatedResult } from '../common/dto/pagination.dto'
 import * as bcrypt from 'bcrypt'
 
 @Injectable()
@@ -10,16 +11,13 @@ export class UsersService {
   async create(createUserDto: CreateUserDto): Promise<UserDto> {
     const { email, password, name, roleId } = createUserDto
 
-    // Check if user already exists
     const existingUser = await this.prisma.user.findUnique({ where: { email } })
     if (existingUser) {
       throw new ConflictException('Email already exists')
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Create user
     const user = await this.prisma.user.create({
       data: {
         email,
@@ -43,22 +41,47 @@ export class UsersService {
     } as UserDto
   }
 
-  async findAll(): Promise<UserDto[]> {
-    const users = await this.prisma.user.findMany({
-      include: {
-        role: { select: { name: true } },
-      },
-    })
+  async findAll(params: PaginationParams): Promise<PaginatedResult<UserDto>> {
+    const { page, pageSize, search } = params
+    const skip = (page - 1) * pageSize
 
-    return users.map((user) => ({
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      roleId: user.roleId,
-      role: user.role,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    })) as UserDto[]
+    const where = search
+      ? {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' as const } },
+            { email: { contains: search, mode: 'insensitive' as const } },
+          ],
+        }
+      : {}
+
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        skip,
+        take: pageSize,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          role: { select: { name: true } },
+        },
+      }),
+      this.prisma.user.count({ where }),
+    ])
+
+    return {
+      data: users.map((user) => ({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        roleId: user.roleId,
+        role: user.role,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      })) as UserDto[],
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    }
   }
 
   async findOne(id: string): Promise<UserDto> {
@@ -85,19 +108,12 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<UserDto> {
-    // Check if user exists
-    const existingUser = await this.prisma.user.findUnique({ where: { id } })
-    if (!existingUser) {
-      throw new NotFoundException('User not found')
-    }
-
-    // Hash password if provided
     const data: any = { ...updateUserDto }
-    if (data.password) {
-      data.password = await bcrypt.hash(data.password, 10)
+
+    if (updateUserDto.password) {
+      data.password = await bcrypt.hash(updateUserDto.password, 10)
     }
 
-    // Update user
     const user = await this.prisma.user.update({
       where: { id },
       data,
@@ -118,35 +134,28 @@ export class UsersService {
   }
 
   async remove(id: string): Promise<void> {
-    // Check if user exists
-    const existingUser = await this.prisma.user.findUnique({ where: { id } })
-    if (!existingUser) {
+    try {
+      await this.prisma.user.delete({
+        where: { id },
+      })
+    } catch (error) {
       throw new NotFoundException('User not found')
     }
-
-    // Delete user
-    await this.prisma.user.delete({ where: { id } })
   }
 
   async getProjects(id: string) {
-    // Check if user exists
-    const existingUser = await this.prisma.user.findUnique({ where: { id } })
-    if (!existingUser) {
-      throw new NotFoundException('User not found')
-    }
-
-    // Get projects where user is a member
     return this.prisma.project.findMany({
       where: {
         members: {
-          some: {
-            userId: id,
-          },
+          some: { userId: id },
         },
       },
       include: {
-        projectSettings: true,
-        members: true,
+        members: {
+          include: {
+            user: { select: { id: true, name: true, email: true } },
+          },
+        },
       },
     })
   }

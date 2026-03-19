@@ -1,24 +1,33 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Req, UseGuards } from '@nestjs/common'
+import { Controller, Get, Post, Put, Delete, Param, Body, Query, Req, UseGuards } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { ProjectsService } from './projects.service'
 import { CreateProjectDto, UpdateProjectDto } from './dto/projects.dto'
 import { AddMemberDto, UpdateMemberDto } from './dto/members.dto'
 import { UpdateSettingsDto } from './dto/settings.dto'
+import { PaginatedResult } from '../common/dto/pagination.dto'
 
 @Controller('projects')
 @UseGuards(AuthGuard('jwt'))
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  // 项目CRUD操作
   @Post()
   createProject(@Req() req, @Body() data: CreateProjectDto) {
     return this.projectsService.createProject(req.user.id, data)
   }
 
   @Get()
-  getProjects(@Req() req) {
-    return this.projectsService.getProjects(req.user.id)
+  getProjects(
+    @Req() req,
+    @Query('page') page: string = '1',
+    @Query('pageSize') pageSize: string = '10',
+    @Query('search') search?: string,
+  ): Promise<PaginatedResult<any>> {
+    return this.projectsService.getProjects(req.user.id, {
+      page: parseInt(page, 10) || 1,
+      pageSize: parseInt(pageSize, 10) || 10,
+      search,
+    })
   }
 
   @Get(':id')
@@ -36,7 +45,6 @@ export class ProjectsController {
     return this.projectsService.deleteProject(id)
   }
 
-  // 项目成员管理
   @Get(':id/members')
   getProjectMembers(@Param('id') id: string) {
     return this.projectsService.getProjectMembers(id)
@@ -61,7 +69,6 @@ export class ProjectsController {
     return this.projectsService.removeMember(id, userId)
   }
 
-  // 项目设置管理
   @Get(':id/settings')
   getProjectSettings(@Param('id') id: string) {
     return this.projectsService.getProjectSettings(id)
@@ -72,7 +79,6 @@ export class ProjectsController {
     return this.projectsService.updateProjectSettings(id, data)
   }
 
-  // 工作流管理
   @Get(':id/workflow')
   getWorkflow(@Param('id') id: string) {
     return this.projectsService.getProjectSettings(id).then((settings) => settings?.workflowConfig)

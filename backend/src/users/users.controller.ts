@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common'
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common'
 import { UsersService } from './users.service'
 import { CreateUserDto, UpdateUserDto, UserDto } from './dto/users.dto'
 import { AuthGuard } from '@nestjs/passport'
+import { PaginatedResult } from '../common/dto/pagination.dto'
 
 @Controller('users')
 @UseGuards(AuthGuard('jwt'))
@@ -14,8 +15,16 @@ export class UsersController {
   }
 
   @Get()
-  findAll(): Promise<UserDto[]> {
-    return this.usersService.findAll()
+  findAll(
+    @Query('page') page: string = '1',
+    @Query('pageSize') pageSize: string = '10',
+    @Query('search') search?: string,
+  ): Promise<PaginatedResult<UserDto>> {
+    return this.usersService.findAll({
+      page: parseInt(page, 10) || 1,
+      pageSize: parseInt(pageSize, 10) || 10,
+      search,
+    })
   }
 
   @Get(':id')
