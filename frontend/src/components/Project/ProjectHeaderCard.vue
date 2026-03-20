@@ -7,9 +7,9 @@
             <FolderOpened />
           </el-icon>
           <div class="title-content">
-            <h1>{{ project?.name || "加载中..." }}</h1>
+            <h1>{{ currentProject?.name || "加载中..." }}</h1>
             <div class="project-meta">
-              <el-tag type="primary" effect="plain">{{ project?.key }}</el-tag>
+              <el-tag type="primary" effect="plain">{{ currentProject?.key }}</el-tag>
               <el-tag :type="statusType" effect="light">
                 {{ statusText }}
               </el-tag>
@@ -18,7 +18,7 @@
           </div>
         </div>
         <p class="project-description">
-          {{ project?.description || "暂无项目描述" }}
+          {{ currentProject?.description || "暂无项目描述" }}
         </p>
       </div>
       <div class="project-actions">
@@ -36,16 +36,42 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { FolderOpened, Edit, Back } from "@element-plus/icons-vue";
 import type { ProjectViewModel } from "@oops-ai/shared";
+import { getProject } from "@/api/system/project";
 
 interface Props {
   project: ProjectViewModel | null;
+  projectId: string | null;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  projectId: null
+});
+
+const localProject = ref<ProjectViewModel | null>(null);
+const loading = ref(false);
+
+// 监听 projectId 变化，从后端获取数据
+watch(() => props.projectId, async (newId) => {
+  if (newId) {
+    loading.value = true;
+    try {
+      const data = await getProject(newId);
+      localProject.value = data;
+    } catch (error) {
+      console.error("获取项目数据失败:", error);
+      localProject.value = null;
+    } finally {
+      loading.value = false;
+    }
+  } else {
+    localProject.value = null;
+    loading.value = false;
+  }
+}, { immediate: true });
 
 const emit = defineEmits<{
   edit: [];
@@ -54,13 +80,16 @@ const emit = defineEmits<{
 
 const router = useRouter();
 
+// 当前使用的项目数据，优先使用从后端获取的，其次使用props传递的
+const currentProject = computed(() => localProject.value || props.project);
+
 const statusType = computed(() => {
   const typeMap: Record<string, any> = {
     active: "success",
     paused: "warning",
     completed: "info"
   };
-  return typeMap[props.project?.status || "active"] || "info";
+  return typeMap[currentProject.value?.status || "active"] || "info";
 });
 
 const statusText = computed(() => {
@@ -69,12 +98,12 @@ const statusText = computed(() => {
     paused: "已暂停",
     completed: "已完成"
   };
-  return textMap[props.project?.status || "active"] || "未知";
+  return textMap[currentProject.value?.status || "active"] || "未知";
 });
 
 const formattedDate = computed(() => {
-  if (!props.project?.createdAt) return "-";
-  return new Date(props.project.createdAt).toLocaleString("zh-CN");
+  if (!currentProject.value?.createdAt) return "-";
+  return new Date(currentProject.value.createdAt).toLocaleString("zh-CN");
 });
 
 const handleEdit = () => {
@@ -82,7 +111,7 @@ const handleEdit = () => {
 };
 
 const handleBack = () => {
-  if (props.project?.id) {
+  if (currentProject.value?.id) {
     router.push("/system/project");
   } else {
     emit("back");

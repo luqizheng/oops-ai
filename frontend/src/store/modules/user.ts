@@ -64,7 +64,7 @@ export const useUserStore = defineStore("pure-user", {
       this.loginDay = Number(value);
     },
     /** 登入 */
-    async loginByUsername(data) {
+    async loginByUsername(data: { email: string; password: string }) {
       return new Promise<UserResult>((resolve, reject) => {
         getLogin(data)
           .then(response => {

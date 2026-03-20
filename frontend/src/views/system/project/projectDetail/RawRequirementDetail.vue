@@ -1,14 +1,11 @@
 <template>
+  <ProjectHeaderCard :projectId="projectId" />
   <div class="raw-requirement-detail">
     <el-card shadow="never" class="detail-card">
       <template #header>
         <div class="card-header">
           <h3>{{ dialogTitle }}</h3>
-          <el-button 
-            type="primary" 
-            size="small"
-            @click="handleBack"
-          >
+          <el-button type="primary" size="small" @click="handleBack">
             <el-icon><ArrowLeft /></el-icon>
             返回列表
           </el-button>
@@ -135,7 +132,7 @@ import { ElMessage, ElForm } from "element-plus";
 import { ArrowLeft, MagicStick, Delete } from "@element-plus/icons-vue";
 import { useRouter, useRoute } from "vue-router";
 import { createRawRequirement } from "@/api/system/requirement";
-
+import ProjectHeaderCard from "@/components/Project/ProjectHeaderCard.vue";
 const router = useRouter();
 const route = useRoute();
 
@@ -199,8 +196,8 @@ const handleDeleteQuestion = (index: number) => {
 
 const handleSubmit = async () => {
   if (!formRef.value) return;
-  
-  await formRef.value.validate(async (valid) => {
+
+  await formRef.value.validate(async valid => {
     if (valid) {
       // 检查是否有未回答的追问问题
       const hasUnansweredQuestion = questions.value.some((_, index) => {
