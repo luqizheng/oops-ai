@@ -549,7 +549,7 @@ const handleEdit = (project: ProjectListItem) => {
 };
 
 const handleView = (project: ProjectListItem) => {
-  router.push(`/system/project/${project.id}`);
+  router.push({ name: "ProjectDetail", params: { id: project.id } });
 };
 
 const handleDelete = (project: ProjectListItem) => {

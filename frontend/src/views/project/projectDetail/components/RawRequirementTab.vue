@@ -33,7 +33,7 @@
         </el-select>
       </div>
       <div class="toolbar-right">
-        <el-button type="primary" @click="handleNavigateToAdd">
+        <el-button type="primary" @click="handleAdd">
           <el-icon>
             <Plus />
           </el-icon>
@@ -173,13 +173,19 @@ const handleFilterChange = () => {
 // 跳转到新增原始需求页面
 const handleAdd = () => {
   const router = useRouter();
-  router.push(`/system/project/${props.projectId}/raw-requirement`);
+  router.push({
+    name: "AddRawRequirement",
+    params: { projectId: props.projectId }
+  });
 };
 
 // 跳转到编辑原始需求页面
 const handleEdit = (row: RawRequirement) => {
   const router = useRouter();
-  router.push(`/system/project/${props.projectId}/raw-requirement/${row.id}`);
+  router.push({
+    name: "EditRawRequirement",
+    params: { projectId: props.projectId, id: row.id }
+  });
 };
 
 // 跳转到查看原始需求页面

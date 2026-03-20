@@ -259,7 +259,10 @@ const handleEditRequirement = (row: any) => {
 
 const handleAddRawRequirement = () => {
   // 跳转到新增原始需求页面
-  router.push(`/system/project/${projectId.value}/raw-requirement`);
+  router.push({
+    name: "CreateRawRequirement",
+    params: { projectId: projectId.value }
+  });
 };
 
 onMounted(async () => {

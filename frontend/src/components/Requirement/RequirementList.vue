@@ -23,15 +23,12 @@
           @change="handleFilterChange"
         >
           <el-option label="全部" value="" />
-          <el-option label="草稿" value="DRAFT" />
-          <el-option label="已提交" value="SUBMITTED" />
-          <el-option label="审核中" value="REVIEWING" />
-          <el-option label="已批准" value="APPROVED" />
-          <el-option label="已拒绝" value="REJECTED" />
-          <el-option label="实施中" value="IMPLEMENTING" />
-          <el-option label="测试中" value="TESTING" />
-          <el-option label="已完成" value="COMPLETED" />
-          <el-option label="已取消" value="CANCELED" />
+          <el-option
+            v-for="(label, value) in requirementStatusMap"
+            :key="value"
+            :label="label"
+            :value="value"
+          />
         </el-select>
         <el-select
           v-model="priorityFilter"
@@ -41,10 +38,12 @@
           @change="handleFilterChange"
         >
           <el-option label="全部" value="" />
-          <el-option label="低" value="LOW" />
-          <el-option label="中" value="MEDIUM" />
-          <el-option label="高" value="HIGH" />
-          <el-option label="紧急" value="URGENT" />
+          <el-option
+            v-for="(label, value) in requirementPriorityMap"
+            :key="value"
+            :label="label"
+            :value="value"
+          />
         </el-select>
       </div>
       <div class="toolbar-right">
@@ -165,7 +164,8 @@ import { ref, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import { Search, Plus, Document } from "@element-plus/icons-vue";
 import { getRequirementsByProject } from "@/api/system/requirement";
-import type { RequirementListItem } from "@oops-ai/shared";
+import type { RequirementListItem, RequirementType, RequirementPriority, RequirementStatus } from "@oops-ai/shared";
+import { requirementTypeMap, requirementPriorityMap, requirementStatusMap } from "@/utils/enumMapping";
 
 interface Props {
   projectId: string;
@@ -243,7 +243,9 @@ const handleGenerateStories = (row: RequirementListItem) => {
   emit("generate-stories", row);
 };
 
-const getRequirementTypeTag = (type?: string) => {
+const getRequirementTypeTag = (
+  type?: string
+): "primary" | "success" | "warning" | "info" | "danger" => {
   const typeMap: Record<string, any> = {
     FEATURE: "",
     BUGFIX: "danger",
@@ -254,18 +256,21 @@ const getRequirementTypeTag = (type?: string) => {
   return typeMap[type || "FEATURE"] || "";
 };
 
-const getRequirementTypeText = (type?: string) => {
-  const textMap: Record<string, string> = {
+const getRequirementTypeText = (
+  type?: string
+): string => {
+  // 为了保持UI一致，使用简短的类型名称
+  const shortTypeMap: Record<RequirementType, string> = {
     FEATURE: "功能",
     BUGFIX: "缺陷",
     ENHANCEMENT: "优化",
     TASK: "任务",
     NON_FUNCTIONAL: "非功能"
   };
-  return textMap[type || "FEATURE"] || "未知";
+  return shortTypeMap[type as RequirementType] || "未知";
 };
 
-const getPriorityType = (priority?: string) => {
+const getPriorityType = (priority?: string): "info" | "warning" | "danger" => {
   const typeMap: Record<string, any> = {
     LOW: "info",
     MEDIUM: "",
@@ -276,13 +281,7 @@ const getPriorityType = (priority?: string) => {
 };
 
 const getPriorityText = (priority?: string) => {
-  const textMap: Record<string, string> = {
-    LOW: "低",
-    MEDIUM: "中",
-    HIGH: "高",
-    URGENT: "紧急"
-  };
-  return textMap[priority || "MEDIUM"] || "未知";
+  return requirementPriorityMap[priority as RequirementPriority] || "未知";
 };
 
 const getRequirementStatusType = (status?: string) => {
@@ -301,18 +300,7 @@ const getRequirementStatusType = (status?: string) => {
 };
 
 const getRequirementStatusText = (status?: string) => {
-  const textMap: Record<string, string> = {
-    DRAFT: "草稿",
-    SUBMITTED: "已提交",
-    REVIEWING: "审核中",
-    APPROVED: "已批准",
-    REJECTED: "已拒绝",
-    IMPLEMENTING: "实施中",
-    TESTING: "测试中",
-    COMPLETED: "已完成",
-    CANCELED: "已取消"
-  };
-  return textMap[status || "DRAFT"] || "未知";
+  return requirementStatusMap[status as RequirementStatus] || "未知";
 };
 
 const formatDate = (date?: Date | string) => {

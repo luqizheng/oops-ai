@@ -255,7 +255,10 @@ const {
   handleApprove,
   handleReject,
   handleView,
-  handleSubmit
+  handleSubmit,
+  getTypeText,
+  getStatusType,
+  getStatusText
 } = useApprovals();
 
 const formatDate = (date: any) => {
