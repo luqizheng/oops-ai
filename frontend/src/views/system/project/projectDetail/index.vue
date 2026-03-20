@@ -238,7 +238,7 @@ const handleEdit = () => {
 };
 
 const handleBack = () => {
-  router.push("/system/project");
+  router.push({ name: "ProjectList" });
 };
 
 const handleCreateRequirement = () => {

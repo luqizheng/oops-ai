@@ -82,22 +82,22 @@ export class AIRequirementsService {
   async analyzeRequirement(
     analyzeRequirementDto: AnalyzeRequirementDto,
   ): Promise<RequirementAnalysisResponse> {
-    return {
-      analysisResults: [
-        '系统需向旅客部发送行李取出通知',
-        '旅客部确认接收行李',
-        '客户与前台完成号码牌交换',
-        '前台输入号码完成行李托管单',
-      ],
-      questions: [
-        '旅客部具体指哪个部门？（例如行李寄存处/客房服务中心）',
-        '号码牌是什么形式？（如二维码/条形码/实体标签）',
-        '系统如何向旅客部发送通知？（自动触发/手动推送）',
-        '客户接受行李后如何确认？（口头/系统界面）',
-        '前台输入号码是手动输入还是扫描操作？',
-        '行李托管单结束后系统需要生成哪些数据记录？（如日志/报表）',
-      ],
-    } as RequirementAnalysisResponse
+    // return {
+    //   analysisResults: [
+    //     '系统需向旅客部发送行李取出通知',
+    //     '旅客部确认接收行李',
+    //     '客户与前台完成号码牌交换',
+    //     '前台输入号码完成行李托管单',
+    //   ],
+    //   questions: [
+    //     '旅客部具体指哪个部门？（例如行李寄存处/客房服务中心）',
+    //     '号码牌是什么形式？（如二维码/条形码/实体标签）',
+    //     '系统如何向旅客部发送通知？（自动触发/手动推送）',
+    //     '客户接受行李后如何确认？（口头/系统界面）',
+    //     '前台输入号码是手动输入还是扫描操作？',
+    //     '行李托管单结束后系统需要生成哪些数据记录？（如日志/报表）',
+    //   ],
+    // } as RequirementAnalysisResponse
 
     try {
       console.info('调用-analyzeRequirement')

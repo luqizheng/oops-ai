@@ -96,9 +96,13 @@ export default defineConfig([
       ],
       "@typescript-eslint/no-unused-vars": [
         "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }
+      ],
+      "custom/router-push-name": [
+        "error",
         {
-          argsIgnorePattern: "^_",
-          varsIgnorePattern: "^_"
+          message: "路由导航必须使用 name 属性，而不是直接使用 URL",
+          type: "suggestion"
         }
       ]
     }
@@ -166,6 +170,13 @@ export default defineConfig([
           },
           svg: "always",
           math: "always"
+        }
+      ],
+      "custom/router-push-name": [
+        "error",
+        {
+          message: "路由导航必须使用 name 属性，而不是直接使用 URL",
+          type: "suggestion"
         }
       ]
     }

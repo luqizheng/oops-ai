@@ -100,7 +100,7 @@ export const useUserStore = defineStore("pure-user", {
       removeToken();
       useMultiTagsStoreHook().handleTags("equal", [...routerArrays]);
       resetRouter();
-      router.push("/login");
+      router.push({ name: "Login" });
     },
     /** 刷新`token` */
     async handRefreshToken(data) {

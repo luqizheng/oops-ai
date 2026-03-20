@@ -1,22 +1,12 @@
 <template>
-  <ProjectHeaderCard :projectId="projectId" />
+  <ProjectHeaderCard :projectId="projectId" :subtitle="dialogTitle" />
   <div class="raw-requirement-detail">
     <el-card shadow="never" class="detail-card">
-      <template #header>
-        <div class="card-header">
-          <h3>{{ dialogTitle }}</h3>
-          <el-button type="primary" size="small" @click="handleBack">
-            <el-icon><ArrowLeft /></el-icon>
-            返回列表
-          </el-button>
-        </div>
-      </template>
-
       <el-form
+        ref="formRef"
         :model="formData"
         label-width="100px"
         :rules="rules"
-        ref="formRef"
       >
         <el-form-item label="需求内容" required prop="content">
           <el-input
@@ -140,7 +130,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { ElMessage, ElForm } from "element-plus";
-import { ArrowLeft, MagicStick, Delete } from "@element-plus/icons-vue";
+import { MagicStick, Delete } from "@element-plus/icons-vue";
 import { useRouter, useRoute } from "vue-router";
 
 import ProjectHeaderCard from "@/components/Project/ProjectHeaderCard.vue";
@@ -340,19 +330,6 @@ const getSourceTypeOptions = () => [
   { label: "观察", value: "observation" },
   { label: "其他", value: "other" }
 ];
-
-const getSourceTypeText = (type?: string) => {
-  const textMap: Record<string, string> = {
-    meeting: "会议记录",
-    interview: "访谈",
-    document: "文档",
-    email: "邮件",
-    survey: "问卷调查",
-    observation: "观察",
-    other: "其他"
-  };
-  return textMap[type || "other"] || "其他";
-};
 </script>
 
 <style scoped lang="scss">

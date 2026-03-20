@@ -8,6 +8,7 @@
           </el-icon>
           <div class="title-content">
             <h1>{{ currentProject?.name || "加载中..." }}</h1>
+            <p v-if="subtitle" class="project-subtitle">{{ subtitle }}</p>
             <div class="project-meta">
               <el-tag type="primary" effect="plain">{{
                 currentProject?.key
@@ -47,11 +48,13 @@ import { getProject } from "@/api/system/project";
 interface Props {
   project?: ProjectViewModel | null;
   projectId?: string | null;
+  subtitle?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   projectId: null,
-  project: null
+  project: null,
+  subtitle: ""
 });
 
 const localProject = ref<ProjectViewModel | null>(null);
@@ -119,7 +122,7 @@ const handleEdit = () => {
 
 const handleBack = () => {
   if (currentProject.value?.id) {
-    router.push("/system/project");
+    router.push({ name: "ProjectList" });
   } else {
     emit("back");
   }
@@ -156,15 +159,22 @@ defineOptions({
   .project-title {
     display: flex;
     gap: 16px;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 12px;
 
     .title-content {
       h1 {
-        margin: 0 0 8px;
+        margin: 0 0 4px;
         font-size: 24px;
         font-weight: 600;
         color: var(--el-text-color-primary);
+      }
+
+      .project-subtitle {
+        margin: 0 0 8px;
+        font-size: 16px;
+        color: var(--el-text-color-secondary);
+        font-weight: 400;
       }
 
       .project-meta {
