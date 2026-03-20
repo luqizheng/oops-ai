@@ -6,4 +6,3 @@ export { default as AcceptanceCriteriaStatusSelect } from "./AcceptanceCriteriaS
 // export { default as TestCaseRunStatusSelect } from "./TestCaseRunStatusSelect.vue";
 export { default as NFRVerificationStatusSelect } from "./NFRVerificationStatusSelect.vue";
 export { default as AcceptanceSignoffStatusSelect } from "./AcceptanceSignoffStatusSelect.vue";
-export { default as RequirementList } from "./RequirementList.vue";

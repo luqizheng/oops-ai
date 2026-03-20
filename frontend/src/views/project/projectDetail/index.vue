@@ -99,7 +99,7 @@
     <el-row :gutter="20" class="toolbar-row">
       <el-col :span="24">
         <div class="toolbar">
-          <el-button type="primary" @click="handleAddRawRequirement">
+          <el-button type="primary" @click="handleCreateRawRequirement">
             <el-icon><Plus /></el-icon>
             添加客户需求
           </el-button>
@@ -168,7 +168,7 @@ import {
   Plus
 } from "@element-plus/icons-vue";
 import { ProjectHeaderCard } from "@/components/Project";
-import { RequirementList } from "@/components/Requirement";
+import RequirementList from "./requirement/RequirementList.vue";
 import {
   UserStoryTab,
   ApprovalTab,
@@ -257,7 +257,7 @@ const handleEditRequirement = (row: any) => {
   ElMessage.info(`编辑需求: ${row.title}`);
 };
 
-const handleAddRawRequirement = () => {
+const handleCreateRawRequirement = () => {
   // 跳转到新增原始需求页面
   router.push({
     name: "CreateRawRequirement",

@@ -34,35 +34,39 @@ export default {
         //roles: ["admin", "super-admin", "user"],
         keepAlive: false,
         activePath: "/project"
-      }
-    },
-    {
-      path: "/project/:id/raw-requirement/create",
-      name: "CreateRawRequirement",
-      component: () =>
-        import("@/views/project/projectDetail/RawRequirementCreate.vue"),
-      meta: {
-        title: "原始需求详情",
-        icon: "ri:file-text-line",
-        showLink: false,
-        //roles: ["admin", "super-admin", "user"],
-        keepAlive: false,
-        activePath: "/project"
-      }
-    },
-    {
-      path: "/project/:id/raw-requirement/:requirementId",
-      name: "RawRequirementEdit",
-      component: () =>
-        import("@/views/project/projectDetail/RawRequirementDetail.vue"),
-      meta: {
-        title: "编辑原始需求",
-        icon: "ri:file-text-line",
-        showLink: false,
-        //roles: ["admin", "super-admin", "user"],
-        keepAlive: false,
-        activePath: "/project"
-      }
+      },
+
+      children: [
+        {
+          path: "/project/:id/raw-requirement/create",
+          name: "CreateRawRequirement",
+          component: () =>
+            import("@/views/project/projectDetail/requirement/RawRequirementCreate.vue"),
+          meta: {
+            title: "原始需求详情",
+            icon: "ri:file-text-line",
+            showLink: false,
+            //roles: ["admin", "super-admin", "user"],
+            keepAlive: false,
+            activePath: "/project"
+          }
+        },
+
+        {
+          path: "/project/:id/raw-requirement/:requirementId",
+          name: "RawRequirementEdit",
+          component: () =>
+            import("@/views/project/projectDetail/requirement/RawRequirementDetail.vue"),
+          meta: {
+            title: "编辑原始需求",
+            icon: "ri:file-text-line",
+            showLink: false,
+            //roles: ["admin", "super-admin", "user"],
+            keepAlive: false,
+            activePath: "/project"
+          }
+        }
+      ]
     }
   ]
 } satisfies RouteConfigsTable;

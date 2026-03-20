@@ -119,7 +119,7 @@ import { Search, Plus, Document } from "@element-plus/icons-vue";
 import { useRouter } from "vue-router";
 import { useRawRequirements } from "../composables/useRawRequirements";
 import type { RawRequirement } from "@oops-ai/shared";
-
+const router = useRouter();
 const props = defineProps<{
   projectId: string;
 }>();
@@ -172,16 +172,14 @@ const handleFilterChange = () => {
 
 // 跳转到新增原始需求页面
 const handleAdd = () => {
-  const router = useRouter();
   router.push({
-    name: "AddRawRequirement",
+    name: "CreateRawRequirement",
     params: { projectId: props.projectId }
   });
 };
 
 // 跳转到编辑原始需求页面
 const handleEdit = (row: RawRequirement) => {
-  const router = useRouter();
   router.push({
     name: "EditRawRequirement",
     params: { projectId: props.projectId, id: row.id }
@@ -190,7 +188,6 @@ const handleEdit = (row: RawRequirement) => {
 
 // 跳转到查看原始需求页面
 const handleView = (row: RawRequirement) => {
-  const router = useRouter();
   router.push(`/system/project/${props.projectId}/raw-requirement/${row.id}`);
 };
 
