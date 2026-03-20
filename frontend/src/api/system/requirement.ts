@@ -5,7 +5,8 @@ import type {
   CreateRequirementResult,
   UpdateRequirementResult,
   DeleteRequirementResult,
-  RequirementListItem
+  RequirementListItem,
+  RawRequirement
 } from "@oops-ai/shared";
 
 export const getRequirementsByProject = (
@@ -70,4 +71,74 @@ export const assignRequirement = (id: string, assigneeId: string) => {
 
 export const getRequirementDetails = (id: string) => {
   return http.request<any>("get", `/requirements/${id}/details`);
+};
+
+export const getRawRequirementsByProject = (projectId: string) => {
+  return http.request<RawRequirement[]>(
+    "get",
+    `/requirements/${projectId}/raw-requirements`
+  );
+};
+
+export const getRawRequirement = (rawId: string) => {
+  return http.request<RawRequirement>(
+    "get",
+    `/requirements/raw-requirements/${rawId}`
+  );
+};
+
+export const createRawRequirement = (
+  projectId: string,
+  data: {
+    content: string;
+    sourceType?: string;
+    sourceMeta?: any;
+    proposedBy?: string;
+    proposedAt?: Date;
+    scenario?: string;
+  }
+) => {
+  return http.request<RawRequirement>(
+    "post",
+    `/requirements/${projectId}/raw-requirements`,
+    {
+      data
+    }
+  );
+};
+
+export const updateRawRequirement = (
+  rawId: string,
+  data: {
+    content?: string;
+    sourceType?: string;
+    sourceMeta?: any;
+    proposedBy?: string;
+    proposedAt?: Date;
+    scenario?: string;
+  }
+) => {
+  return http.request<RawRequirement>(
+    "put",
+    `/requirements/raw-requirements/${rawId}`,
+    {
+      data
+    }
+  );
+};
+
+export const deleteRawRequirement = (rawId: string) => {
+  return http.request<{ message: string }>(
+    "delete",
+    `/requirements/raw-requirements/${rawId}`
+  );
+};
+
+export const analyzeRequirement = (requirementText: string) => {
+  return http.request<{
+    analysisResults: string[];
+    questions: string[];
+  }>("post", "/requirements/ai/analyze/requirement", {
+    data: { requirementText }
+  });
 };

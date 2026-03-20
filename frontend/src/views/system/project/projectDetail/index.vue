@@ -95,6 +95,18 @@
       </el-col>
     </el-row>
 
+    <!-- 工具栏 -->
+    <el-row :gutter="20" class="toolbar-row">
+      <el-col :span="24">
+        <div class="toolbar">
+          <el-button type="primary" @click="handleAddRawRequirement">
+            <el-icon><Plus /></el-icon>
+            添加客户需求
+          </el-button>
+        </div>
+      </el-col>
+    </el-row>
+
     <el-row :gutter="20">
       <el-col :span="24">
         <el-card shadow="never" class="tabs-card">
@@ -106,6 +118,13 @@
                 @edit="handleEditRequirement"
                 @create="handleCreateRequirement"
                 @generate-stories="handleGenerateStories"
+              />
+            </el-tab-pane>
+
+            <el-tab-pane label="原始需求" name="raw-requirements">
+              <RawRequirementTab
+                ref="rawRequirementTabRef"
+                :project-id="projectId"
               />
             </el-tab-pane>
 
@@ -145,7 +164,8 @@ import {
   Document,
   ChatLineSquare,
   Clock,
-  CircleCheck
+  CircleCheck,
+  Plus
 } from "@element-plus/icons-vue";
 import { ProjectHeaderCard } from "@/components/Project";
 import { RequirementList } from "@/components/Requirement";
@@ -153,7 +173,8 @@ import {
   UserStoryTab,
   ApprovalTab,
   MemberTab,
-  ActivityTab
+  ActivityTab,
+  RawRequirementTab
 } from "./components";
 
 import { getProject } from "@/api/system/project";
@@ -171,6 +192,7 @@ const userStoryTabRef = ref<InstanceType<typeof UserStoryTab>>();
 const approvalTabRef = ref<InstanceType<typeof ApprovalTab>>();
 const memberTabRef = ref<InstanceType<typeof MemberTab>>();
 const activityTabRef = ref<InstanceType<typeof ActivityTab>>();
+const rawRequirementTabRef = ref<InstanceType<typeof RawRequirementTab>>();
 
 const statistics = ref({
   totalRequirements: 0,
@@ -206,7 +228,8 @@ const loadAllData = async () => {
     approvalTabRef.value?.loadRequirements(),
     memberTabRef.value?.loadMembers(),
     memberTabRef.value?.loadAllUsers(),
-    activityTabRef.value?.loadActivities()
+    activityTabRef.value?.loadActivities(),
+    rawRequirementTabRef.value?.loadRawRequirements()
   ]);
 };
 
@@ -234,6 +257,11 @@ const handleEditRequirement = (row: any) => {
   ElMessage.info(`编辑需求: ${row.title}`);
 };
 
+const handleAddRawRequirement = () => {
+  // 跳转到新增原始需求页面
+  router.push(`/system/project/${projectId.value}/raw-requirement`);
+};
+
 onMounted(async () => {
   await loadAllData();
 });
@@ -252,6 +280,17 @@ defineOptions({
 
 .stats-row {
   margin-bottom: 20px;
+}
+
+.toolbar-row {
+  margin-bottom: 20px;
+}
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-start;
+  align-items: center;
 }
 
 .stat-card {
