@@ -134,11 +134,27 @@ export const deleteRawRequirement = (rawId: string) => {
   );
 };
 
-export const analyzeRequirement = (requirementText: string) => {
+export const analyzeRequirement = (
+  requirementText: string,
+  questions?: string[],
+  answers?: string[]
+) => {
   return http.request<{
     analysisResults: string[];
     questions: string[];
   }>("post", "/requirements/ai/analyze/requirement", {
-    data: { requirementText }
+    data: { requirementText, questions, answers }
+  });
+};
+
+export const optimizeInput = (
+  requirementText: string,
+  questions: string[],
+  answers: string[]
+) => {
+  return http.request<{
+    optimizedContent: string;
+  }>("post", "/requirements/ai/optimize-input", {
+    data: { requirementText, questions, answers }
   });
 };

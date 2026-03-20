@@ -164,8 +164,6 @@ export class PromptTemplateService {
       ],
     })
 
-    console.debug('----------------------', templates)
-
     if (templates.length === 0) {
       return null
     }

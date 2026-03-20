@@ -99,13 +99,33 @@ export class AIRequirementsController {
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: '生成用户故事失败',
+    description: '生成失败',
   })
   async generateUserStories(@Body() generateUserStoriesDto: GenerateUserStoriesDto) {
     try {
       return await this.aiRequirementsService.generateUserStories(generateUserStoriesDto)
     } catch (error) {
       throw new BadRequestException(`生成用户故事失败: ${error.message}`)
+    }
+  }
+
+  @Post('optimize-input')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '优化输入内容' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: '优化后的输入内容',
+    type: Object,
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: '优化失败',
+  })
+  async optimizeInput(@Body() analyzeRequirementDto: AnalyzeRequirementDto) {
+    try {
+      return await this.aiRequirementsService.optimizeInput(analyzeRequirementDto)
+    } catch (error) {
+      throw new BadRequestException(`优化输入内容失败: ${error.message}`)
     }
   }
 

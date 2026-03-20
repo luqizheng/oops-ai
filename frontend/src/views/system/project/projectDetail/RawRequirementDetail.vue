@@ -88,6 +88,17 @@
               />
             </el-card>
           </div>
+          <div style="margin-top: 16px; text-align: right">
+            <el-button
+              type="primary"
+              :loading="analyzing"
+              :disabled="!hasAllAnswers()"
+              @click="handleOptimizeInput"
+            >
+              <el-icon><MagicStick /></el-icon>
+              优化输入内容
+            </el-button>
+          </div>
         </div>
 
         <el-form-item label="来源类型" prop="sourceType">
@@ -127,17 +138,47 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { ElMessage, ElForm } from "element-plus";
 import { ArrowLeft, MagicStick, Delete } from "@element-plus/icons-vue";
 import { useRouter, useRoute } from "vue-router";
-import { createRawRequirement } from "@/api/system/requirement";
+
 import ProjectHeaderCard from "@/components/Project/ProjectHeaderCard.vue";
 const router = useRouter();
 const route = useRoute();
 
 const projectId = computed(() => route.params.id as string);
-const dialogMode = ref<"add" | "edit">("add");
+const requirementId = computed(
+  () => route.params.requirementId as string | undefined
+);
+const dialogMode = ref<"add" | "edit">(requirementId.value ? "edit" : "add");
+
+// 加载需求详情
+const loadRequirementDetail = async () => {
+  if (!requirementId.value) return;
+
+  try {
+    const { getRawRequirement } = await import("@/api/system/requirement");
+    const res = await getRawRequirement(requirementId.value);
+    formData.value = {
+      content: res.content,
+      sourceType: res.sourceType || "",
+      sourceMeta: res.sourceMeta,
+      proposedBy: res.proposedBy || "",
+      proposedAt: res.proposedAt,
+      scenario: res.scenario || ""
+    };
+  } catch (error: any) {
+    ElMessage.error(error.message || "加载需求详情失败");
+  }
+};
+
+// 在组件挂载时加载需求详情
+onMounted(() => {
+  if (dialogMode.value === "edit") {
+    loadRequirementDetail();
+  }
+});
 
 const formRef = ref<InstanceType<typeof ElForm>>();
 const formData = ref({
@@ -194,6 +235,43 @@ const handleDeleteQuestion = (index: number) => {
   questionAnswers.value.splice(index, 1);
 };
 
+// 检查是否所有追问都已回答
+const hasAllAnswers = () => {
+  return (
+    questions.value.length > 0 &&
+    questionAnswers.value.every(answer => answer.trim())
+  );
+};
+
+// 优化输入内容
+const handleOptimizeInput = async () => {
+  if (!formData.value.content.trim() || !hasAllAnswers()) {
+    ElMessage.warning("请输入原始需求内容并回答所有追问");
+    return;
+  }
+
+  analyzing.value = true;
+  try {
+    const { optimizeInput } = await import("@/api/system/requirement");
+    const res = await optimizeInput(
+      formData.value.content,
+      questions.value,
+      questionAnswers.value
+    );
+    // 将优化后的内容更新到需求内容中
+    formData.value.content = res.optimizedContent;
+    // 清空分析结果和追问
+    analysisResults.value = [];
+    questions.value = [];
+    questionAnswers.value = [];
+    ElMessage.success("输入内容优化完成");
+  } catch (error: any) {
+    ElMessage.error(error.message || "优化输入内容失败");
+  } finally {
+    analyzing.value = false;
+  }
+};
+
 const handleSubmit = async () => {
   if (!formRef.value) return;
 
@@ -223,8 +301,22 @@ const handleSubmit = async () => {
           };
         }
 
-        await createRawRequirement(projectId.value, submitData);
-        ElMessage.success("原始需求创建成功");
+        const requirementApi = await import("@/api/system/requirement");
+
+        if (dialogMode.value === "edit" && requirementId.value) {
+          await requirementApi.updateRawRequirement(
+            requirementId.value,
+            submitData
+          );
+          ElMessage.success("原始需求更新成功");
+        } else {
+          await requirementApi.createRawRequirement(
+            projectId.value,
+            submitData
+          );
+          ElMessage.success("原始需求创建成功");
+        }
+
         handleBack();
       } catch (error: any) {
         ElMessage.error(error.message || "操作失败");

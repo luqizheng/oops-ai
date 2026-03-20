@@ -109,170 +109,13 @@
         @current-change="handlePageChange"
       />
     </div>
-
-    <el-dialog
-      v-model="dialogVisible"
-      :title="dialogTitle"
-      width="700px"
-      @close="handleDialogClose"
-    >
-      <el-form
-        v-if="dialogMode !== 'view'"
-        :model="formData"
-        label-width="100px"
-      >
-        <el-form-item label="需求内容" required>
-          <el-input
-            v-model="formData.content"
-            type="textarea"
-            :rows="8"
-            placeholder="请输入原始需求内容"
-          />
-          <div class="form-actions" style="margin-top: 12px; text-align: right">
-            <el-button
-              type="primary"
-              :loading="analyzing"
-              :disabled="!formData.content.trim()"
-              @click="handleAnalyze"
-            >
-              <el-icon><MagicStick /></el-icon>
-              分析需求
-            </el-button>
-          </div>
-        </el-form-item>
-
-        <!-- AI 分析结果 -->
-        <div v-if="analysisResults.length > 0" class="analysis-results">
-          <h4 style="margin-bottom: 12px">AI 分析结果</h4>
-          <el-card
-            class="result-card"
-            shadow="hover"
-            :body-style="{ padding: '12px' }"
-          >
-            <el-timeline>
-              <el-timeline-item
-                v-for="(result, index) in analysisResults"
-                :key="index"
-                timestamp=""
-                color="#2080f0"
-              >
-                {{ result }}
-              </el-timeline-item>
-            </el-timeline>
-          </el-card>
-        </div>
-
-        <!-- 追问列表 -->
-        <div v-if="questions.length > 0" class="questions-section">
-          <h4 style="margin-bottom: 12px">AI 追问</h4>
-          <div
-            v-for="(question, index) in questions"
-            :key="index"
-            class="question-item"
-          >
-            <el-card shadow="hover" :body-style="{ padding: '16px' }">
-              <div class="question-header">
-                <span class="question-text">{{ question }}</span>
-                <el-button
-                  type="danger"
-                  size="small"
-                  @click="handleDeleteQuestion(index)"
-                >
-                  <el-icon><Delete /></el-icon>
-                  删除
-                </el-button>
-              </div>
-              <el-input
-                v-model="questionAnswers[index]"
-                type="textarea"
-                :rows="3"
-                placeholder="请输入您的回答"
-                style="margin-top: 12px"
-              />
-            </el-card>
-          </div>
-        </div>
-
-        <el-form-item label="来源类型">
-          <el-select
-            v-model="formData.sourceType"
-            placeholder="选择来源类型"
-            style="width: 100%"
-          >
-            <el-option
-              v-for="option in getSourceTypeOptions()"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="提出人">
-          <el-input v-model="formData.proposedBy" placeholder="请输入提出人" />
-        </el-form-item>
-        <el-form-item label="场景">
-          <el-input v-model="formData.scenario" placeholder="请输入使用场景" />
-        </el-form-item>
-      </el-form>
-
-      <div v-else-if="currentRawRequirement" class="detail-view">
-        <el-descriptions :column="2" border>
-          <el-descriptions-item label="来源类型">
-            <el-tag type="info">{{
-              getSourceTypeText(currentRawRequirement.sourceType)
-            }}</el-tag>
-          </el-descriptions-item>
-          <el-descriptions-item label="提出人">
-            {{ currentRawRequirement.proposedBy || "-" }}
-          </el-descriptions-item>
-          <el-descriptions-item label="场景">
-            {{ currentRawRequirement.scenario || "-" }}
-          </el-descriptions-item>
-          <el-descriptions-item label="创建时间">
-            {{ formatDate(currentRawRequirement.createdAt) }}
-          </el-descriptions-item>
-        </el-descriptions>
-        <div class="content-section">
-          <h4>原始需求内容</h4>
-          <pre class="content-pre">{{ currentRawRequirement.content }}</pre>
-        </div>
-        <div v-if="currentRawRequirement.sourceMeta" class="meta-section">
-          <h4>附加信息</h4>
-          <pre class="meta-pre">{{
-            JSON.stringify(currentRawRequirement.sourceMeta, null, 2)
-          }}</pre>
-        </div>
-      </div>
-
-      <template #footer>
-        <template v-if="dialogMode === 'view'">
-          <el-button @click="dialogVisible = false">关闭</el-button>
-        </template>
-        <template v-else>
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button
-            type="primary"
-            :loading="submitLoading"
-            @click="handleSubmit"
-          >
-            确定
-          </el-button>
-        </template>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
-import {
-  Search,
-  Plus,
-  Document,
-  MagicStick,
-  Delete
-} from "@element-plus/icons-vue";
+import { ElMessageBox } from "element-plus";
+import { Search, Plus, Document } from "@element-plus/icons-vue";
 import { useRouter } from "vue-router";
 import { useRawRequirements } from "../composables/useRawRequirements";
 import type { RawRequirement } from "@oops-ai/shared";
@@ -292,28 +135,12 @@ const {
   pageSize,
   total,
   search,
-  dialogVisible,
-  dialogMode,
-  currentRawRequirement,
-  formData,
-  submitLoading,
-  analyzing,
-  analysisResults,
-  questions,
-  questionAnswers,
   loadRawRequirements,
   handleSearch,
   handleSizeChange,
   handlePageChange,
-  handleAdd,
-  handleEdit,
-  handleView,
-  handleSubmit,
   handleDelete,
-  handleAnalyze,
-  handleDeleteQuestion,
-  getSourceTypeText,
-  getSourceTypeOptions
+  getSourceTypeText
 } = useRawRequirements(props.projectId);
 
 const sourceTypeFilter = ref("");
@@ -339,59 +166,32 @@ const filteredRawRequirements = computed(() => {
   return result;
 });
 
-const dialogTitle = computed(() => {
-  if (dialogMode.value === "add") return "添加原始需求";
-  if (dialogMode.value === "edit") return "编辑原始需求";
-  return "原始需求详情";
-});
-
 const handleFilterChange = () => {
   page.value = 1;
 };
 
-const handleDialogClose = () => {
-  if (dialogMode.value !== "view") {
-    formData.value = {
-      content: "",
-      sourceType: "",
-      sourceMeta: undefined,
-      proposedBy: "",
-      proposedAt: undefined,
-      scenario: ""
-    };
-    // 重置 AI 分析相关状态
-    analysisResults.splice(0);
-    questions.splice(0);
-    questionAnswers.splice(0);
-  }
-};
-
 // 跳转到新增原始需求页面
-const handleNavigateToAdd = () => {
+const handleAdd = () => {
   const router = useRouter();
   router.push(`/system/project/${props.projectId}/raw-requirement`);
+};
+
+// 跳转到编辑原始需求页面
+const handleEdit = (row: RawRequirement) => {
+  const router = useRouter();
+  router.push(`/system/project/${props.projectId}/raw-requirement/${row.id}`);
+};
+
+// 跳转到查看原始需求页面
+const handleView = (row: RawRequirement) => {
+  const router = useRouter();
+  router.push(`/system/project/${props.projectId}/raw-requirement/${row.id}`);
 };
 
 const formatDate = (date?: Date | string) => {
   if (!date) return "-";
   const d = new Date(date);
   return d.toLocaleString("zh-CN");
-};
-
-const handleDeleteWithConfirm = (row: RawRequirement) => {
-  ElMessageBox.confirm(
-    `确定要删除原始需求 "${row.content.substring(0, 50)}..." 吗？`,
-    "删除确认",
-    {
-      confirmButtonText: "确定",
-      cancelButtonText: "取消",
-      type: "warning"
-    }
-  )
-    .then(async () => {
-      await handleDelete(row);
-    })
-    .catch(() => {});
 };
 
 defineExpose({

@@ -96,6 +96,18 @@ export class AnalyzeRequirementDto {
   @ApiProperty({ description: '原始需求文本' })
   @IsString()
   requirementText: string
+
+  @ApiProperty({ description: '追问问题列表', required: false })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  questions?: string[]
+
+  @ApiProperty({ description: '追问答案列表', required: false })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  answers?: string[]
 }
 
 export class GenerateQuestionsDto {

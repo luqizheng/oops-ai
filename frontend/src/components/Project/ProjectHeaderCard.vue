@@ -9,7 +9,9 @@
           <div class="title-content">
             <h1>{{ currentProject?.name || "加载中..." }}</h1>
             <div class="project-meta">
-              <el-tag type="primary" effect="plain">{{ currentProject?.key }}</el-tag>
+              <el-tag type="primary" effect="plain">{{
+                currentProject?.key
+              }}</el-tag>
               <el-tag :type="statusType" effect="light">
                 {{ statusText }}
               </el-tag>
@@ -43,35 +45,40 @@ import type { ProjectViewModel } from "@oops-ai/shared";
 import { getProject } from "@/api/system/project";
 
 interface Props {
-  project: ProjectViewModel | null;
-  projectId: string | null;
+  project?: ProjectViewModel | null;
+  projectId?: string | null;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  projectId: null
+  projectId: null,
+  project: null
 });
 
 const localProject = ref<ProjectViewModel | null>(null);
 const loading = ref(false);
 
 // 监听 projectId 变化，从后端获取数据
-watch(() => props.projectId, async (newId) => {
-  if (newId) {
-    loading.value = true;
-    try {
-      const data = await getProject(newId);
-      localProject.value = data;
-    } catch (error) {
-      console.error("获取项目数据失败:", error);
+watch(
+  () => props.projectId,
+  async newId => {
+    if (newId) {
+      loading.value = true;
+      try {
+        const data = await getProject(newId);
+        localProject.value = data;
+      } catch (error) {
+        console.error("获取项目数据失败:", error);
+        localProject.value = null;
+      } finally {
+        loading.value = false;
+      }
+    } else {
       localProject.value = null;
-    } finally {
       loading.value = false;
     }
-  } else {
-    localProject.value = null;
-    loading.value = false;
-  }
-}, { immediate: true });
+  },
+  { immediate: true }
+);
 
 const emit = defineEmits<{
   edit: [];

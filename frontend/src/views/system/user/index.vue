@@ -65,7 +65,7 @@
           </el-button>
         </div>
       </div>
-      {{ users }}eeeeeeeeeeeeeeeeeeeeeeeee
+
       <el-table
         v-loading="loading"
         :data="users"

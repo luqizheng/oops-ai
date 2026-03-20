@@ -62,6 +62,19 @@ export default {
       }
     },
     {
+      path: "/system/project/:id/raw-requirement/:requirementId",
+      name: "RawRequirementEdit",
+      component: () => import("@/views/system/project/projectDetail/RawRequirementDetail.vue"),
+      meta: {
+        title: "编辑原始需求",
+        icon: "ri:file-text-line",
+        showLink: false,
+        //roles: ["admin", "super-admin", "user"],
+        keepAlive: false,
+        activePath: "/system/project"
+      }
+    },
+    {
       path: "/system/llm-config",
       name: "LLMConfigManagement",
       component: () => import("@/views/system/llm-config/index.vue"),
