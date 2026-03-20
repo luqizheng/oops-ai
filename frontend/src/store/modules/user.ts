@@ -71,6 +71,7 @@ export const useUserStore = defineStore("pure-user", {
             // 适配后端响应格式
             const userData = {
               success: true,
+              message: response.message,
               data: {
                 avatar: "",
                 username: response.user.email,

@@ -1,4 +1,14 @@
 import { http } from "@/utils/http";
+export type LoginResult = {
+  message: string;
+  accessToken: string;
+  user: {
+    id: string;
+    email: string;
+    name: string | null;
+    role: string;
+  };
+};
 
 export type UserResult = {
   success: boolean;
@@ -36,7 +46,7 @@ export type RefreshTokenResult = {
 
 /** 登录 */
 export const getLogin = (data?: object) => {
-  return http.request<UserResult>("post", "/auth/login", { data });
+  return http.request<LoginResult>("post", "/auth/login", { data });
 };
 
 /** 刷新`token` */
