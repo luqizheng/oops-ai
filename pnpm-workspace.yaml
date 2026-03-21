@@ -1,4 +1,4 @@
 packages:
-  - frontend
+  - apps/web-api
   - apps/web
   - shared

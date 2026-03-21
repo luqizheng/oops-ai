@@ -1,32 +1,64 @@
-import { NestFactory } from '@nestjs/core'
-import { AppModule } from './app.module'
-import { ValidationPipe } from '@nestjs/common'
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
-import { GlobalExceptionFilter } from './common/exception.filter'
+import App from "./App.vue";
+import router from "./router";
+import { setupStore } from "@/store";
+import { getPlatformConfig } from "./config";
+import { MotionPlugin } from "@vueuse/motion";
+// import { useEcharts } from "@/plugins/echarts";
+import { createApp, type Directive } from "vue";
+import { useElementPlus } from "@/plugins/elementPlus";
+import { injectResponsiveStorage } from "@/utils/responsive";
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
+import Table from "@pureadmin/table";
+// import PureDescriptions from "@pureadmin/descriptions";
 
-  app.useGlobalPipes(new ValidationPipe())
-  app.useGlobalFilters(new GlobalExceptionFilter())
+// 引入重置样式
+import "./style/reset.scss";
+// 导入公共样式
+import "./style/index.scss";
+// 一定要在main.ts中导入tailwind.css，防止vite每次hmr都会请求src/style/index.scss整体css文件导致热更新慢的问题
+import "./style/tailwind.css";
+import "element-plus/dist/index.css";
+// 导入字体图标
+import "./assets/iconfont/iconfont.js";
+import "./assets/iconfont/iconfont.css";
 
-  const config = new DocumentBuilder()
-    .setTitle('OOPS-AI API')
-    .setDescription('软件团队专属需求智能体 API 文档')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build()
+const app = createApp(App);
 
-  const document = SwaggerModule.createDocument(app, config)
-  SwaggerModule.setup('api-docs', app, document)
+// 自定义指令
+import * as directives from "@/directives";
+Object.keys(directives).forEach(key => {
+  app.directive(key, (directives as { [key: string]: Directive })[key]);
+});
 
-  app.enableCors({
-    origin: 'http://localhost:3000',
-    credentials: true,
-  })
+// 全局注册@iconify/vue图标库
+import {
+  IconifyIconOffline,
+  IconifyIconOnline,
+  FontIcon
+} from "./components/ReIcon";
+app.component("IconifyIconOffline", IconifyIconOffline);
+app.component("IconifyIconOnline", IconifyIconOnline);
+app.component("FontIcon", FontIcon);
 
-  await app.listen(3001)
-  console.log(`Application is running on: ${await app.getUrl()}`)
-  console.log(`Swagger docs available at: ${await app.getUrl()}/api-docs`)
-}
-bootstrap()
+// 全局注册按钮级别权限组件
+import { Auth } from "@/components/ReAuth";
+import { Perms } from "@/components/RePerms";
+app.component("Auth", Auth);
+app.component("Perms", Perms);
+
+// 全局注册vue-tippy
+import "tippy.js/dist/tippy.css";
+import "tippy.js/themes/light.css";
+import VueTippy from "vue-tippy";
+app.use(VueTippy);
+
+getPlatformConfig(app).then(async config => {
+  setupStore(app);
+  app.use(router);
+  await router.isReady();
+  injectResponsiveStorage(app, config);
+  app.use(MotionPlugin).use(useElementPlus).use(Table);
+  // .use(PureDescriptions)
+  // .use(useEcharts);
+  app.mount("#app");
+});
