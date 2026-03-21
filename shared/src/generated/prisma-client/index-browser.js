@@ -396,18 +396,6 @@ exports.Prisma.PromptTemplateScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
-exports.Prisma.AnalysisSessionScalarFieldEnum = {
-  id: 'id',
-  sessionId: 'sessionId',
-  rawContent: 'rawContent',
-  currentRequirements: 'currentRequirements',
-  pendingQuestions: 'pendingQuestions',
-  answeredQuestions: 'answeredQuestions',
-  status: 'status',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -459,8 +447,7 @@ exports.Prisma.ModelName = {
   Permission: 'Permission',
   QuestionTemplate: 'QuestionTemplate',
   LLMConfiguration: 'LLMConfiguration',
-  PromptTemplate: 'PromptTemplate',
-  AnalysisSession: 'AnalysisSession'
+  PromptTemplate: 'PromptTemplate'
 };
 
 /**

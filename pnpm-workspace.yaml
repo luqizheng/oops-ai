@@ -1,18 +1,4 @@
 packages:
   - frontend
-  - backend
+  - apps/web
   - shared
-
-ignoredBuiltDependencies:
-  - '@nestjs/core'
-  - '@parcel/watcher'
-  - '@scarf/scarf'
-  - bcrypt
-  - esbuild
-  - vue-demi
-  - vue-echarts
-
-onlyBuiltDependencies:
-  - '@prisma/client'
-  - '@prisma/engines'
-  - prisma
