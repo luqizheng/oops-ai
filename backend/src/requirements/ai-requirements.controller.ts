@@ -17,10 +17,8 @@ import {
   GenerateUserStoriesDto,
   GenerateAcceptanceCriteriaDto,
   QualityScoreDto,
-  FuzzyWordAnalysis,
-  RequirementAnalysisResponse,
   QualityScore,
-} from './dto/requirements.dto'
+} from '@oops-ai/shared'
 
 @ApiTags('AI需求分析')
 @Controller('requirements/ai')

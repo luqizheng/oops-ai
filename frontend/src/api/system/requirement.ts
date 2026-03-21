@@ -136,14 +136,21 @@ export const deleteRawRequirement = (rawId: string) => {
 
 export const analyzeRequirement = (
   requirementText: string,
-  questions?: string[],
-  answers?: string[]
+  sessionId?: string,
+  answers?: Array<{
+    questionId: string;
+    answer: string;
+  }>
 ) => {
   return http.request<{
-    analysisResults: string[];
-    questions: string[];
+    sessionId: string;
+    requirements: any[];
+    pendingQuestions: any[];
+    status: "analyzing" | "waiting_for_answers" | "completed";
+    isComplete?: boolean;
+    summary?: string;
   }>("post", "/requirements/ai/analyze/requirement", {
-    data: { requirementText, questions, answers }
+    data: { requirementText, sessionId, answers }
   });
 };
 

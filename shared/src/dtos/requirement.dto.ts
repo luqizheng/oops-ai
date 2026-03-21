@@ -31,6 +31,55 @@ export interface AnalyzeFuzzyWordsDto {
 // 需求分析 DTO
 export interface AnalyzeRequirementDto {
   requirementText: string;
+  sessionId?: string;
+  answers?: Array<{
+    questionId: string;
+    answer: string;
+  }>;
+  confirmedRequirements?: string[];
+}
+
+// 结构化需求
+export interface StructuredRequirement {
+  id: string;
+  title: string;
+  type: "FUNCTIONAL" | "NFR" | "SECURITY" | "UI_UX" | "PERFORMANCE";
+  priority: "HIGH" | "MEDIUM" | "LOW";
+  description: string;
+  acceptanceCriteria: string[];
+  notes?: string;
+  status: "draft" | "confirmed" | "merged" | "deleted";
+  changes?: string;
+}
+
+// 澄清问题
+export interface ClarifyingQuestion {
+  id: string;
+  question: string;
+  relatedRequirementIds: string[];
+  answerType: "text" | "number" | "select" | "boolean";
+  options?: string[];
+  answer?: string;
+}
+
+// 已回答的问题
+export interface AnsweredQuestion {
+  questionId: string;
+  question: string;
+  answer: string;
+  answeredAt: Date;
+}
+
+// 会话上下文
+export interface AnalysisSession {
+  sessionId: string;
+  rawContent: string;
+  currentRequirements: StructuredRequirement[];
+  pendingQuestions: ClarifyingQuestion[];
+  answeredQuestions: AnsweredQuestion[];
+  status: "analyzing" | "waiting_for_answers" | "completed";
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // 生成问题 DTO
@@ -100,8 +149,12 @@ export interface QualityScore {
 
 // 需求分析响应
 export interface RequirementAnalysisResponse {
-  analysisResults: string[];
-  questions: string[];
+  sessionId: string;
+  requirements: StructuredRequirement[];
+  pendingQuestions: ClarifyingQuestion[];
+  status: "analyzing" | "waiting_for_answers" | "completed";
+  isComplete?: boolean;
+  summary?: string;
 }
 
 // 原始需求创建 DTO

@@ -1,32 +1,64 @@
 export const defaultPromptTemplates = [
   {
-    name: '原始需求转需求 - 通用模板',
-    description: '将原始需求转换为结构化需求的通用模板',
+    name: '原始需求转需求 - 首次分析',
+    description: '首次分析原始需求，拆解为结构化需求并生成追问问题',
     category: 'raw-to-requirement',
-    template: `你是一个资深产品经理，请将以下原始需求解析为结构化需求。
+    template: `你是一个资深的软件需求分析师。请分析以下原始需求，完成以下任务：
 
-原始需求: {{rawRequirement}}
+## 原始需求
 
-请输出JSON格式:
+{{rawContent}}
 
+## 任务
+
+### 任务1: 拆解需求
+将原始需求拆解为独立、清晰、可执行的需求点。
+
+### 任务2: 识别模糊点
+找出需求中模糊、不明确的地方，生成需要向用户澄清的问题。
+
+### 任务3: 优先级建议
+为每个需求建议优先级（高/中/低）。
+
+
+## 拆解原则
+1. 单一职责：每个需求只做一件事
+2. 可测试性：每个需求应有明确验收标准
+3. 用户价值：从用户角度思考
+4. 独立性：需求之间尽量解耦
+
+## 注意事项
+- 避免生成技术实现细节
+- 验收标准必须可验证
+- 模糊词（快速、友好、高效）必须转化为问题
+- 优先识别性能指标、安全要求、边界条件
+## 输出格式
+请以JSON格式返回，严格遵循以下结构：
 {
-  "user_roles": ["角色1", "角色2"],
-  "functional_requirements": [
+  "requirements": [
     {
-      "description": "功能描述",
-      "priority": "high/medium/low",
-      "acceptance_criteria": ["条件1", "条件2"]
+      "id": "req_001",
+      "title": "需求标题",
+      "type": "FUNCTIONAL | NFR | SECURITY | UI_UX | PERFORMANCE",
+      "priority": "HIGH | MEDIUM | LOW",
+      "description": "详细描述",
+      "acceptanceCriteria": ["验收标准1", "验收标准2"],
+      "notes": "备注信息（可选）"
     }
   ],
-  "non_functional_requirements": {
-    "performance": "性能要求",
-    "security": "安全要求",
-    "usability": "可用性要求"
-  },
-  "constraints": ["约束1", "约束2"],
-  "questions_to_ask": ["追问1", "追问2"]
-}`,
-    variables: ['rawRequirement'],
+  "questions": [
+    {
+      "id": "q_001",
+      "question": "需要澄清的问题",
+      "relatedRequirementIds": ["req_001"],
+      "answerType": "text | number | select | boolean",
+      "options": ["选项1", "选项2"]  // 仅当answerType为select时需要
+    }
+  ]
+}
+
+请开始分析：`,
+    variables: ['rawContent'],
     isDefault: true,
     isActive: true,
   },
@@ -355,6 +387,86 @@ Output JSON format:
 3. 消除模糊词汇
 4. 补充缺失的信息`,
     variables: ['requirementText'],
+    isDefault: true,
+    isActive: true,
+  },
+  {
+    name: '原始需求转需求 - 带上下文',
+    description: '基于之前的分析和用户回答，更新需求分析结果',
+    category: 'raw-to-requirement-with-context',
+    template: `你是一个资深的软件需求分析师。基于之前的分析和用户的回答，请更新需求分析结果。
+
+## 会话历史
+### 原始需求
+
+{{rawContent}}
+
+### 当前需求列表
+{{#each currentRequirements}}
+[{{this.id}}] {{this.title}}
+- 描述: {{this.description}}
+- 类型: {{this.type}}
+- 优先级: {{this.priority}}
+{{/each}}
+
+### 已澄清的问题
+{{#each answeredQuestions}}
+Q: {{this.question}}
+A: {{this.answer}}
+{{/each}}
+
+### 待处理的用户确认
+用户确认了以下需求: {{confirmedRequirementIds}}
+
+## 任务
+
+### 任务1: 更新需求
+根据用户的回答，更新需求列表：
+- 完善模糊的描述
+- 补充具体的验收标准
+- 调整优先级（如果需要）
+- 合并或拆分需求
+
+### 任务2: 识别新问题
+如果仍有不明确的地方，生成新的澄清问题。
+
+### 任务3: 完成判断
+如果所有需求都已经清晰，标记为完成。
+
+## 输出格式
+{
+  "requirements": [
+    {
+      "id": "req_001",
+      "title": "更新后的标题",
+      "type": "FUNCTIONAL | NFR | SECURITY | UI_UX | PERFORMANCE",
+      "priority": "HIGH | MEDIUM | LOW",
+      "description": "更新后的描述",
+      "acceptanceCriteria": ["更新后的验收标准"],
+      "status": "confirmed | draft",
+      "changes": "说明相对于上一轮的改动"
+    }
+  ],
+  "questions": [
+    {
+      "id": "q_003",
+      "question": "新的澄清问题",
+      "relatedRequirementIds": ["req_001"],
+      "answerType": "text"
+    }
+  ],
+  "isComplete": true | false,
+  "summary": "本轮更新的总结"
+}
+
+## 更新原则
+1. 用户的回答直接用于完善需求
+2. 如果回答解决了问题，更新对应的需求
+3. 如果回答引入了新的模糊点，生成新问题
+4. 避免重复提问已经澄清的问题
+
+请开始更新：`,
+    variables: ['rawContent', 'currentRequirements', 'answeredQuestions', 'confirmedRequirementIds'],
     isDefault: true,
     isActive: true,
   },

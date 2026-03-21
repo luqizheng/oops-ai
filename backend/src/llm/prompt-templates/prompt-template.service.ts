@@ -342,10 +342,32 @@ export class PromptTemplateService {
       template = await this.findBestMatch(categoryOrId, provider, modelName)
     }
 
+    // 如果找不到模板，尝试使用默认模板并保存到数据库
     if (!template) {
-      console.error('无法通过类别或ID找到匹配的categoryOrId:', categoryOrId, provider, modelName)
-      throw new NotFoundException(`No prompt template found for: ${categoryOrId}`)
+      console.info(`No template found for ${categoryOrId}, trying to use default template`)
+
+      // 导入默认模板
+      const { defaultPromptTemplates } = await import('./default-templates')
+
+      // 查找匹配的默认模板
+      const defaultTemplate = defaultPromptTemplates.find((t) => t.category === categoryOrId)
+
+      if (!defaultTemplate) {
+        console.error('无法找到匹配的默认模板:', categoryOrId)
+        throw new NotFoundException(`No prompt template found for: ${categoryOrId}`)
+      }
+
+      // 创建默认模板到数据库
+      template = await this.create({
+        ...defaultTemplate,
+        provider,
+        modelName,
+      })
+
+      console.info(`Created default template for ${categoryOrId} in database`)
     }
+
+    // 渲染模板
     const contents = this.render(template.template, variables)
     return contents
   }

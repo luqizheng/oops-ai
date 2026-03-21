@@ -29,48 +29,87 @@
         </el-form-item>
 
         <!-- AI 分析结果 -->
-        <div v-if="analysisResults.length > 0" class="analysis-results">
+        <div v-if="structuredRequirements.length > 0" class="analysis-results">
           <h4 style="margin-bottom: 12px">AI 分析结果</h4>
-          <el-card
-            class="result-card"
-            shadow="hover"
-            :body-style="{ padding: '12px' }"
+          <div
+            v-for="(requirement, index) in structuredRequirements"
+            :key="requirement.id"
+            class="requirement-item"
           >
-            <el-timeline>
-              <el-timeline-item
-                v-for="(result, index) in analysisResults"
-                :key="index"
-                timestamp=""
-                color="#2080f0"
+            <el-card
+              class="result-card"
+              shadow="hover"
+              :body-style="{ padding: '16px' }"
+            >
+              <div class="requirement-header">
+                <h5>
+                  {{ requirement.title }}
+                  <el-tag
+                    :type="getTypeColor(requirement.type)"
+                    size="small"
+                    style="margin-left: 8px"
+                  >
+                    {{ getTypeLabel(requirement.type) }}
+                  </el-tag>
+                  <el-tag
+                    :type="getPriorityColor(requirement.priority)"
+                    size="small"
+                    style="margin-left: 8px"
+                  >
+                    {{ getPriorityLabel(requirement.priority) }}
+                  </el-tag>
+                </h5>
+                <el-button
+                  v-if="requirement.changes"
+                  type="info"
+                  size="small"
+                  @click="showChangeLog(requirement)"
+                >
+                  查看变更
+                </el-button>
+              </div>
+              <div class="requirement-description">
+                {{ requirement.description }}
+              </div>
+              <div
+                class="acceptance-criteria"
+                v-if="requirement.acceptanceCriteria.length > 0"
               >
-                {{ result }}
-              </el-timeline-item>
-            </el-timeline>
-          </el-card>
+                <h6>验收标准:</h6>
+                <ul>
+                  <li
+                    v-for="(criteria, idx) in requirement.acceptanceCriteria"
+                    :key="idx"
+                  >
+                    {{ criteria }}
+                  </li>
+                </ul>
+              </div>
+              <div class="requirement-notes" v-if="requirement.notes">
+                <h6>备注:</h6>
+                <p>{{ requirement.notes }}</p>
+              </div>
+            </el-card>
+          </div>
         </div>
 
         <!-- 追问列表 -->
-        <div v-if="questions.length > 0" class="questions-section">
+        <div v-if="pendingQuestions.length > 0" class="questions-section">
           <h4 style="margin-bottom: 12px">AI 追问</h4>
           <div
-            v-for="(question, index) in questions"
-            :key="index"
+            v-for="(question, index) in pendingQuestions"
+            :key="question.id"
             class="question-item"
           >
             <el-card shadow="hover" :body-style="{ padding: '16px' }">
               <div class="question-header">
-                <span class="question-text">{{ question }}</span>
-                <el-button
-                  type="danger"
-                  size="small"
-                  @click="handleDeleteQuestion(index)"
-                >
-                  <el-icon><Delete /></el-icon>
-                  删除
-                </el-button>
+                <span class="question-text">{{ question.question }}</span>
+                <el-tag size="small" style="margin-left: 8px">
+                  {{ getAnswerTypeLabel(question.answerType) }}
+                </el-tag>
               </div>
               <el-input
-                v-model="questionAnswers[index]"
+                v-model="questionAnswers[question.id]"
                 type="textarea"
                 :rows="3"
                 placeholder="请输入您的回答"
@@ -83,12 +122,23 @@
               type="primary"
               :loading="analyzing"
               :disabled="!hasAllAnswers()"
-              @click="handleOptimizeInput"
+              @click="handleContinueAnalyze"
             >
               <el-icon><MagicStick /></el-icon>
-              优化输入内容
+              继续分析
             </el-button>
           </div>
+        </div>
+
+        <!-- 分析完成提示 -->
+        <div v-if="analysisComplete" class="completion-section">
+          <el-alert
+            title="需求分析已完成"
+            type="success"
+            description="所有需求已澄清，可以将结果保存为正式需求。"
+            show-icon
+            :closable="false"
+          />
         </div>
 
         <el-form-item label="来源类型" prop="sourceType">
@@ -182,9 +232,11 @@ const formData = ref({
 
 const submitLoading = ref(false);
 const analyzing = ref(false);
-const analysisResults = ref<string[]>([]);
-const questions = ref<string[]>([]);
-const questionAnswers = ref<string[]>([]);
+const analysisSessionId = ref<string | null>(null);
+const structuredRequirements = ref<any[]>([]);
+const pendingQuestions = ref<any[]>([]);
+const questionAnswers = ref<Record<string, string>>({});
+const analysisComplete = ref(false);
 
 const rules = {
   content: [{ required: true, message: "请输入原始需求内容", trigger: "blur" }],
@@ -205,12 +257,22 @@ const handleAnalyze = async () => {
 
   analyzing.value = true;
   try {
-    // 这里需要导入分析接口
+    // 导入分析接口
     const { analyzeRequirement } = await import("@/api/system/requirement");
     const res = await analyzeRequirement(formData.value.content);
-    analysisResults.value = res.analysisResults || [];
-    questions.value = res.questions || [];
-    questionAnswers.value = questions.value.map(() => "");
+
+    // 更新会话ID和分析结果
+    analysisSessionId.value = res.sessionId;
+    structuredRequirements.value = res.requirements || [];
+    pendingQuestions.value = res.pendingQuestions || [];
+
+    // 初始化问题回答
+    questionAnswers.value = {};
+    pendingQuestions.value.forEach(question => {
+      questionAnswers.value[question.id] = "";
+    });
+
+    analysisComplete.value = res.isComplete || false;
     ElMessage.success("需求分析完成");
   } catch (error: any) {
     ElMessage.error(error.message || "需求分析失败");
@@ -219,47 +281,120 @@ const handleAnalyze = async () => {
   }
 };
 
-// 删除追问
-const handleDeleteQuestion = (index: number) => {
-  questions.value.splice(index, 1);
-  questionAnswers.value.splice(index, 1);
-};
+// 继续分析（回答追问后）
+const handleContinueAnalyze = async () => {
+  if (!formData.value.content.trim() || !analysisSessionId.value) {
+    ElMessage.warning("请先进行初始需求分析");
+    return;
+  }
 
-// 检查是否所有追问都已回答
-const hasAllAnswers = () => {
-  return (
-    questions.value.length > 0 &&
-    questionAnswers.value.every(answer => answer.trim())
-  );
-};
-
-// 优化输入内容
-const handleOptimizeInput = async () => {
-  if (!formData.value.content.trim() || !hasAllAnswers()) {
-    ElMessage.warning("请输入原始需求内容并回答所有追问");
+  if (!hasAllAnswers()) {
+    ElMessage.warning("请回答所有追问");
     return;
   }
 
   analyzing.value = true;
   try {
-    const { optimizeInput } = await import("@/api/system/requirement");
-    const res = await optimizeInput(
+    // 导入分析接口
+    const { analyzeRequirement } = await import("@/api/system/requirement");
+
+    // 准备回答数据
+    const answers = pendingQuestions.value.map(question => ({
+      questionId: question.id,
+      answer: questionAnswers.value[question.id]
+    }));
+
+    const res = await analyzeRequirement(
       formData.value.content,
-      questions.value,
-      questionAnswers.value
+      analysisSessionId.value,
+      answers
     );
-    // 将优化后的内容更新到需求内容中
-    formData.value.content = res.optimizedContent;
-    // 清空分析结果和追问
-    analysisResults.value = [];
-    questions.value = [];
-    questionAnswers.value = [];
-    ElMessage.success("输入内容优化完成");
+
+    // 更新分析结果
+    structuredRequirements.value = res.requirements || [];
+    pendingQuestions.value = res.pendingQuestions || [];
+
+    // 初始化新的问题回答
+    questionAnswers.value = {};
+    pendingQuestions.value.forEach(question => {
+      questionAnswers.value[question.id] = "";
+    });
+
+    analysisComplete.value = res.isComplete || false;
+    ElMessage.success("需求分析更新完成");
   } catch (error: any) {
-    ElMessage.error(error.message || "优化输入内容失败");
+    ElMessage.error(error.message || "需求分析失败");
   } finally {
     analyzing.value = false;
   }
+};
+
+// 检查是否所有追问都已回答
+const hasAllAnswers = () => {
+  return (
+    pendingQuestions.value.length > 0 &&
+    pendingQuestions.value.every(question => questionAnswers.value[question.id]?.trim())
+  );
+};
+
+// 显示需求变更日志
+const showChangeLog = (requirement: any) => {
+  ElMessage.info(`变更记录: ${requirement.changes}`);
+};
+
+// 获取需求类型标签
+const getTypeLabel = (type: string) => {
+  const typeMap: Record<string, string> = {
+    'FUNCTIONAL': '功能需求',
+    'NFR': '非功能需求',
+    'SECURITY': '安全需求',
+    'UI_UX': 'UI/UX需求',
+    'PERFORMANCE': '性能需求'
+  };
+  return typeMap[type] || type;
+};
+
+// 获取需求类型颜色
+const getTypeColor = (type: string):elTagType=> {
+  const colorMap: Record<string, elTagType> = {
+    'FUNCTIONAL': 'primary',
+    'NFR': 'success',
+    'SECURITY': 'danger',
+    'UI_UX': 'warning',
+    'PERFORMANCE': 'info'
+  };
+  return colorMap[type] || undefined;
+};
+
+// 获取优先级标签
+const getPriorityLabel = (priority: string) => {
+  const priorityMap: Record<string, string> = {
+    'HIGH': '高',
+    'MEDIUM': '中',
+    'LOW': '低'
+  };
+  return priorityMap[priority] || priority;
+};
+type elTagType = "primary" | "success" | "info" | "warning" | "danger"|undefined;
+// 获取优先级颜色
+const getPriorityColor = (priority: string) :elTagType=> {
+  const colorMap: Record<string, elTagType> = {
+    'HIGH': 'danger',
+    'MEDIUM': 'warning',
+    'LOW': 'success'
+  };
+  return colorMap[priority] || undefined;
+};
+
+// 获取回答类型标签
+const getAnswerTypeLabel = (type: string) => {
+  const typeMap: Record<string, string> = {
+    'text': '文本',
+    'number': '数字',
+    'select': '选择',
+    'boolean': '布尔值'
+  };
+  return typeMap[type] || type;
 };
 
 const handleSubmit = async () => {
@@ -268,8 +403,8 @@ const handleSubmit = async () => {
   await formRef.value.validate(async valid => {
     if (valid) {
       // 检查是否有未回答的追问问题
-      const hasUnansweredQuestion = questions.value.some((_, index) => {
-        return !questionAnswers.value[index].trim();
+      const hasUnansweredQuestion = pendingQuestions.value.some(question => {
+        return !questionAnswers.value[question.id]?.trim();
       });
 
       if (hasUnansweredQuestion) {
@@ -279,17 +414,26 @@ const handleSubmit = async () => {
 
       submitLoading.value = true;
       try {
-        // 整合追问答案到 sourceMeta
+        // 整合AI分析结果到 sourceMeta
         const submitData = { ...formData.value };
-        if (questions.value.length > 0) {
-          submitData.sourceMeta = {
-            ...submitData.sourceMeta,
-            aiAnalysis: {
-              questions: questions.value,
-              answers: questionAnswers.value
-            }
-          };
-        }
+
+        // 添加AI分析结果
+        const aiAnalysisData = {
+          sessionId: analysisSessionId.value,
+          requirements: structuredRequirements.value,
+          pendingQuestions: pendingQuestions.value,
+          answeredQuestions: pendingQuestions.value.map(question => ({
+            questionId: question.id,
+            question: question.question,
+            answer: questionAnswers.value[question.id]
+          })),
+          isComplete: analysisComplete.value
+        };
+
+        submitData.sourceMeta = {
+          ...submitData.sourceMeta,
+          aiAnalysis: aiAnalysisData
+        };
 
         const requirementApi = await import("@/api/system/requirement");
 

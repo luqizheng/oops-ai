@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common'
 import { LLMService } from '../llm/llm.service'
 import { PromptTemplateService } from '../llm/prompt-templates/prompt-template.service'
+import { PrismaService } from '../prisma/prisma.service'
 import {
   AnalyzeFuzzyWordsDto,
   AnalyzeRequirementDto,
@@ -14,13 +15,18 @@ import {
   UserStory,
   AcceptanceCriterion,
   QualityScore,
-} from './dto/requirements.dto'
+  StructuredRequirement,
+  ClarifyingQuestion,
+  AnsweredQuestion,
+  AnalysisSession,
+} from '@oops-ai/shared'
 
 @Injectable()
 export class AIRequirementsService {
   constructor(
     private readonly llmService: LLMService,
     private readonly promptTemplateService: PromptTemplateService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async analyzeFuzzyWords(analyzeFuzzyWordsDto: AnalyzeFuzzyWordsDto): Promise<FuzzyWordAnalysis> {
@@ -82,114 +88,127 @@ export class AIRequirementsService {
   async analyzeRequirement(
     analyzeRequirementDto: AnalyzeRequirementDto,
   ): Promise<RequirementAnalysisResponse> {
-    // return {
-    //   analysisResults: [
-    //     '系统需向旅客部发送行李取出通知',
-    //     '旅客部确认接收行李',
-    //     '客户与前台完成号码牌交换',
-    //     '前台输入号码完成行李托管单',
-    //   ],
-    //   questions: [
-    //     '旅客部具体指哪个部门？（例如行李寄存处/客房服务中心）',
-    //     '号码牌是什么形式？（如二维码/条形码/实体标签）',
-    //     '系统如何向旅客部发送通知？（自动触发/手动推送）',
-    //     '客户接受行李后如何确认？（口头/系统界面）',
-    //     '前台输入号码是手动输入还是扫描操作？',
-    //     '行李托管单结束后系统需要生成哪些数据记录？（如日志/报表）',
-    //   ],
-    // } as RequirementAnalysisResponse
-
     try {
       console.info('调用-analyzeRequirement')
-      // 1. 获取并渲染提示词模板
-      const prompt = await this.promptTemplateService.renderTemplate(
-        'raw-to-requirement',
-        {
-          requirementText: analyzeRequirementDto.requirementText,
-        },
-        this.llmService,
-      )
+
+      // 1. 检查是否有会话ID
+      let session: AnalysisSession | null = null
+      let prompt: string
+
+      if (analyzeRequirementDto.sessionId) {
+        // 从数据库获取会话上下文
+        session = await this.prisma.analysisSession.findUnique({
+          where: { sessionId: analyzeRequirementDto.sessionId },
+        })
+
+        if (!session) {
+          throw new BadRequestException('会话不存在')
+        }
+
+        // 处理用户回答
+        const updatedAnsweredQuestions: AnsweredQuestion[] = [
+          ...(session.answeredQuestions as AnsweredQuestion[]),
+        ]
+        const updatedPendingQuestions: ClarifyingQuestion[] = [
+          ...(session.pendingQuestions as ClarifyingQuestion[]),
+        ]
+
+        if (analyzeRequirementDto.answers) {
+          analyzeRequirementDto.answers.forEach((answer) => {
+            // 查找对应的问题
+            const questionIndex = updatedPendingQuestions.findIndex(
+              (q) => q.id === answer.questionId,
+            )
+            if (questionIndex !== -1) {
+              const question = updatedPendingQuestions[questionIndex]
+              // 添加到已回答问题
+              updatedAnsweredQuestions.push({
+                questionId: question.id,
+                question: question.question,
+                answer: answer.answer,
+                answeredAt: new Date(),
+              })
+              // 从待回答问题中移除
+              updatedPendingQuestions.splice(questionIndex, 1)
+            }
+          })
+        }
+
+        // 使用带上下文的提示词模板
+        prompt = await this.promptTemplateService.renderTemplate(
+          'raw-to-requirement-with-context',
+          {
+            rawContent: session.rawContent,
+            currentRequirements: session.currentRequirements,
+            answeredQuestions: updatedAnsweredQuestions,
+            confirmedRequirementIds: analyzeRequirementDto.confirmedRequirements || [],
+          },
+          this.llmService,
+        )
+
+        // 更新会话
+        session = await this.prisma.analysisSession.update({
+          where: { sessionId: analyzeRequirementDto.sessionId },
+          data: {
+            answeredQuestions: updatedAnsweredQuestions,
+            pendingQuestions: updatedPendingQuestions,
+            updatedAt: new Date(),
+          },
+        })
+      } else {
+        // 首次分析，没有会话ID
+        // 生成新的会话ID
+        const newSessionId = `sess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+        // 使用首次分析的提示词模板
+        prompt = await this.promptTemplateService.renderTemplate(
+          'raw-to-requirement',
+          {
+            rawContent: analyzeRequirementDto.requirementText,
+          },
+          this.llmService,
+        )
+
+        // 创建新会话
+        session = await this.prisma.analysisSession.create({
+          data: {
+            sessionId: newSessionId,
+            rawContent: analyzeRequirementDto.requirementText,
+            currentRequirements: [],
+            pendingQuestions: [],
+            answeredQuestions: [],
+            status: 'analyzing',
+          },
+        })
+      }
 
       // 2. 使用渲染后的提示词调用LLM
       const response = await this.llmService.generateCompletion(prompt)
 
-      try {
-        const content = response.replace(/^```json\s*/, '').replace(/\s*```$/, '')
-        console.info('analyzeRequirement 分析后 content:', content)
-        const parsed = JSON.parse(content)
+      // 3. 解析LLM响应
+      const content = response.replace(/^```json\s*/, '').replace(/\s*```$/, '')
+      console.info('analyzeRequirement 分析后 content:', content)
+      const parsed = JSON.parse(content)
 
-        return {
-          analysisResults: parsed.analysisResults || [],
-          questions: parsed.questions || [],
-        }
-      } catch (jsonError) {
-        console.warn('Failed to parse JSON response, trying to extract from text:', response)
+      // 4. 更新会话状态
+      const updatedSession = await this.prisma.analysisSession.update({
+        where: { sessionId: session.sessionId },
+        data: {
+          currentRequirements: parsed.requirements || [],
+          pendingQuestions: parsed.questions || [],
+          status: parsed.isComplete ? 'completed' : 'waiting_for_answers',
+          updatedAt: new Date(),
+        },
+      })
 
-        const analysisResults: string[] = []
-        const questions: string[] = []
-
-        const lines = response.split('\n')
-        let inAnalysisResults = false
-        let inQuestions = false
-
-        for (const line of lines) {
-          const trimmedLine = line.trim()
-
-          if (trimmedLine.includes('analysisResults') || trimmedLine.includes('需求点')) {
-            inAnalysisResults = true
-            inQuestions = false
-            continue
-          }
-
-          if (trimmedLine.includes('questions') || trimmedLine.includes('追问')) {
-            inAnalysisResults = false
-            inQuestions = true
-            continue
-          }
-
-          if (
-            inAnalysisResults &&
-            trimmedLine &&
-            !trimmedLine.includes('{') &&
-            !trimmedLine.includes('}') &&
-            !trimmedLine.includes('[') &&
-            !trimmedLine.includes(']')
-          ) {
-            const cleanLine = trimmedLine
-              .replace(/^[-\*•]\s*/, '')
-              .replace(/["',]/g, '')
-              .trim()
-            if (cleanLine) {
-              analysisResults.push(cleanLine)
-            }
-          }
-
-          if (
-            inQuestions &&
-            trimmedLine &&
-            !trimmedLine.includes('{') &&
-            !trimmedLine.includes('}') &&
-            !trimmedLine.includes('[') &&
-            !trimmedLine.includes(']')
-          ) {
-            const cleanLine = trimmedLine
-              .replace(/^[-\*•]\s*/, '')
-              .replace(/["',]/g, '')
-              .trim()
-            if (cleanLine) {
-              questions.push(cleanLine)
-            }
-          }
-        }
-
-        if (analysisResults.length === 0) {
-          analysisResults.push('需求分析失败，请重试')
-        }
-
-        return {
-          analysisResults,
-          questions,
-        }
+      // 5. 返回结果
+      return {
+        sessionId: updatedSession.sessionId,
+        requirements: updatedSession.currentRequirements as StructuredRequirement[],
+        pendingQuestions: updatedSession.pendingQuestions as ClarifyingQuestion[],
+        status: updatedSession.status as 'analyzing' | 'waiting_for_answers' | 'completed',
+        isComplete: parsed.isComplete || false,
+        summary: parsed.summary || '',
       }
     } catch (error) {
       console.error('Error in AI requirement analysis:', error)
