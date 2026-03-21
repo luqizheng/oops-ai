@@ -1,5 +1,5 @@
 // 需求创建 DTO
-export interface CreateRequirementDto {
+export interface ICreateRequirementDto {
   title: string;
   description?: string;
   rawInput?: string;
@@ -11,7 +11,7 @@ export interface CreateRequirementDto {
 }
 
 // 需求更新 DTO
-export interface UpdateRequirementDto {
+export interface IUpdateRequirementDto {
   title?: string;
   description?: string;
   structuredData?: any;
@@ -74,10 +74,10 @@ export interface AnsweredQuestion {
 export interface AnalysisSession {
   sessionId: string;
   rawContent: string;
-  currentRequirements: StructuredRequirement[];
-  pendingQuestions: ClarifyingQuestion[];
-  answeredQuestions: AnsweredQuestion[];
-  status: "analyzing" | "waiting_for_answers" | "completed";
+  currentRequirements: any;
+  pendingQuestions: any;
+  answeredQuestions: any;
+  status: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -139,7 +139,7 @@ export interface AcceptanceCriterionDto {
 }
 
 // 质量评分结果
-export interface QualityScore {
+export interface IQualityScore {
   clarity: number;
   testability: number;
   completeness: number;
@@ -274,7 +274,7 @@ export interface RequirementPaginatedResult {
 }
 
 // 创建需求提交 DTO
-export interface CreateRequirementSubmit {
+export interface ICreateRequirementSubmit {
   title: string;
   description?: string;
   rawInput?: string;
@@ -286,7 +286,7 @@ export interface CreateRequirementSubmit {
 }
 
 // 更新需求提交 DTO
-export interface UpdateRequirementSubmit {
+export interface IUpdateRequirementSubmit {
   title?: string;
   description?: string;
   structuredData?: any;

@@ -12,8 +12,8 @@ import {
 } from '@nestjs/common'
 import { UsersService } from './users.service'
 import {
-  CreateUserSubmit,
-  UpdateUserSubmit,
+  ICreateUserSubmit,
+  IUpdateUserSubmit,
   CreateUserResult,
   UpdateUserResult,
   DeleteUserResult,
@@ -45,7 +45,7 @@ export class UsersController {
   }
 
   @Post()
-  async create(@Body() submit: CreateUserSubmit, @Request() req): Promise<CreateUserResult> {
+  async create(@Body() submit: ICreateUserSubmit, @Request() req): Promise<CreateUserResult> {
     const userId = req.user?.id
     return this.usersService.create(userId, submit)
   }
@@ -53,7 +53,7 @@ export class UsersController {
   @Put(':id')
   async update(
     @Param('id') id: string,
-    @Body() submit: UpdateUserSubmit,
+    @Body() submit: IUpdateUserSubmit,
   ): Promise<UpdateUserResult> {
     return this.usersService.update(id, submit)
   }

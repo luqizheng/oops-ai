@@ -1,7 +1,8 @@
 import { IsString, IsNumber, IsBoolean, IsOptional, IsEnum } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
+import { ICreateLLMConfigSubmit, IUpdateLLMConfigSubmit } from '@oops-ai/shared'
 
-export class CreateLLMConfigDto {
+export class CreateLLMConfigDto implements ICreateLLMConfigSubmit {
   @ApiProperty({
     description: 'LLM供应商',
     enum: ['openai', 'ollama', 'deepseek', 'qwen', 'local'],
@@ -44,7 +45,7 @@ export class CreateLLMConfigDto {
   isActive?: boolean = true
 }
 
-export class UpdateLLMConfigDto {
+export class UpdateLLMConfigDto implements IUpdateLLMConfigSubmit {
   @ApiProperty({ description: '模型名称', required: false })
   @IsOptional()
   @IsString()

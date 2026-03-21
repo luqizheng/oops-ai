@@ -100,7 +100,7 @@ export enum AcceptanceCriteriaStatus {
 }
 
 // 验收标准
-export interface AcceptanceCriteria {
+export interface IAcceptanceCriteria {
   id: string;
   requirementId: string;
   scenario: string;
@@ -135,7 +135,7 @@ export enum TestCaseRunStatus {
 }
 
 // 测试用例
-export interface TestCase {
+export interface ITestCase {
   id: string;
   requirementId: string;
   acceptanceCriteriaId?: string;
@@ -155,7 +155,7 @@ export interface TestCase {
 }
 
 // 业务规则
-export interface BusinessRule {
+export interface IBusinessRule {
   id: string;
   requirementId: string;
   ruleId: string;

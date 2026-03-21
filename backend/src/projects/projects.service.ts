@@ -7,10 +7,10 @@ import {
 } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import {
-  CreateProjectSubmit,
-  UpdateProjectSubmit,
-  AddProjectMemberSubmit,
-  UpdateProjectMemberSubmit,
+  ICreateProjectSubmit,
+  IUpdateProjectSubmit,
+  IAddProjectMemberSubmit,
+  IUpdateProjectMemberSubmit,
   CreateProjectResult,
   UpdateProjectResult,
   ProjectPaginatedResult,
@@ -26,7 +26,7 @@ import { PaginationParams } from '../common/dto/pagination.dto'
 export class ProjectsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createProject(userId: string, submit: CreateProjectSubmit): Promise<CreateProjectResult> {
+  async createProject(userId: string, submit: ICreateProjectSubmit): Promise<CreateProjectResult> {
     try {
       const project = await this.prisma.project.create({
         data: {
@@ -178,7 +178,7 @@ export class ProjectsService {
 
   async updateProject(
     projectId: string,
-    submit: UpdateProjectSubmit,
+    submit: IUpdateProjectSubmit,
   ): Promise<UpdateProjectResult> {
     const project = await this.prisma.project.findUnique({ where: { id: projectId } })
     if (!project) {
@@ -216,7 +216,7 @@ export class ProjectsService {
 
   async addMember(
     projectId: string,
-    submit: AddProjectMemberSubmit,
+    submit: IAddProjectMemberSubmit,
   ): Promise<ProjectMemberListItem> {
     const project = await this.prisma.project.findUnique({ where: { id: projectId } })
     if (!project) {
@@ -258,7 +258,7 @@ export class ProjectsService {
     }
   }
 
-  async updateMember(projectId: string, userId: string, submit: UpdateProjectMemberSubmit) {
+  async updateMember(projectId: string, userId: string, submit: IUpdateProjectMemberSubmit) {
     const member = await this.prisma.projectMember.findUnique({
       where: { projectId_userId: { projectId, userId } },
     })

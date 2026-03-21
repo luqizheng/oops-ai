@@ -20,7 +20,7 @@
     "typecheck": "pnpm -r run typecheck",
     "typecheck:frontend": "pnpm --filter=@oops-ai/frontend run typecheck",
     "typecheck:backend": "pnpm --filter=@oops-ai/backend run typecheck",
-    "prisma:generate": "pnpm --filter=@oops-ai/backend run prisma:generate",
+    "prisma:generate": "pnpm --filter=@oops-ai/shared run generate",
     "prisma:migrate": "pnpm --filter=@oops-ai/backend run prisma:migrate",
     "clean": "pnpm -r exec rm -rf dist node_modules"
   },

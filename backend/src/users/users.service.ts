@@ -8,8 +8,8 @@ import {
 import { PrismaService } from '../prisma/prisma.service'
 import { PaginationParams } from '../common/dto/pagination.dto'
 import {
-  CreateUserSubmit,
-  UpdateUserSubmit,
+  ICreateUserSubmit,
+  IUpdateUserSubmit,
   CreateUserResult,
   UpdateUserResult,
   UserPaginatedResult,
@@ -85,7 +85,7 @@ export class UsersService {
     } as UserViewModel
   }
 
-  async create(userId: string | undefined, submit: CreateUserSubmit): Promise<CreateUserResult> {
+  async create(userId: string | undefined, submit: ICreateUserSubmit): Promise<CreateUserResult> {
     const existingUser = await this.prisma.user.findUnique({
       where: { email: submit.email },
     })
@@ -116,7 +116,7 @@ export class UsersService {
     }
   }
 
-  async update(id: string, submit: UpdateUserSubmit): Promise<UpdateUserResult> {
+  async update(id: string, submit: IUpdateUserSubmit): Promise<UpdateUserResult> {
     const user = await this.prisma.user.findUnique({ where: { id } })
 
     if (!user) {

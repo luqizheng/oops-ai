@@ -1,6 +1,7 @@
 import { IsOptional, IsObject } from 'class-validator'
+import { IUpdateProjectSettingsSubmit } from '@oops-ai/shared'
 
-export class UpdateSettingsDto {
+export class UpdateSettingsDto implements IUpdateProjectSettingsSubmit {
   @IsOptional()
   @IsObject()
   workflowConfig?: any

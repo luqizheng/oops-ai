@@ -1,6 +1,7 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator'
+import { ICreateUserSubmit, IUpdateUserSubmit } from '@oops-ai/shared'
 
-export class CreateUserDto {
+export class CreateUserDto implements ICreateUserSubmit {
   @IsEmail()
   @IsNotEmpty()
   email: string
@@ -19,7 +20,7 @@ export class CreateUserDto {
   roleId: string
 }
 
-export class UpdateUserDto {
+export class UpdateUserDto implements IUpdateUserSubmit {
   @IsOptional()
   @IsEmail()
   email?: string

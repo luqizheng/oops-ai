@@ -1,7 +1,8 @@
 import { IsString, IsBoolean, IsOptional, IsArray, IsEnum } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
+import { ICreatePromptTemplateSubmit, IUpdatePromptTemplateSubmit } from '@oops-ai/shared'
 
-export class CreatePromptTemplateDto {
+export class CreatePromptTemplateDto implements ICreatePromptTemplateSubmit {
   @ApiProperty({ description: '模板名称' })
   @IsString()
   name: string
@@ -75,7 +76,7 @@ export class CreatePromptTemplateDto {
   variables?: string[]
 }
 
-export class UpdatePromptTemplateDto {
+export class UpdatePromptTemplateDto implements IUpdatePromptTemplateSubmit {
   @ApiProperty({ description: '模板名称', required: false })
   @IsOptional()
   @IsString()

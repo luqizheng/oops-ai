@@ -1,8 +1,8 @@
 import { IsString, IsOptional, IsNumber, IsArray } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
-import type { CreateRequirementDto as SharedCreateRequirementDto } from '@oops-ai/shared'
+import type { IQualityScore, ICreateRequirementDto, IUpdateRequirementDto } from '@oops-ai/shared'
 
-export class CreateRequirementDto implements SharedCreateRequirementDto {
+export class CreateRequirementDto implements ICreateRequirementDto {
   @ApiProperty({ description: '需求标题' })
   @IsString()
   title: string
@@ -42,7 +42,7 @@ export class CreateRequirementDto implements SharedCreateRequirementDto {
   assigneeId?: string
 }
 
-export class UpdateRequirementDto {
+export class UpdateRequirementDto implements IUpdateRequirementDto {
   @ApiProperty({ description: '需求标题', required: false })
   @IsOptional()
   @IsString()
@@ -191,7 +191,7 @@ export class AcceptanceCriterion {
   scenarioType: 'normal' | 'exception' | 'boundary'
 }
 
-export class QualityScore {
+export class QualityScore implements IQualityScore {
   @ApiProperty({ description: '清晰度评分' })
   clarity: number
 

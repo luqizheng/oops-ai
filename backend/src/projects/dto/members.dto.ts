@@ -1,6 +1,7 @@
 import { IsString, IsOptional, IsUUID } from 'class-validator'
+import { IAddProjectMemberSubmit, IUpdateProjectMemberSubmit } from '@oops-ai/shared'
 
-export class AddMemberDto {
+export class AddMemberDto implements IAddProjectMemberSubmit {
   @IsUUID()
   userId: string
 
@@ -11,7 +12,7 @@ export class AddMemberDto {
   permissions?: any
 }
 
-export class UpdateMemberDto {
+export class UpdateMemberDto implements IUpdateProjectMemberSubmit {
   @IsString()
   role: string
 

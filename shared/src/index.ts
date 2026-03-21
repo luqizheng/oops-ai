@@ -1,4 +1,9 @@
-// 导出模型和DTO
+import { PrismaClient } from './generated/prisma-client';
+import type { Prisma } from './generated/prisma-client';
+
+export { PrismaClient };
+export type { Prisma };
+
 export * from './models/requirement';
 export * from './models/project';
 export * from './models/user';
@@ -10,7 +15,6 @@ export * from './dtos/auth.dto';
 export * from './dtos/llm.dto';
 export * from './dtos/prompt-template.dto';
 
-// 导出分页结果接口
 export interface PaginatedResult<T> {
   data: T[];
   total: number;
@@ -19,14 +23,7 @@ export interface PaginatedResult<T> {
   totalPages: number;
 }
 
-// 用户分页结果
 export interface UserPaginatedResult extends PaginatedResult<import('./dtos/user.dto').UserListItem> {}
-
-// 项目分页结果
 export interface ProjectPaginatedResult extends PaginatedResult<import('./dtos/project.dto').ProjectListItem> {}
-
-// 需求分页结果
 export interface RequirementPaginatedResult extends PaginatedResult<import('./dtos/requirement.dto').RequirementListItem> {}
-
-// 提示词模板分页结果
 export interface PromptTemplatePaginatedResult extends PaginatedResult<import('./dtos/prompt-template.dto').PromptTemplateListItem> {}

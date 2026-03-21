@@ -43,7 +43,7 @@ export interface RenderTemplateResult {
   rendered?: string;
 }
 
-export interface CreatePromptTemplateSubmit {
+export interface ICreatePromptTemplateSubmit {
   name: string;
   description?: string;
   template: string;
@@ -55,7 +55,7 @@ export interface CreatePromptTemplateSubmit {
   variables?: string[];
 }
 
-export interface UpdatePromptTemplateSubmit {
+export interface IUpdatePromptTemplateSubmit {
   name?: string;
   description?: string;
   template?: string;

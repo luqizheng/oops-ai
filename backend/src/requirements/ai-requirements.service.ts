@@ -13,8 +13,8 @@ import {
   RequirementAnalysisResponse,
   QuestionItem,
   UserStory,
-  AcceptanceCriterion,
-  QualityScore,
+  AcceptanceCriterionDto,
+  IQualityScore,
   StructuredRequirement,
   ClarifyingQuestion,
   AnsweredQuestion,
@@ -150,8 +150,8 @@ export class AIRequirementsService {
         session = await this.prisma.analysisSession.update({
           where: { sessionId: analyzeRequirementDto.sessionId },
           data: {
-            answeredQuestions: updatedAnsweredQuestions,
-            pendingQuestions: updatedPendingQuestions,
+            answeredQuestions: updatedAnsweredQuestions as any,
+            pendingQuestions: updatedPendingQuestions as any,
             updatedAt: new Date(),
           },
         })
@@ -171,6 +171,7 @@ export class AIRequirementsService {
 
         // 创建新会话
         session = await this.prisma.analysisSession.create({
+
           data: {
             sessionId: newSessionId,
             rawContent: analyzeRequirementDto.requirementText,
@@ -204,8 +205,8 @@ export class AIRequirementsService {
       // 5. 返回结果
       return {
         sessionId: updatedSession.sessionId,
-        requirements: updatedSession.currentRequirements as StructuredRequirement[],
-        pendingQuestions: updatedSession.pendingQuestions as ClarifyingQuestion[],
+        requirements: updatedSession.currentRequirements as unknown as StructuredRequirement[],
+        pendingQuestions: updatedSession.pendingQuestions as unknown as ClarifyingQuestion[],
         status: updatedSession.status as 'analyzing' | 'waiting_for_answers' | 'completed',
         isComplete: parsed.isComplete || false,
         summary: parsed.summary || '',
@@ -216,90 +217,90 @@ export class AIRequirementsService {
     }
   }
 
-  async optimizeInput(
-    analyzeRequirementDto: AnalyzeRequirementDto,
-  ): Promise<{ optimizedContent: string }> {
-    try {
-      console.info('调用-optimizeInput')
-      // 1. 获取并渲染提示词模板
-      let prompt: string
-      try {
-        prompt = await this.promptTemplateService.renderTemplate(
-          'optimize-input',
-          {
-            requirementText: analyzeRequirementDto.requirementText,
-            questions: analyzeRequirementDto.questions,
-            answers: analyzeRequirementDto.answers,
-          },
-          this.llmService,
-        )
-      } catch (templateError) {
-        // 检查是否是因为找不到模板导致的错误
-        if (
-          templateError instanceof Error &&
-          templateError.message.includes('No prompt template found')
-        ) {
-          console.info('未找到optimize-input提示词模板，正在创建默认模板...')
-          // 创建默认提示词模板
-          await this.promptTemplateService.create({
-            name: '优化输入内容',
-            description: '根据原始需求和追问答案优化输入内容',
-            template: `# 需求优化任务
+//   async optimizeInput(
+//     analyzeRequirementDto: AnalyzeRequirementDto,
+//   ): Promise<{ optimizedContent: string }> {
+//     try {
+//       console.info('调用-optimizeInput')
+//       // 1. 获取并渲染提示词模板
+//       let prompt: string
+//       try {
+//         prompt = await this.promptTemplateService.renderTemplate(
+//           'optimize-input',
+//           {
+//             requirementText: analyzeRequirementDto.requirementText,
+//             questions: analyzeRequirementDto.questions,
+//             answers: analyzeRequirementDto.answers,
+//           },
+//           this.llmService,
+//         )
+//       } catch (templateError) {
+//         // 检查是否是因为找不到模板导致的错误
+//         if (
+//           templateError instanceof Error &&
+//           templateError.message.includes('No prompt template found')
+//         ) {
+//           console.info('未找到optimize-input提示词模板，正在创建默认模板...')
+//           // 创建默认提示词模板
+//           await this.promptTemplateService.create({
+//             name: '优化输入内容',
+//             description: '根据原始需求和追问答案优化输入内容',
+//             template: `# 需求优化任务
 
-请根据原始需求和追问答案，生成一个优化后的、清晰完整的需求描述。
+// 请根据原始需求和追问答案，生成一个优化后的、清晰完整的需求描述。
 
-## 原始需求
-{{requirementText}}
+// ## 原始需求
+// {{requirementText}}
 
-## 追问与答案
-{{#if questions && answers}}
-{{#each questions}}
-问题{{@index}}: {{this}}
-答案{{@index}}: {{../answers.[@index]}}
-{{/each}}
-{{/if}}
+// ## 追问与答案
+// {{#if questions && answers}}
+// {{#each questions}}
+// 问题{{@index}}: {{this}}
+// 答案{{@index}}: {{../answers.[@index]}}
+// {{/each}}
+// {{/if}}
 
-## 优化要求
-1. 整合原始需求和追问答案的信息
-2. 确保需求描述清晰、完整、无歧义
-3. 使用专业的需求描述语言
-4. 保留所有关键信息
-5. 避免模糊词汇，尽量量化
+// ## 优化要求
+// 1. 整合原始需求和追问答案的信息
+// 2. 确保需求描述清晰、完整、无歧义
+// 3. 使用专业的需求描述语言
+// 4. 保留所有关键信息
+// 5. 避免模糊词汇，尽量量化
 
-请直接输出优化后的需求描述，不要添加任何额外的解释或说明。`,
-            category: 'optimize-input',
-            isDefault: true,
-            isActive: true,
-            variables: ['requirementText', 'questions', 'answers'],
-          })
-          console.info('默认提示词模板创建成功，正在重新渲染...')
-          // 重新渲染模板
-          prompt = await this.promptTemplateService.renderTemplate(
-            'optimize-input',
-            {
-              requirementText: analyzeRequirementDto.requirementText,
-              questions: analyzeRequirementDto.questions,
-              answers: analyzeRequirementDto.answers,
-            },
-            this.llmService,
-          )
-        } else {
-          throw templateError
-        }
-      }
+// 请直接输出优化后的需求描述，不要添加任何额外的解释或说明。`,
+//             category: 'optimize-input',
+//             isDefault: true,
+//             isActive: true,
+//             variables: ['requirementText', 'questions', 'answers'],
+//           })
+//           console.info('默认提示词模板创建成功，正在重新渲染...')
+//           // 重新渲染模板
+//           prompt = await this.promptTemplateService.renderTemplate(
+//             'optimize-input',
+//             {
+//               requirementText: analyzeRequirementDto.requirementText,
+//               questions: analyzeRequirementDto.questions,
+//               answers: analyzeRequirementDto.answers,
+//             },
+//             this.llmService,
+//           )
+//         } else {
+//           throw templateError
+//         }
+//       }
 
-      // 2. 使用渲染后的提示词调用LLM
-      const response = await this.llmService.generateCompletion(prompt)
+//       // 2. 使用渲染后的提示词调用LLM
+//       const response = await this.llmService.generateCompletion(prompt)
 
-      // 3. 返回优化后的内容
-      return {
-        optimizedContent: response.trim(),
-      }
-    } catch (error) {
-      console.error('Error in AI input optimization:', error)
-      throw new BadRequestException(`优化输入内容失败: ${error.message}`)
-    }
-  }
+//       // 3. 返回优化后的内容
+//       return {
+//         optimizedContent: response.trim(),
+//       }
+//     } catch (error) {
+//       console.error('Error in AI input optimization:', error)
+//       throw new BadRequestException(`优化输入内容失败: ${error.message}`)
+//     }
+//   }
 
   async generateQuestions(
     generateQuestionsDto: GenerateQuestionsDto,
@@ -361,7 +362,7 @@ export class AIRequirementsService {
 
   async generateAcceptanceCriteria(
     generateAcceptanceCriteriaDto: GenerateAcceptanceCriteriaDto,
-  ): Promise<{ acceptanceCriteria: AcceptanceCriterion[] }> {
+  ): Promise<{ acceptanceCriteria: AcceptanceCriterionDto[] }> {
     // 1. 获取并渲染提示词模板
     const prompt = await this.promptTemplateService.renderTemplate(
       'generate-acceptance',
@@ -394,7 +395,7 @@ export class AIRequirementsService {
     }
   }
 
-  async qualityScore(qualityScoreDto: QualityScoreDto): Promise<QualityScore> {
+  async qualityScore(qualityScoreDto: QualityScoreDto): Promise<IQualityScore> {
     // 1. 获取并渲染提示词模板
     const prompt = await this.promptTemplateService.renderTemplate(
       'quality-assessment',

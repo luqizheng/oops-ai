@@ -1,6 +1,7 @@
 import { IsString, IsOptional } from 'class-validator'
+import { ICreateProjectSubmit, IUpdateProjectSubmit } from '@oops-ai/shared'
 
-export class CreateProjectDto {
+export class CreateProjectDto implements ICreateProjectSubmit {
   @IsString()
   name: string
 
@@ -12,7 +13,7 @@ export class CreateProjectDto {
   key: string
 }
 
-export class UpdateProjectDto {
+export class UpdateProjectDto implements IUpdateProjectSubmit {
   @IsOptional()
   @IsString()
   name?: string

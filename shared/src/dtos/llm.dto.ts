@@ -36,7 +36,7 @@ export interface TestConnectionResult {
   message: string;
 }
 
-export interface CreateLLMConfigSubmit {
+export interface ICreateLLMConfigSubmit {
   provider: string;
   modelName: string;
   apiEndpoint?: string;
@@ -47,7 +47,7 @@ export interface CreateLLMConfigSubmit {
   isActive?: boolean;
 }
 
-export interface UpdateLLMConfigSubmit {
+export interface IUpdateLLMConfigSubmit {
   modelName?: string;
   apiEndpoint?: string;
   apiKey?: string;

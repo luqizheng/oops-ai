@@ -1,10 +1,10 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query, Request } from '@nestjs/common'
 import { ProjectsService } from './projects.service'
 import {
-  CreateProjectSubmit,
-  UpdateProjectSubmit,
-  AddProjectMemberSubmit,
-  UpdateProjectMemberSubmit,
+  ICreateProjectSubmit,
+  IUpdateProjectSubmit,
+  IAddProjectMemberSubmit,
+  IUpdateProjectMemberSubmit,
   CreateProjectResult,
   UpdateProjectResult,
   DeleteProjectResult,
@@ -41,7 +41,7 @@ export class ProjectsController {
   }
 
   @Post()
-  async create(@Body() submit: CreateProjectSubmit, @Request() req): Promise<CreateProjectResult> {
+  async create(@Body() submit: ICreateProjectSubmit, @Request() req): Promise<CreateProjectResult> {
     const userId = req.user?.id
     return this.projectsService.createProject(userId, submit)
   }
@@ -49,7 +49,7 @@ export class ProjectsController {
   @Put(':id')
   async update(
     @Param('id') id: string,
-    @Body() submit: UpdateProjectSubmit,
+    @Body() submit: IUpdateProjectSubmit,
   ): Promise<UpdateProjectResult> {
     return this.projectsService.updateProject(id, submit)
   }
@@ -66,7 +66,7 @@ export class ProjectsController {
   }
 
   @Post(':id/members')
-  async addMember(@Param('id') id: string, @Body() submit: AddProjectMemberSubmit) {
+  async addMember(@Param('id') id: string, @Body() submit: IAddProjectMemberSubmit) {
     return this.projectsService.addMember(id, submit)
   }
 
@@ -74,7 +74,7 @@ export class ProjectsController {
   async updateMember(
     @Param('id') id: string,
     @Param('userId') userId: string,
-    @Body() submit: UpdateProjectMemberSubmit,
+    @Body() submit: IUpdateProjectMemberSubmit,
   ) {
     return this.projectsService.updateMember(id, userId, submit)
   }

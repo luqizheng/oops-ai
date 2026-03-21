@@ -1,6 +1,7 @@
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator'
+import { ICreateRoleSubmit, IUpdateRoleSubmit } from '@oops-ai/shared'
 
-export class CreateRoleDto {
+export class CreateRoleDto implements ICreateRoleSubmit {
   @IsString()
   @IsNotEmpty()
   name: string
@@ -10,7 +11,7 @@ export class CreateRoleDto {
   description?: string
 }
 
-export class UpdateRoleDto {
+export class UpdateRoleDto implements IUpdateRoleSubmit {
   @IsOptional()
   @IsString()
   name?: string

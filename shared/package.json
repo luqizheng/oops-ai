@@ -4,10 +4,25 @@
   "description": "Shared models and types for oops-ai",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./generated/prisma-client": {
+      "types": "./src/generated/prisma-client/index.d.ts",
+      "import": "./src/generated/prisma-client/index.js",
+      "require": "./src/generated/prisma-client/index.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
     "generate": "npx prisma generate"
+  },
+  "prisma": {
+    "schema": "schema.prisma"
   },
   "dependencies": {
     "@prisma/client": "^5.10.0",
