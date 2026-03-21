@@ -575,3 +575,20 @@ model PromptTemplate {
   @@index([isActive])
   @@map("prompt_templates")
 }
+
+// 分析会话模型 - 用于存储多轮对话上下文
+model AnalysisSession {
+  id                 String   @id @default(uuid())
+  sessionId          String   @unique @map("session_id")
+  rawContent         String   @db.Text @map("raw_content")
+  currentRequirements Json     @map("current_requirements")
+  pendingQuestions   Json     @map("pending_questions")
+  answeredQuestions  Json     @map("answered_questions")
+  status             String   @default("analyzing")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([sessionId])
+  @@index([status])
+  @@map("analysis_sessions")
+}
